@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
-import { Globe, Settings, LogIn, Sparkles, Heart } from 'lucide-react'
+import { Settings, Sparkles } from 'lucide-react'
 import { useUserStore } from '../stores/userStore'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
@@ -97,8 +97,7 @@ export default function TitleScreen() {
     }
   }
 
-  // 마법대결 (바로 배틀)
-  const handleBattle = () => performGuestLogin('/matchmaking')
+
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -125,83 +124,80 @@ export default function TitleScreen() {
         </div>
       ))}
 
-      {/* Top Left - ReLU Games */}
-      <div className="absolute top-4 left-4 z-20">
-        <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-bold transition">
-          More From<br/>ReLU Games
-        </button>
-        <div className="mt-2 bg-gray-700/80 rounded-lg p-2 flex items-center gap-2">
-          <div className="bg-teal-600 text-white font-bold text-xl w-10 h-10 flex items-center justify-center rounded">
-            A
-          </div>
-          <span className="text-white/80 text-xs">전체이용가</span>
-        </div>
-      </div>
+
 
       {/* Top Right - Icon Buttons */}
       <div className="absolute top-4 right-4 z-20 flex gap-2">
-        <button 
-          onClick={() => {}}
-          className="w-12 h-12 bg-yellow-400 hover:bg-yellow-500 rounded-lg flex items-center justify-center transition"
-        >
-          <Globe className="w-6 h-6 text-gray-800" />
-        </button>
+
         <button 
           onClick={testMicrophone}
           className="w-12 h-12 bg-yellow-400 hover:bg-yellow-500 rounded-lg flex items-center justify-center transition"
         >
           <Settings className="w-6 h-6 text-gray-800" />
         </button>
-        <button 
-          onClick={handleTransform}
-          className="w-12 h-12 bg-yellow-400 hover:bg-yellow-500 rounded-lg flex items-center justify-center transition"
-        >
-          <LogIn className="w-6 h-6 text-gray-800" />
-        </button>
+
       </div>
 
       {/* Center - Title */}
       <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h1 className="font-title text-6xl md:text-8xl text-pink-500" style={{ textShadow: '3px 3px 0 #fff, -1px -1px 0 #fff' }}>
-              마법소녀
+            <h1 className="font-title text-6xl md:text-8xl text-red-900" 
+                style={{ 
+                  textShadow: '0 0 10px #000, 2px 2px 0 #4a0404, 0 0 30px #8b0000',
+                  animation: 'breathe 3s ease-in-out infinite'
+                }}>
+              흑염룡이
             </h1>
-            <span className="text-pink-400 text-2xl" style={{ textShadow: '1px 1px 0 #fff' }}>카와이<br/>러블리</span>
+            <span className="text-purple-400 text-2xl font-bold" 
+                  style={{ 
+                    textShadow: '2px 2px 4px #000',
+                    animation: 'wobble 2s ease-in-out infinite' 
+                  }}>
+              날뛰어서<br/>크아아앙
+            </span>
           </div>
-          <h2 className="font-title text-4xl md:text-5xl text-cyan-400 mb-2" style={{ textShadow: '2px 2px 0 #fff' }}>
-            즈큥도큥 바큥부큥
+          <h2 className="font-title text-4xl md:text-5xl text-gray-400 mb-2" 
+              style={{ 
+                textShadow: '0 0 5px #000, 2px 2px 0 #333',
+              }}>
+            {Array.from("야레야레 다이스키다요").map((char, i) => (
+              <span key={i} style={{ 
+                display: 'inline-block',
+                animation: 'wave 1.5s ease-in-out infinite',
+                animationDelay: `${i * 0.1}s`,
+                marginRight: char === ' ' ? '10px' : '0'
+              }}>
+                {char}
+              </span>
+            ))}
           </h2>
-          <h3 className="font-title text-5xl md:text-7xl text-pink-500" style={{ textShadow: '3px 3px 0 #c084fc' }}>
-            루루핑
+          <h3 className="font-title text-5xl md:text-8xl text-white" 
+              style={{ 
+                textShadow: '4px 4px 0 #2e1065, 0 0 20px #a855f7', // Deep purple hard shadow + Bright purple glow
+                WebkitTextStroke: '2px #000' // Black stroke for definition
+              }}>
+            중이병핑
           </h3>
         </div>
       </div>
 
       {/* Bottom Buttons */}
-      <div className="relative z-20 p-6 pb-8">
-        <div className="flex items-end justify-between gap-4">
-          {/* Spacer */}
-          <div className="w-32"></div>
-
+      <div className="relative z-20 p-6 pb-8 -mt-20">
+        <div className="flex items-center justify-center">
           {/* Center - 마법소녀로 변신 Button */}
           <button
             onClick={handleTransform}
             disabled={isLoading}
-            className="flex-1 max-w-md py-5 bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 rounded-xl font-bold text-2xl text-white shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 border-4 border-yellow-300"
-            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
+            className="max-w-md py-5 px-12 bg-gradient-to-r from-purple-900 to-black hover:from-black hover:to-red-900 rounded-xl font-bold text-2xl text-red-500 shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 border-4 border-red-900 overflow-hidden relative group"
+            style={{ 
+              textShadow: '0 0 10px #ff0000',
+              boxShadow: '0 0 20px #8b0000'
+            }}
           >
-            ★ 마법소녀로 변신 ★
-          </button>
-
-          {/* Right - 마법대결 Button */}
-          <button
-            onClick={handleBattle}
-            className="px-6 py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 rounded-xl font-bold text-lg text-gray-800 shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
-          >
-            <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
-            마법대결
-            <Heart className="w-5 h-5 text-purple-500 fill-purple-500" />
+            <span className="relative z-10">☠️ 흑염룡에 잠식당하기 ☠️</span>
+            {/* Hover Effect overlay */}
+            <div className="absolute inset-0 bg-red-600/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
           </button>
         </div>
       </div>
