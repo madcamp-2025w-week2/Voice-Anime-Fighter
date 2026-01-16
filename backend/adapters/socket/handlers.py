@@ -9,6 +9,9 @@ connected_users: dict[str, dict[str, Any]] = {}
 # Room memberships: room_id -> list of sids
 room_members: dict[str, list[str]] = {}
 
+# Matchmaking queue: list of waiting user sids
+waiting_queue: list[str] = []
+
 
 def register_socket_handlers(sio: socketio.AsyncServer):
     """Register all Socket.io event handlers."""
@@ -36,6 +39,10 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         """Handle client disconnection."""
         print(f"Client disconnected: {sid}")
         
+        # Remove from matchmaking queue
+        if sid in waiting_queue:
+            waiting_queue.remove(sid)
+        
         # Remove from all rooms
         for room_id, members in list(room_members.items()):
             if sid in members:
@@ -50,6 +57,57 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         # Broadcast user count
         await sio.emit("user:count", {"count": len(connected_users)})
+
+    # --- Matchmaking Handlers ---
+    @sio.on("match:join_queue")
+    async def join_queue(sid, data):
+        """Join matchmaking queue."""
+        print(f"User {sid} joined matchmaking queue")
+        
+        if sid in waiting_queue:
+            return
+            
+        # Check if anyone is waiting
+        if waiting_queue:
+            opponent_sid = waiting_queue.pop(0)
+            
+            # Create a match
+            battle_id = f"battle_{datetime.utcnow().timestamp()}"
+            
+            p1_info = connected_users.get(sid, {})
+            p2_info = connected_users.get(opponent_sid, {})
+            
+            # Notify both players
+            await sio.emit("match:found", {
+                "battle_id": battle_id,
+                "opponent": {
+                    "nickname": p2_info.get("nickname", "Unknown"),
+                    "elo_rating": p2_info.get("elo_rating", 1200),
+                    # TODO: Pass character info if available
+                }
+            }, room=sid)
+            
+            await sio.emit("match:found", {
+                "battle_id": battle_id,
+                "opponent": {
+                    "nickname": p1_info.get("nickname", "Unknown"),
+                    "elo_rating": p1_info.get("elo_rating", 1200),
+                }
+            }, room=opponent_sid)
+            
+            print(f"Match found: {sid} vs {opponent_sid}")
+            
+        else:
+            waiting_queue.append(sid)
+            await sio.emit("match:searching", {}, room=sid)
+
+    @sio.on("match:leave_queue")
+    async def leave_queue(sid, data):
+        """Leave matchmaking queue."""
+        if sid in waiting_queue:
+            waiting_queue.remove(sid)
+            print(f"User {sid} left matchmaking queue")
+            await sio.emit("match:cancelled", {}, room=sid)
     
     @sio.event
     async def room_join(sid, data):

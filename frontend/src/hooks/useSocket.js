@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useUserStore } from '../stores/userStore'
 
@@ -8,6 +8,8 @@ export function useSocket() {
   const socketRef = useRef(null)
   const { token, user } = useUserStore()
   
+  const [isConnected, setIsConnected] = useState(false)
+
   useEffect(() => {
     // Initialize socket connection
     socketRef.current = io(SOCKET_URL, {
@@ -20,10 +22,12 @@ export function useSocket() {
     
     socketRef.current.on('connect', () => {
       console.log('🔌 Socket connected:', socketRef.current.id)
+      setIsConnected(true)
     })
     
     socketRef.current.on('disconnect', () => {
       console.log('🔌 Socket disconnected')
+      setIsConnected(false)
     })
     
     socketRef.current.on('connected', (data) => {
@@ -84,6 +88,7 @@ export function useSocket() {
   
   return {
     socket: socketRef.current,
+    isConnected,
     emit,
     on,
     off,

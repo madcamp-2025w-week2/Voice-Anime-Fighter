@@ -10,26 +10,43 @@ export default function CharacterSelectScreen() {
   const { characters, setCharacters, selectedCharacter, selectCharacter } = useGameStore()
   const [previewChar, setPreviewChar] = useState(null)
 
+  /* Image Mapping */
+  const CHARACTER_IMAGES = {
+    'char_000': '/images/char_otaku.png',
+    'char_001': '/images/char_satoru.png', 
+    'char_003': '/images/char_satoru.png',
+    'char_005': '/images/char_satoru.png',
+    'char_007': '/images/char_satoru.png',
+    // Default fallback
+    'default': '/images/char_otaku.png'
+  };
+
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
         const res = await fetch(`${API_URL}/characters`)
         if (res.ok) {
           const data = await res.json()
-          setCharacters(data.characters)
-          setPreviewChar(data.characters[0])
+          // Inject images
+          const charsWithImages = data.characters.map(c => ({
+            ...c,
+            image: CHARACTER_IMAGES[c.id] || CHARACTER_IMAGES['default']
+          }))
+          setCharacters(charsWithImages)
+          setPreviewChar(charsWithImages[0])
         }
       } catch (err) {
+        console.error(err)
         // Use mock data for development - 오타쿠 캐릭터가 첫 번째 (기본)
         const mockChars = [
-          { id: 'char_000', name: '찐따 오타쿠 쿠로', description: '방에서 라면만 먹으며 애니만 보는 진정한 오타쿠', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!' },
-          { id: 'char_001', name: '마법소녀 루루핑', description: '오글거림의 여왕', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!' },
-          { id: 'char_002', name: '와쿠와쿠 아냐', description: '마음을 읽는 초능력 소녀', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!' },
-          { id: 'char_003', name: '열혈 남아 조로', description: '삼도류의 달인', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!' },
-          { id: 'char_004', name: '중2병 환자 리카', description: '다크플레임 마스터', stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!' },
-          { id: 'char_005', name: '고양이 집사 냥댕이', description: '냥냥펀치로 공격', stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!' },
-          { id: 'char_006', name: '오타쿠 전사 오글이', description: '피규어 파워', stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!' },
-          { id: 'char_007', name: '히키코모리 네코', description: '3년간 방에서 안 나온 은둔형 외톨이', stats: { cringe_level: 88, volume_req: 50, precision: 92 }, spell_text: '햇빛 싫어... 어둠이여 나를 감싸라!' },
+          { id: 'char_000', name: '찐따 오타쿠 쿠로', description: '방에서 라면만 먹으며 애니만 보는 진정한 오타쿠', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!', image: '/images/char_otaku.png' },
+          { id: 'char_001', name: '마법소녀 루루핑', description: '오글거림의 여왕', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!', image: '/images/char_satoru.png' },
+          { id: 'char_002', name: '와쿠와쿠 아냐', description: '마음을 읽는 초능력 소녀', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!', image: '/images/char_otaku.png' },
+          { id: 'char_003', name: '열혈 남아 조로', description: '삼도류의 달인', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!', image: '/images/char_satoru.png' },
+          { id: 'char_004', name: '중2병 환자 리카', description: '다크플레임 마스터', stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!', image: '/images/char_otaku.png' },
+          { id: 'char_005', name: '고양이 집사 냥댕이', description: '냥냥펀치로 공격', stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!', image: '/images/char_satoru.png' },
+          { id: 'char_006', name: '오타쿠 전사 오글이', description: '피규어 파워', stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!', image: '/images/char_otaku.png' },
+          { id: 'char_007', name: '히키코모리 네코', description: '3년간 방에서 안 나온 은둔형 외톨이', stats: { cringe_level: 88, volume_req: 50, precision: 92 }, spell_text: '햇빛 싫어... 어둠이여 나를 감싸라!', image: '/images/char_satoru.png' },
         ]
         setCharacters(mockChars)
         setPreviewChar(mockChars[0])
@@ -73,11 +90,11 @@ export default function CharacterSelectScreen() {
             {previewChar ? (
               <>
                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-magical-pink-400/30 to-magical-purple-400/30 border-2 border-magical-pink-400/50 flex items-center justify-center glow-pink mb-4 overflow-hidden">
-                  {previewChar.id === 'char_000' ? (
-                    <img src="/images/char_otaku.png" alt={previewChar.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-5xl">✨</span>
-                  )}
+                   <img 
+                     src={previewChar.image || "/images/char_otaku.png"} 
+                     alt={previewChar.name} 
+                     className="w-full h-full object-cover" 
+                   />
                 </div>
                 <h2 className="font-title text-2xl text-magical-pink-300 mb-2">{previewChar.name}</h2>
                 <p className="text-gray-400 text-sm mb-4">{previewChar.description}</p>
@@ -113,11 +130,11 @@ export default function CharacterSelectScreen() {
                 } ${selectedCharacter?.id === char.id ? 'ring-2 ring-star-gold' : ''}`}
               >
                 <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-magical-pink-500/20 to-magical-purple-500/20 flex items-center justify-center mb-2 overflow-hidden">
-                  {char.id === 'char_000' ? (
-                    <img src="/images/char_otaku.png" alt={char.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-3xl">✨</span>
-                  )}
+                   <img 
+                     src={char.image || "/images/char_otaku.png"} 
+                     alt={char.name} 
+                     className="w-full h-full object-cover" 
+                   />
                 </div>
                 <p className="text-sm font-medium truncate">{char.name}</p>
                 {selectedCharacter?.id === char.id && (
