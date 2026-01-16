@@ -7,11 +7,11 @@ import { useSocket } from '../hooks/useSocket'
 
 // 캐릭터 데이터
 const CHARACTERS = [
-  { id: 'char_000', name: '찐따 오타쿠 쿠로', image: '/images/char_otaku.png', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!' },
-  { id: 'char_008', name: '고졸 사토루', image: '/images/char_satoru.png', stats: { cringe_level: 75, volume_req: 90, precision: 95 }, spell_text: '무량공처! 죽여버린다 이 새끼!' },
-  { id: 'char_001', name: '마법소녀 루루핑', image: null, stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!' },
-  { id: 'char_002', name: '와쿠와쿠 아냐', image: null, stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!' },
-  { id: 'char_003', name: '열혈 남아 조로', image: null, stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!' },
+  { id: 'char_000', name: '찐따 오타쿠 쿠로', image: '/images/otacu.webp', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!' },
+  { id: 'char_008', name: '고졸 사토루', image: '/images/satoru.webp', stats: { cringe_level: 75, volume_req: 90, precision: 95 }, spell_text: '무량공처! 죽여버린다 이 새끼!' },
+  { id: 'char_001', name: '몽키 D: 드라이브', image: '/images/lufy.webp', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!' },
+  { id: 'char_002', name: '딸바이', image: '/images/livi.webp', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!' },
+  { id: 'char_003', name: '바싹 탄지로', image: '/images/tanjiro.webp', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!' },
   { id: 'char_004', name: '중2병 환자 리카', image: null, stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!' },
   { id: 'char_005', name: '고양이 집사 냥댕이', image: null, stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!' },
   { id: 'char_006', name: '오타쿠 전사 오글이', image: null, stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!' },
@@ -25,14 +25,14 @@ export default function MultiCharacterSelect() {
   const { user } = useUserStore()
   const { selectCharacter } = useGameStore()
   const { on, off, emit } = useSocket()
-  
+
   // 방 ID가 없으면 로비로 리다이렉트
   useEffect(() => {
     if (!roomId) {
       navigate('/lobby')
     }
   }, [roomId, navigate])
-  
+
   // Player 1 (나) / Player 2 (상대)
   const [mySelected, setMySelected] = useState(null)
   const [opponentSelected, setOpponentSelected] = useState(null)
@@ -103,7 +103,7 @@ export default function MultiCharacterSelect() {
     if (mySelected && !myConfirmed) {
       setMyConfirmed(true)
       emit('character:confirm', { character_id: mySelected.id, room_id: roomId })
-      
+
       // 데모: 상대도 자동 선택/확정
       if (!opponentSelected) {
         const randomChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)]
@@ -158,7 +158,7 @@ export default function MultiCharacterSelect() {
         {/* 왼쪽 - Player 1 (나) */}
         <div className="w-1/2 flex flex-col items-center justify-center p-4">
           <div className="text-cyan-400 font-bold text-xl mb-2">{user?.nickname || 'Player 1'}</div>
-          
+
           {/* 캐릭터 이미지 */}
           <div className="relative h-64 w-48 mb-4">
             {mySelected ? (
@@ -180,7 +180,7 @@ export default function MultiCharacterSelect() {
               </div>
             )}
           </div>
-          
+
           {/* 이름 & 스탯 */}
           {mySelected && (
             <div className="text-center">
@@ -202,7 +202,7 @@ export default function MultiCharacterSelect() {
         {/* 오른쪽 - Player 2 (상대) */}
         <div className="w-1/2 flex flex-col items-center justify-center p-4">
           <div className="text-red-400 font-bold text-xl mb-2">Opponent</div>
-          
+
           {/* 캐릭터 이미지 */}
           <div className="relative h-64 w-48 mb-4">
             {opponentSelected ? (
@@ -224,7 +224,7 @@ export default function MultiCharacterSelect() {
               </div>
             )}
           </div>
-          
+
           {/* 이름 & 스탯 */}
           {opponentSelected && (
             <div className="text-center">
@@ -247,11 +247,10 @@ export default function MultiCharacterSelect() {
               key={char.id}
               onClick={() => handleSelect(char)}
               disabled={myConfirmed}
-              className={`flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                mySelected?.id === char.id 
-                  ? 'border-cyan-400 ring-2 ring-cyan-400/50' 
-                  : 'border-gray-600 hover:border-gray-400'
-              } ${myConfirmed ? 'opacity-50' : ''}`}
+              className={`flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${mySelected?.id === char.id
+                ? 'border-cyan-400 ring-2 ring-cyan-400/50'
+                : 'border-gray-600 hover:border-gray-400'
+                } ${myConfirmed ? 'opacity-50' : ''}`}
             >
               {char.image ? (
                 <img src={char.image} alt={char.name} className="w-full h-full object-cover" />
@@ -268,13 +267,12 @@ export default function MultiCharacterSelect() {
         <button
           onClick={handleConfirm}
           disabled={!mySelected || myConfirmed}
-          className={`w-full mt-4 py-4 rounded-xl font-bold text-xl transition-all ${
-            myConfirmed 
-              ? 'bg-green-600 text-white' 
-              : mySelected 
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105' 
-                : 'bg-gray-700 text-gray-400'
-          }`}
+          className={`w-full mt-4 py-4 rounded-xl font-bold text-xl transition-all ${myConfirmed
+            ? 'bg-green-600 text-white'
+            : mySelected
+              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105'
+              : 'bg-gray-700 text-gray-400'
+            }`}
         >
           {myConfirmed ? '✓ 선택 완료!' : mySelected ? '선택 확정' : '캐릭터를 선택하세요'}
         </button>

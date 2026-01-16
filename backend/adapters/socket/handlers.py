@@ -118,9 +118,16 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         """Join a room."""
         room_id = data.get("room_id")
         if not room_id:
+            print(f"[{sid}] room_join failed: No room_id provided")
             return
         
-        sio.enter_room(sid, room_id)
+        # Ensure room_id is string
+        room_id = str(room_id)
+        
+        print(f"[{sid}] Attempting to join room: {room_id}")
+        
+        await sio.enter_room(sid, room_id)
+        print(f"[{sid}] Entered socket room: {room_id}")
         
         if room_id not in room_members:
             room_members[room_id] = []
@@ -128,6 +135,10 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         # Get existing members before adding new one (to send to new player)
         existing_members = []
         for existing_sid in room_members[room_id]:
+            # Skip self if already in list (shouldn't happen with logic below, but safety check)
+            if existing_sid == sid:
+                continue
+                
             existing_info = connected_users.get(existing_sid, {})
             existing_members.append({
                 "user_id": existing_info.get("user_id", existing_sid),
@@ -137,16 +148,22 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         if sid not in room_members[room_id]:
             room_members[room_id].append(sid)
+            print(f"[{sid}] Added to room_members[{room_id}]. Current members: {room_members[room_id]}")
+        else:
+            print(f"[{sid}] Already in room_members[{room_id}]")
         
         user_info = connected_users.get(sid, {})
+        print(f"[{sid}] User Info: {user_info}")
         
         # Send existing members to the newly joined player
         if existing_members:
+            print(f"[{sid}] Sending existing players to {sid}: {len(existing_members)} players")
             await sio.emit("room:existing_players", {
                 "players": existing_members
             }, room=sid)
         
         # Notify room members (including new player)
+        print(f"[{sid}] Broadcasting room:player_joined to room {room_id}")
         await sio.emit("room:player_joined", {
             "user_id": user_info.get("user_id", sid),
             "nickname": user_info.get("nickname", "Unknown"),
@@ -160,7 +177,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         if not room_id:
             return
         
-        sio.leave_room(sid, room_id)
+        await sio.leave_room(sid, room_id)
         
         if room_id in room_members and sid in room_members[room_id]:
             room_members[room_id].remove(sid)
@@ -287,18 +304,25 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         room_id = data.get("room_id")
         battle_id = data.get("battle_id")
         
+        print(f"[{sid}] game_start triggered for room_id: {room_id}, battle_id: {battle_id}")
+        
         if not room_id:
+            print(f"[{sid}] game_start failed: No room_id")
             return
         
         # Get players in room
         players = []
-        for member_sid in room_members.get(room_id, []):
+        members = room_members.get(str(room_id), [])
+        print(f"[{sid}] Members in room {room_id}: {members}")
+        
+        for member_sid in members:
             user_info = connected_users.get(member_sid, {})
             players.append({
                 "user_id": user_info.get("user_id", member_sid),
                 "nickname": user_info.get("nickname", "Unknown")
             })
         
+        print(f"[{sid}] Emitting room:game_start to {room_id} with players: {players}")
         await sio.emit("room:game_start", {
             "battle_id": battle_id or room_id,
             "players": players
