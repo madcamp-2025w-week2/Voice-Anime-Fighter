@@ -35,23 +35,23 @@ CHARACTERS = [
         description="방에서 라면만 먹으며 애니만 보는 진정한 오타쿠. 그의 오글거림은 세계 최강.",
         stats=CharacterStats(cringe_level=100, volume_req=60, precision=85),
         spell_text="월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!",
-        thumbnail_url="/assets/characters/otaku_kuro_thumb.png",
-        sprite_url="/assets/characters/otaku_kuro_sprite.png",
+        thumbnail_url="",
+        sprite_url="/images/otaku.webp",
         is_unlocked=True
     ),
     Character(
         id="char_001",
-        name="마법소녀 루루핑",
+        name="고졸 사토루",
         description="오글거림의 여왕. 오타쿠 세계를 지배하는 언더독 마법소녀.",
         stats=CharacterStats(cringe_level=95, volume_req=70, precision=80),
         spell_text="마법소녀 카와이 러블리 루루핑!",
-        thumbnail_url="/assets/characters/luluping_thumb.png",
-        sprite_url="/assets/characters/luluping_sprite.png",
+        thumbnail_url="/images/otaku.webp",
+        sprite_url="/images/otaku.webp",
         is_unlocked=True
     ),
     Character(
         id="char_002",
-        name="와쿠와쿠 아냐",
+        name="몽키 D: 드라이브",
         description="마음을 읽는 초능력 소녀. 와쿠와쿠 에너지로 공격.",
         stats=CharacterStats(cringe_level=75, volume_req=60, precision=90),
         spell_text="와쿠와쿠! 피넛츠가 좋아!",
@@ -61,7 +61,7 @@ CHARACTERS = [
     ),
     Character(
         id="char_003",
-        name="열혈 남아 조로",
+        name="딸바이",
         description="삼도류의 달인. 박력 넘치는 기합으로 상대를 압도.",
         stats=CharacterStats(cringe_level=50, volume_req=95, precision=60),
         spell_text="산젠세카이! 오니기리!",
@@ -71,7 +71,7 @@ CHARACTERS = [
     ),
     Character(
         id="char_004",
-        name="중2병 환자 리카",
+        name="바싹 탄지로",
         description="사역눈을 가진 진정한 중2병 환자. 다크플레임 마스터.",
         stats=CharacterStats(cringe_level=100, volume_req=65, precision=75),
         spell_text="폭렬하라! 다크 플레임 마스터!",
