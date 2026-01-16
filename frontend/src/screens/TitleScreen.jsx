@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { GoogleLogin } from '@react-oauth/google'
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
 import { Globe, Settings, LogIn, Sparkles, Heart } from 'lucide-react'
 import { useUserStore } from '../stores/userStore'
 
@@ -26,60 +26,79 @@ export default function TitleScreen() {
     }
   }
 
-  // Google Login 성공 핸들러
-  const handleGoogleSuccess = async (credentialResponse) => {
+  // Google Login Hook
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true)
+      try {
+        // 백엔드로 액세스 토큰 전송
+        const response = await fetch(`${API_URL}/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: tokenResponse.access_token }),
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          login(data.user, data.access_token)
+          navigate('/lobby')
+        } else {
+          throw new Error('Backend login failed')
+        }
+      } catch (err) {
+        console.error('Login error:', err)
+        // 실패 시 데모 로그인 (임시)
+        handleTransformDemo()
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    onError: () => {
+      console.log('Login failed')
+      setIsLoading(false)
+    },
+  })
+
+  // 게스트 로그인 공통 함수
+  const performGuestLogin = async (targetPath) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${API_URL}/auth/google`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: credentialResponse.credential }),
+        body: JSON.stringify({ provider: 'guest' }),
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         login(data.user, data.access_token)
-        navigate('/lobby')
+        navigate(targetPath)
       } else {
-        throw new Error('Login failed')
+        throw new Error('Guest login failed')
       }
     } catch (err) {
-      const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]))
-      login({
-        id: payload.sub,
-        nickname: payload.name || payload.email.split('@')[0],
-        email: payload.email,
-        avatar_url: payload.picture,
-        elo_rating: 1200,
-      }, credentialResponse.credential)
-      navigate('/lobby')
+      console.error('Guest login error:', err)
+      alert('게스트 로그인에 실패했습니다. 서버 상태를 확인해주세요.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  // 게스트 로그인 (변신 버튼)
-  const handleTransform = async () => {
+  // 게스트 로그인 (데모) - Real API call now
+  const handleTransformDemo = () => performGuestLogin('/lobby')
+
+  // 로그인 버튼 핸들러
+  const handleTransform = () => {
     setIsLoading(true)
-    login({ 
-      id: `guest_${Date.now()}`, 
-      nickname: `마법소녀_${Math.random().toString(36).slice(2, 6)}`, 
-      elo_rating: 1200 
-    }, 'demo_token')
-    setTimeout(() => {
-      navigate('/lobby')
-    }, 500)
+    if (DEMO_MODE) {
+      handleTransformDemo()
+    } else {
+      googleLogin()
+    }
   }
 
   // 마법대결 (바로 배틀)
-  const handleBattle = () => {
-    login({ 
-      id: `guest_${Date.now()}`, 
-      nickname: `전사_${Math.random().toString(36).slice(2, 6)}`, 
-      elo_rating: 1200 
-    }, 'demo_token')
-    navigate('/matchmaking')
-  }
+  const handleBattle = () => performGuestLogin('/matchmaking')
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">

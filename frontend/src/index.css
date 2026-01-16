@@ -92,13 +92,15 @@ body {
     radial-gradient(2px 2px at 160px 120px, #fff, transparent);
   background-repeat: repeat;
   background-size: 200px 200px;
-  animation: stars-twinkle 4s ease-in-out infinite;
+  /* animation: stars-twinkle 4s ease-in-out infinite; */
 }
 
+/* 
 @keyframes stars-twinkle {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
-}
+} 
+*/
 
 /* Health bar animations */
 .health-bar-fill {

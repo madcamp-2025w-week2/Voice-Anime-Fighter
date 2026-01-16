@@ -240,8 +240,8 @@ export default function BattleScreen() {
 
         {/* My Character (오른쪽) */}
         <div className={`w-1/3 flex flex-col items-center ${
-          isRecording ? 'animate-pulse' : ''
-        } ${isAttacking ? 'animate-shake' : ''}`}>
+          isAttacking ? 'animate-shake' : ''
+        }`}>
           <img 
             src={myCharImage} 
             alt="Me"

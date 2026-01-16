@@ -26,12 +26,7 @@ export default function SocialScreen() {
 
   // Fetch rooms
   useEffect(() => {
-    const mockRooms = [
-      { room_id: '1', name: '초보자 환영!', host_nickname: '루루핑마스터', player_count: 1, max_players: 2, status: 'waiting' },
-      { room_id: '2', name: '고수만 와라', host_nickname: '다크플레임', player_count: 1, max_players: 2, status: 'waiting' },
-      { room_id: '3', name: '친선 경기', host_nickname: '냥댕이', player_count: 2, max_players: 2, status: 'playing' },
-    ]
-    
+    if (!token) return
     const fetchRooms = async () => {
       try {
         const res = await fetch(`${API_URL}/rooms`, {
@@ -39,17 +34,17 @@ export default function SocialScreen() {
         })
         if (res.ok) {
           const data = await res.json()
-          // 서버 방이 없으면 mock 데이터 표시
-          setRooms(data.rooms.length > 0 ? data.rooms : mockRooms)
-        } else {
-          setRooms(mockRooms)
+          setRooms(data.rooms)
         }
       } catch (err) {
-        // Mock data for demo
-        setRooms(mockRooms)
+        console.error('Failed to fetch rooms:', err)
       }
     }
     fetchRooms()
+    
+    // 3초마다 방 목록 갱신
+    const interval = setInterval(fetchRooms, 3000)
+    return () => clearInterval(interval)
   }, [token])
 
   // Fetch rankings
@@ -75,8 +70,15 @@ export default function SocialScreen() {
     fetchRankings()
   }, [])
 
+  const [userCount, setUserCount] = useState(0)
+
   // Socket events for room and chat
   useEffect(() => {
+    // 접속자 수 업데이트
+    on('user:count', (data) => {
+      setUserCount(data.count)
+    })
+
     // 채팅 메시지 수신
     on('chat:new_message', (data) => {
       setChatMessages(prev => [...prev, data])
@@ -120,79 +122,114 @@ export default function SocialScreen() {
     // 게임 시작 이벤트
     on('room:game_start', (data) => {
       console.log('Game starting:', data)
-      navigate('/battle')
+      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id } }) // state로 room_id 전달
     })
 
     return () => {
+      off('user:count')
       off('chat:new_message')
       off('room:player_joined')
       off('room:player_left')
       off('room:game_start')
     }
-  }, [on, off, user?.id, navigate])
+  }, [on, off, user?.id, navigate, selectedRoom])
 
   // Scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages])
 
-  const handleJoinRoom = (room) => {
-    setSelectedRoom({ ...room, player_count: room.player_count })
-    setOpponent(null)
-    joinRoom(room.room_id)
-    // Mock previous messages
-    setChatMessages([
-      { nickname: room.host_nickname, message: '안녕하세요! 환영합니다!', timestamp: new Date().toISOString() },
-      { nickname: 'System', message: `${user?.nickname || '게스트'}님이 입장했습니다.`, timestamp: new Date().toISOString() },
-    ])
-    // 내가 호스트가 아니면 호스트를 상대방으로 설정
-    if (room.host_nickname !== user?.nickname) {
-      setOpponent({
-        id: 'host',
-        nickname: room.host_nickname,
-        elo_rating: 1300
+  const handleCreateRoom = async () => {
+    const name = newRoomName.trim()
+    if (!name) return
+
+    try {
+      const res = await fetch(`${API_URL}/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name }),
       })
-      setSelectedRoom(prev => prev ? { ...prev, player_count: 2 } : null)
+
+      if (!res.ok) {
+        throw new Error(`Create room failed: ${res.status}`)
+      }
+
+      const data = await res.json()
+      const room = {
+        room_id: data.room_id,
+        name,
+        host_nickname: user?.nickname || 'Host',
+        player_count: 1,
+        max_players: 2,
+        is_private: false,
+        status: 'waiting',
+      }
+
+      setRooms((prev) => [room, ...prev])
+      setSelectedRoom(room)
+      setOpponent(null)
+      setChatMessages([])
+      setShowCreateModal(false)
+      setNewRoomName('')
+      joinRoom(room.room_id)
+    } catch (err) {
+      console.error('Failed to create room:', err)
+    }
+  }
+
+  const handleJoinRoom = async (room) => {
+    try {
+      const res = await fetch(`${API_URL}/rooms/${room.room_id}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Join room failed: ${res.status}`)
+      }
+
+      const joinedRoom = {
+        ...room,
+        player_count: Math.min((room.player_count || 1) + 1, room.max_players || 2),
+      }
+
+      setSelectedRoom(joinedRoom)
+      setOpponent(null)
+      setChatMessages([])
+      joinRoom(room.room_id)
+    } catch (err) {
+      console.error('Failed to join room:', err)
     }
   }
 
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedRoom) return
-    sendMessage(selectedRoom.room_id, newMessage)
-    setChatMessages(prev => [...prev, {
-      nickname: user?.nickname || '나',
-      message: newMessage,
-      timestamp: new Date().toISOString()
-    }])
+    const message = newMessage.trim()
+    if (!message || !selectedRoom) return
+
+    sendMessage(selectedRoom.room_id, message)
     setNewMessage('')
   }
 
-  const handleCreateRoom = async () => {
-    if (!newRoomName.trim()) return
-    // 데모 모드 - 직접 방 생성
-    const newRoom = { 
-      room_id: `room_${Date.now()}`, 
-      name: newRoomName, 
-      host_nickname: user?.nickname || '나', 
-      player_count: 1, 
-      max_players: 2, 
-      status: 'waiting' 
-    }
-    setRooms(prev => [newRoom, ...prev])
-    setShowCreateModal(false)
-    setNewRoomName('')
-    handleJoinRoom(newRoom)
-  }
-
   const handleStartGame = () => {
-    if (selectedRoom) {
-      startGame(selectedRoom.room_id, `battle_${Date.now()}`)
-      navigate('/multi-select') // 철권 스타일 캐릭터 선택으로
-    }
+    if (!selectedRoom) return
+    startGame(selectedRoom.room_id, selectedRoom.room_id)
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row relative">
+      {/* Online Users Count Badge */}
+      <div className="absolute top-4 right-4 z-50 bg-black/50 backdrop-blur px-3 py-1 rounded-full border border-green-500/50 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        <span className="text-sm font-bold text-green-400">접속자 {userCount}명</span>
+      </div>
+
       {/* Left Panel - Room List or Room Detail */}
       <div className="flex-1 p-4 flex flex-col">
         {/* Header */}
@@ -206,13 +243,15 @@ export default function SocialScreen() {
             </h1>
           </div>
           {!selectedRoom && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-magical-pink-500 rounded-lg flex items-center gap-2 hover:bg-magical-pink-600 transition"
-            >
-              <Plus className="w-5 h-5" />
-              방 만들기
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-magical-pink-500 rounded-lg flex items-center gap-2 hover:bg-magical-pink-600 transition"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="hidden md:inline">방 만들기</span>
+              </button>
+            </div>
           )}
         </div>
 

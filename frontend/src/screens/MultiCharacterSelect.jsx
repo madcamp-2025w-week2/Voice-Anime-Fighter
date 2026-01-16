@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Check, Volume2, Target, Sparkles } from 'lucide-react'
 import { useGameStore } from '../stores/gameStore'
 import { useUserStore } from '../stores/userStore'
@@ -20,9 +20,18 @@ const CHARACTERS = [
 
 export default function MultiCharacterSelect() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const roomId = location.state?.room_id
   const { user } = useUserStore()
   const { selectCharacter } = useGameStore()
   const { on, off, emit } = useSocket()
+  
+  // 방 ID가 없으면 로비로 리다이렉트
+  useEffect(() => {
+    if (!roomId) {
+      navigate('/lobby')
+    }
+  }, [roomId, navigate])
   
   // Player 1 (나) / Player 2 (상대)
   const [mySelected, setMySelected] = useState(null)
@@ -51,7 +60,7 @@ export default function MultiCharacterSelect() {
     })
 
     on('battle:start', () => {
-      navigate('/battle')
+      navigate('/battle', { state: { room_id: roomId } })
     })
 
     return () => {
@@ -60,7 +69,7 @@ export default function MultiCharacterSelect() {
       off('battle:countdown')
       off('battle:start')
     }
-  }, [on, off, user?.id, navigate])
+  }, [on, off, user?.id, navigate, roomId])
 
   // 둘 다 확정하면 카운트다운 시작 (데모)
   useEffect(() => {
@@ -74,18 +83,18 @@ export default function MultiCharacterSelect() {
         } else {
           clearInterval(interval)
           selectCharacter(mySelected)
-          navigate('/battle')
+          navigate('/battle', { state: { room_id: roomId } })
         }
       }, 1000)
       return () => clearInterval(interval)
     }
-  }, [myConfirmed, opponentConfirmed, mySelected, navigate, selectCharacter])
+  }, [myConfirmed, opponentConfirmed, mySelected, navigate, selectCharacter, roomId])
 
   // 캐릭터 선택
   const handleSelect = (char) => {
     if (!myConfirmed) {
       setMySelected(char)
-      emit('character:select', { character_id: char.id })
+      emit('character:select', { character_id: char.id, room_id: roomId })
     }
   }
 
@@ -93,7 +102,7 @@ export default function MultiCharacterSelect() {
   const handleConfirm = () => {
     if (mySelected && !myConfirmed) {
       setMyConfirmed(true)
-      emit('character:confirm', { character_id: mySelected.id })
+      emit('character:confirm', { character_id: mySelected.id, room_id: roomId })
       
       // 데모: 상대도 자동 선택/확정
       if (!opponentSelected) {

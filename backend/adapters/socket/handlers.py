@@ -26,6 +26,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "connected_at": datetime.utcnow().isoformat()
         }
         
+        # Broadcast user count
+        await sio.emit("user:count", {"count": len(connected_users)})
+        
         await sio.emit("connected", {"message": "Connected to Voice-Anime-Fighter!"}, room=sid)
     
     @sio.event
@@ -44,6 +47,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         # Remove from connected users
         connected_users.pop(sid, None)
+        
+        # Broadcast user count
+        await sio.emit("user:count", {"count": len(connected_users)})
     
     @sio.event
     async def room_join(sid, data):
@@ -56,16 +62,18 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         if room_id not in room_members:
             room_members[room_id] = []
-        room_members[room_id].append(sid)
+        if sid not in room_members[room_id]:
+            room_members[room_id].append(sid)
         
         user_info = connected_users.get(sid, {})
         
         # Notify room members
         await sio.emit("room:player_joined", {
             "user_id": user_info.get("user_id", sid),
-            "nickname": user_info.get("nickname", "Unknown")
+            "nickname": user_info.get("nickname", "Unknown"),
+            "elo_rating": user_info.get("elo_rating", 1200)
         }, room=room_id)
-    
+
     @sio.event
     async def room_leave(sid, data):
         """Leave a room."""
@@ -117,6 +125,48 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "message": message,
             "timestamp": datetime.utcnow().isoformat()
         }, room=room_id)
+
+    # --- Character Selection Handlers ---
+    @sio.on("character:select")
+    async def character_select(sid, data):
+        """Character select (preview)."""
+        room_id = data.get("room_id") # 프론트에서 room_id도 보내줘야 함
+        character_id = data.get("character_id")
+        if not room_id: return
+
+        user_info = connected_users.get(sid, {})
+        await sio.emit("character:selected", {
+            "user_id": user_info.get("user_id", sid),
+            "character_id": character_id
+        }, room=room_id)
+
+    @sio.on("character:confirm")
+    async def character_confirm(sid, data):
+        """Character confirm."""
+        room_id = data.get("room_id") # 프론트에서 room_id 보낸다고 가정
+        character_id = data.get("character_id")
+        if not room_id: return
+
+        user_info = connected_users.get(sid, {})
+        await sio.emit("character:confirmed", {
+            "user_id": user_info.get("user_id", sid),
+            "character_id": character_id
+        }, room=room_id)
+    
+    @sio.on("battle:countdown")
+    async def battle_countdown(sid, data):
+        """Trigger countdown."""
+        room_id = data.get("room_id")
+        count = data.get("count", 3)
+        await sio.emit("battle:countdown", {"count": count}, room=room_id)
+
+    @sio.on("battle:start")
+    async def battle_start_trigger(sid, data):
+        """Trigger battle start."""
+        room_id = data.get("room_id")
+        await sio.emit("battle:start", {}, room=room_id)
+
+    # ------------------------------------
     
     @sio.event
     async def battle_attack(sid, data):

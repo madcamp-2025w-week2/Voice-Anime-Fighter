@@ -3,10 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import socketio
 import os
+import sys
+import sys
+import asyncio
+import uvicorn
+
+# Fix for Windows asyncpg ConnectionResetError
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 from config import get_settings
 from adapters.api.routes import auth, users, characters, rooms, battle
 from adapters.socket.handlers import register_socket_handlers
+from adapters.db.database import init_db
 
 settings = get_settings()
 
@@ -18,6 +27,11 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+@app.on_event("startup")
+async def on_startup():
+    init_db()
+
 
 # CORS middleware - allow all origins for development
 app.add_middleware(
@@ -67,3 +81,8 @@ async def health_check():
 
 # Export socket_app for uvicorn
 application = socket_app
+
+if __name__ == "__main__":
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    uvicorn.run("main:application", host="0.0.0.0", port=8000, reload=True)
