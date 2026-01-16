@@ -351,7 +351,9 @@ export default function LobbyScreen() {
     <div className="h-screen w-full bg-[#0a0a0a] text-white flex flex-col overflow-hidden relative font-sans selection:bg-cyan-500 selection:text-black">
       {/* Background Layers */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30"></div>
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.8)_2px,transparent_2px),linear-gradient(90deg,rgba(0,0,0,0.8)_2px,transparent_2px)] bg-[size:40px_40px] opacity-20 pointer-events-none"></div>
+      {/* Purple Neon Grid Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(88,28,135,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(88,28,135,0.3)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-purple-900/30 pointer-events-none"></div>
 
       {/* VS Overlay */}
       {matchState === 'FOUND' && (
@@ -379,16 +381,16 @@ export default function LobbyScreen() {
       )}
 
       {/* Header */}
-      <header className="px-8 py-4 flex items-center justify-between border-b border-white/5 bg-black/40 backdrop-blur-sm z-30 shrink-0 h-[80px]">
+      <header className="px-8 py-4 flex items-center justify-between border-b border-purple-500/30 bg-black/60 backdrop-blur-sm z-30 shrink-0 h-[80px] shadow-[0_4px_20px_-10px_rgba(168,85,247,0.5)]">
         {/* Same Header */}
-        <div className="flex items-center gap-6">
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_2px_0_rgba(255,255,255,0.1)]">
-            오타쿠 대변신 대작전 <span className="text-cyan-400">Lobby</span>
+        <div className="flex items-center gap-3 min-w-0">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] whitespace-nowrap">
+            오타쿠 대변신 대작전 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse">Lobby</span>
           </h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1 rounded border border-zinc-700">
-              <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_currentColor] ${isConnected ? 'bg-green-500 text-green-500' : 'bg-red-500 text-red-500'}`}></div>
-              <span className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">{isConnected ? 'ONLINE' : 'OFFLINE'}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-700">
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_currentColor] ${isConnected ? 'bg-green-500 text-green-500' : 'bg-red-500 text-red-500'}`}></div>
+              <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">{isConnected ? 'ONLINE' : 'OFFLINE'}</span>
             </div>
           </div>
         </div>
@@ -435,20 +437,20 @@ export default function LobbyScreen() {
                 {filteredRooms.map(room => (
                   <div
                     key={room.room_id}
-                    className={`group relative bg-zinc-900/60 backdrop-blur-sm border-l-4 p-4 transition-all duration-200 hover:bg-zinc-800 ${room.status === 'waiting'
-                      ? 'border-cyan-500 hover:shadow-[0_0_15px_rgba(6,182,212,0.1)]'
-                      : 'border-red-600 opacity-60'
+                    className={`group relative bg-black/40 backdrop-blur-sm border p-4 transition-all duration-300 hover:scale-[1.02] ${room.status === 'waiting'
+                      ? 'border-purple-500/50 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                      : 'border-red-900/50 hover:border-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.4)]'
                       }`}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider border border-zinc-700 rounded truncate max-w-[120px]">
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <span className="bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider border border-zinc-700 rounded truncate max-w-[150px] shrink-0">
                         HOST: {room.host_nickname}
                       </span>
                       <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${room.status === 'waiting' ? 'text-cyan-400 bg-cyan-950/30 border border-cyan-900' : 'text-red-500 bg-red-950/30 border border-red-900'}`}>
                         {room.status}
                       </span>
                     </div>
-                    <h3 className="text-lg font-black italic text-white group-hover:text-cyan-300 transition-colors truncate mb-3">
+                    <h3 className="text-lg font-black italic text-white group-hover:text-cyan-300 transition-colors mb-3 line-clamp-2 min-h-[1.75rem] leading-tight">
                       {room.name}
                     </h3>
                     <div className="flex items-center justify-between">
@@ -514,8 +516,8 @@ export default function LobbyScreen() {
             </div>
           )}
 
-          {/* Chat (Same) */}
-          <div className="h-[220px] bg-black/60 backdrop-blur-md border border-zinc-800 rounded-tr-2xl rounded-tl-lg overflow-hidden flex flex-col shrink-0 mb-4 mr-2 shadow-lg">
+          {/* Chat (Neon Box) */}
+          <div className="h-[220px] bg-black/80 backdrop-blur-md border border-purple-500/30 rounded-tr-2xl rounded-tl-lg overflow-hidden flex flex-col shrink-0 mb-4 mr-2 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
             {/* ... Chat UI ... */}
             <div className="px-3 py-2 bg-zinc-900/80 border-b border-zinc-800 flex items-center gap-2 shrink-0">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
@@ -581,8 +583,8 @@ export default function LobbyScreen() {
           )}
 
 
-          {/* Stats / Ranking Panel (Expanded) */}
-          <div className="flex-1 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 rounded-xl overflow-hidden flex flex-col shrink-0 shadow-lg min-h-0">
+          {/* Stats / Ranking Panel (Purple/Red LED) */}
+          <div className="flex-1 bg-black/80 backdrop-blur-md border border-red-900/40 rounded-xl overflow-hidden flex flex-col shrink-0 shadow-[0_0_15px_rgba(153,27,27,0.2)] min-h-0">
             {/* ... Stats/Ranking Title ... */}
             <div className="flex border-b border-zinc-700 shrink-0">
               <button
@@ -594,7 +596,7 @@ export default function LobbyScreen() {
               </button>
               <button
                 onClick={() => setRankingTab('MY')}
-                className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${rankingTab === 'MY' ? 'bg-zinc-800 text-white border-b-2 border-pink-500' : 'text-zinc-500 hover:bg-zinc-800/50'
+                className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${rankingTab === 'MY' ? 'bg-zinc-800 text-white border-b-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-500 hover:bg-zinc-800/50'
                   }`}
               >
                 My Stats
