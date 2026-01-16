@@ -126,7 +126,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         print(f"[{sid}] Attempting to join room: {room_id}")
         
-        sio.enter_room(sid, room_id)
+        await sio.enter_room(sid, room_id)
         print(f"[{sid}] Entered socket room: {room_id}")
         
         if room_id not in room_members:
@@ -177,7 +177,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         if not room_id:
             return
         
-        sio.leave_room(sid, room_id)
+        await sio.leave_room(sid, room_id)
         
         if room_id in room_members and sid in room_members[room_id]:
             room_members[room_id].remove(sid)
