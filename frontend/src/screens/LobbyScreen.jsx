@@ -14,7 +14,7 @@ export default function LobbyScreen() {
   const navigate = useNavigate();
   const { user, token } = useUserStore();
   const { characters, selectedCharacter } = useGameStore();
-  const { socket, emit, joinRoom, sendMessage, startGame, isConnected } = useSocket();
+  const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
   // State
   const [rankingTab, setRankingTab] = useState('GLOBAL');
@@ -149,6 +149,21 @@ export default function LobbyScreen() {
     const handleGameStart = (data) => {
        navigate('/multi-select', { state: { room_id: selectedRoom?.room_id } });
     };
+    
+    // Handle existing players when joining a room
+    const handleExistingPlayers = (data) => {
+        if (data.players && data.players.length > 0) {
+            // Get the first player (the host) as opponent
+            const existingPlayer = data.players.find(p => p.user_id !== user?.id);
+            if (existingPlayer) {
+                setOpponent({
+                    id: existingPlayer.user_id,
+                    nickname: existingPlayer.nickname || 'Opponent',
+                    elo_rating: existingPlayer.elo_rating || 1200
+                });
+            }
+        }
+    };
 
     socket.on('match:found', handleMatchFound);
     socket.on('match:searching', () => setMatchState('SEARCHING'));
@@ -156,6 +171,7 @@ export default function LobbyScreen() {
     
     socket.on('room:player_joined', handlePlayerJoined);
     socket.on('room:player_left', handlePlayerLeft);
+    socket.on('room:existing_players', handleExistingPlayers);
     socket.on('chat:new_message', handleNewMessage);
     socket.on('room:game_start', handleGameStart);
 
@@ -165,6 +181,7 @@ export default function LobbyScreen() {
       socket.off('match:cancelled');
       socket.off('room:player_joined');
       socket.off('room:player_left');
+      socket.off('room:existing_players');
       socket.off('chat:new_message');
       socket.off('room:game_start');
     };
@@ -265,10 +282,22 @@ export default function LobbyScreen() {
               body: JSON.stringify({}),
           });
           if (res.ok) {
+               const data = await res.json();
                const joinedRoom = { ...room, player_count: room.player_count + 1 };
                setSelectedRoom(joinedRoom);
-               setOpponent(null);
                setChatMessages([]);
+               
+               // Set opponent if host already exists (we're joining as 2nd player)
+               if (room.player_count >= 1 && room.host_nickname) {
+                   setOpponent({
+                       id: room.host_id,
+                       nickname: room.host_nickname,
+                       elo_rating: room.host_elo || 1200
+                   });
+               } else {
+                   setOpponent(null);
+               }
+               
                joinRoom(room.room_id);
           }
       } catch (err) {
@@ -281,7 +310,26 @@ export default function LobbyScreen() {
       startGame(selectedRoom.room_id, selectedRoom.room_id);
   };
   
-  const handleLeaveRoom = () => {
+  const handleLeaveRoom = async () => {
+      if (!selectedRoom) return;
+      
+      try {
+          // Call backend API to leave room (this will delete room if last player)
+          await fetch(`${API_URL}/rooms/${selectedRoom.room_id}/leave`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+              },
+          });
+          
+          // Notify via socket
+          socketLeaveRoom(selectedRoom.room_id);
+      } catch (err) {
+          console.error("Leave room failed", err);
+      }
+      
+      // Clear local state regardless
       setSelectedRoom(null);
       setOpponent(null);
       setChatMessages([]);

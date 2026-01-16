@@ -23,9 +23,13 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         # Store user info (in production, verify JWT from auth)
         user_id = auth.get("user_id", sid) if auth else sid
+        nickname = auth.get("nickname") if auth else None
+        elo_rating = auth.get("elo_rating") if auth else 1200
+        
         connected_users[sid] = {
             "user_id": user_id,
-            "nickname": f"Player_{sid[:6]}",
+            "nickname": nickname or f"Player_{sid[:6]}",
+            "elo_rating": elo_rating or 1200,
             "connected_at": datetime.utcnow().isoformat()
         }
         
@@ -120,12 +124,29 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         if room_id not in room_members:
             room_members[room_id] = []
+        
+        # Get existing members before adding new one (to send to new player)
+        existing_members = []
+        for existing_sid in room_members[room_id]:
+            existing_info = connected_users.get(existing_sid, {})
+            existing_members.append({
+                "user_id": existing_info.get("user_id", existing_sid),
+                "nickname": existing_info.get("nickname", "Unknown"),
+                "elo_rating": existing_info.get("elo_rating", 1200)
+            })
+        
         if sid not in room_members[room_id]:
             room_members[room_id].append(sid)
         
         user_info = connected_users.get(sid, {})
         
-        # Notify room members
+        # Send existing members to the newly joined player
+        if existing_members:
+            await sio.emit("room:existing_players", {
+                "players": existing_members
+            }, room=sid)
+        
+        # Notify room members (including new player)
         await sio.emit("room:player_joined", {
             "user_id": user_info.get("user_id", sid),
             "nickname": user_info.get("nickname", "Unknown"),

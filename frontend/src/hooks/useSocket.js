@@ -16,6 +16,8 @@ export function useSocket() {
       auth: {
         token,
         user_id: user?.id,
+        nickname: user?.nickname,
+        elo_rating: user?.elo_rating,
       },
       transports: ['websocket', 'polling'],
     })
