@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // https: true,        <- 제거
+    // host: true,         <- 제거 (localtunnel이 알아서 해줌)
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
@@ -13,6 +15,7 @@ export default defineConfig({
       '/socket.io': {
         target: 'http://localhost:8000',
         ws: true,
+        changeOrigin: true,
       },
     },
   },
