@@ -86,17 +86,27 @@ docker-compose up -d
 ```bash
 cd backend
 
-# 환경 변수 설정
+# 1. 가상환경 생성 및 활성화
+# Windows
+python -m venv venv
+.\venv\Scripts\activate
+
+# macOS/Linux
+# python3 -m venv venv
+# source venv/bin/activate
+
+# 2. 환경 변수 설정
 cp .env.example .env
 # .env 파일에서 AZURE_SPEECH_KEY 설정
 
-# 의존성 설치 (Poetry)
+# 3. 의존성 설치 (가상환경이 활성화된 상태에서 실행)
+# Poetry를 사용하는 경우
 poetry install
 
-# 또는 pip
+# 또는 pip 사용 시
 pip install fastapi uvicorn python-socketio sqlalchemy asyncpg redis pydantic-settings python-jose passlib python-multipart azure-cognitiveservices-speech librosa numpy scipy aiofiles
 
-# 서버 실행
+# 4. 서버 실행
 uvicorn main:application --reload --host 0.0.0.0 --port 8000
 ```
 
