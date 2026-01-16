@@ -31,8 +31,11 @@ export default function LobbyScreen() {
   // Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
+  const [newRoomIsPrivate, setNewRoomIsPrivate] = useState(false);
+  const [newRoomPassword, setNewRoomPassword] = useState("");
+  const [newRoomType, setNewRoomType] = useState("FRIENDLY"); // FRIENDLY | RANKING
 
-  // Matchmaking State
+  // ... (Matchmaking State) ...
   const [matchState, setMatchState] = useState('IDLE');
   const [opponent, setOpponent] = useState(null);
   const [countdown, setCountdown] = useState(null);
@@ -201,6 +204,13 @@ export default function LobbyScreen() {
 
   const handleCreateRoom = async () => {
       if (!newRoomName.trim()) return;
+      if (newRoomIsPrivate && !newRoomPassword.trim()) {
+           alert("Please set a password for private room.");
+           return;
+      }
+      
+      const finalName = newRoomType === 'RANKING' ? `[RANK] ${newRoomName}` : newRoomName;
+
       try {
           const res = await fetch(`${API_URL}/rooms`, {
               method: 'POST',
@@ -208,31 +218,41 @@ export default function LobbyScreen() {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${token}`,
               },
-              body: JSON.stringify({ name: newRoomName }),
+              body: JSON.stringify({ 
+                  name: finalName,
+                  is_private: newRoomIsPrivate,
+                  password: newRoomPassword || null 
+              }),
           });
+          
           if (res.ok) {
               const data = await res.json();
               const newRoom = {
                   room_id: data.room_id,
-                  name: newRoomName,
+                  name: finalName,
                   host_nickname: user?.nickname || 'Host',
                   player_count: 1,
                   max_players: 2,
                   status: 'waiting',
-                  is_private: false
+                  is_private: newRoomIsPrivate
               };
+              
               setRooms(prev => [newRoom, ...prev]);
               setSelectedRoom(newRoom);
               setOpponent(null);
-              setChatMessages([]);
+              setChatMessages([]); // Clear chat for new room
               setShowCreateModal(false);
               setNewRoomName("");
-              joinRoom(data.room_id);
+              setNewRoomIsPrivate(false);
+              setNewRoomPassword("");
+              
+              joinRoom(data.room_id); // Join socket room
           }
       } catch (err) {
           console.error("Create room failed", err);
       }
   };
+
 
   const handleJoinRoom = async (room) => {
       try {
@@ -503,10 +523,11 @@ export default function LobbyScreen() {
             </div>
           )}
 
-          {/* Stats / Ranking Panel */}
-          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700 rounded-xl overflow-hidden flex flex-col shrink-0 shadow-lg">
-             {/* ... Stats/Ranking ... */}
-             <div className="flex border-b border-zinc-700">
+
+           {/* Stats / Ranking Panel (Expanded) */}
+          <div className="flex-1 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 rounded-xl overflow-hidden flex flex-col shrink-0 shadow-lg min-h-0">
+             {/* ... Stats/Ranking Title ... */}
+             <div className="flex border-b border-zinc-700 shrink-0">
               <button 
                 onClick={() => setRankingTab('RANKING')}
                 className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${
@@ -524,7 +545,7 @@ export default function LobbyScreen() {
                 My Stats
               </button>
             </div>
-            <div className="p-4 min-h-[200px] max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
                 {rankingTab === 'MY' ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-4 p-2 bg-black/40 rounded-lg border border-zinc-800">
@@ -563,15 +584,16 @@ export default function LobbyScreen() {
             </div>
           </div>
 
-          {/* Character Display (Moved Up & Clickable) */}
+          {/* Character Display (Fixed Height, Smaller) */}
           <div 
              onClick={() => navigate('/select')}
-             className="flex-1 flex items-center justify-center relative min-h-[200px] cursor-pointer group"
+             className="h-[200px] flex items-center justify-center relative corsor-pointer group shrink-0"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl group-hover:from-pink-900/50 transition-colors"></div>
+             {/* ... Same inner content but scaled down logic if needed ... */}
+             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl group-hover:from-pink-900/50 transition-colors"></div>
             
              {/* Character Emoji/Image */}
-            <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[280px] flex items-center justify-center">
+            <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
                {(() => {
                   const CHARACTER_IMAGES = {
                     'char_000': '/images/char_otaku.png',
@@ -595,38 +617,83 @@ export default function LobbyScreen() {
                      />
                   );
                })()}
-               {/* Fallback Emoji if image fails to load (handled by onError above but also structural fallback) */}
-
             </div>
             
-            <div className="absolute bottom-6 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center group-hover:bg-pink-900/80 transition-colors">
-              <p className="text-xs font-black text-pink-500 uppercase tracking-widest group-hover:text-white">MAIN CHARACTER</p>
-              <p className="text-sm font-black text-white italic">{mainCharacter?.name || 'Lulu Ping'}</p>
-            </div>
-            
-            <div className="absolute top-2 right-2 z-30 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-2 rounded-full">
-               <Users size={16} />
+            <div className="absolute bottom-2 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center group-hover:bg-pink-900/80 transition-colors">
+              <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest group-hover:text-white">MAIN CHARACTER</p>
+              <p className="text-xs font-black text-white italic truncate">{mainCharacter?.name || 'Lulu Ping'}</p>
             </div>
           </div>
         </section>
       </div>
       
-      {/* Create Modal (Same) */}
+      {/* Create Modal */}
        {showCreateModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-           {/* ... Modal Content ... */}
-           <div className="glass rounded-2xl p-6 w-full max-w-md border border-cyan-500/30 bg-black/80">
-            <h2 className="text-xl font-black italic text-white mb-4 uppercase tracking-wider flex items-center gap-2">
-                <PlusCircle className="text-cyan-500" /> Create Room
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+           <div className="glass rounded-2xl p-6 w-full max-w-sm border border-pink-500/30 bg-black/90 shadow-[0_0_30px_rgba(236,72,153,0.2)]">
+            <h2 className="text-xl font-black italic text-white mb-6 uppercase tracking-wider flex items-center gap-2">
+                <PlusCircle className="text-pink-500" /> Create Room
             </h2>
-            <input
-              type="text"
-              value={newRoomName}
-              onChange={(e) => setNewRoomName(e.target.value)}
-              placeholder="Enter Room Name..."
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 outline-none focus:border-cyan-500 text-white placeholder:text-zinc-600 mb-6 font-bold"
-            />
-            <div className="flex gap-3">
+            
+            <div className="space-y-4">
+                {/* Room Name */}
+                <div>
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">Room Name</label>
+                    <input
+                      type="text"
+                      value={newRoomName}
+                      onChange={(e) => setNewRoomName(e.target.value)}
+                      placeholder="Enter Room Name..."
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 outline-none focus:border-pink-500 text-white placeholder:text-zinc-600 font-bold transition-all"
+                    />
+                </div>
+
+                {/* Game Mode */}
+                 <div>
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">Game Mode</label>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => setNewRoomType('FRIENDLY')}
+                            className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${newRoomType === 'FRIENDLY' ? 'bg-cyan-600 text-white shadow-[0_2px_0_rgba(8,145,178,1)]' : 'bg-zinc-800 text-zinc-500'}`}
+                        >
+                            Friendly
+                        </button>
+                         <button 
+                            onClick={() => setNewRoomType('RANKING')}
+                            className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${newRoomType === 'RANKING' ? 'bg-amber-600 text-white shadow-[0_2px_0_rgba(217,119,6,1)]' : 'bg-zinc-800 text-zinc-500 '}`}
+                        >
+                            Ranking
+                        </button>
+                    </div>
+                </div>
+
+                 {/* Private Toggle */}
+                 <div className="flex items-center justify-between bg-zinc-900/50 p-3 rounded-lg border border-zinc-800 cursor-pointer" onClick={() => setNewRoomIsPrivate(!newRoomIsPrivate)}>
+                    <div className="flex items-center gap-2">
+                        <Lock size={16} className={newRoomIsPrivate ? "text-pink-500" : "text-zinc-600"} />
+                        <span className={`text-sm font-bold ${newRoomIsPrivate ? "text-white" : "text-zinc-500"}`}>Private Room</span>
+                    </div>
+                    <div className={`w-10 h-5 rounded-full relative transition-colors ${newRoomIsPrivate ? "bg-pink-600" : "bg-zinc-700"}`}>
+                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${newRoomIsPrivate ? "left-6" : "left-1"}`}></div>
+                    </div>
+                 </div>
+
+                 {/* Password Input */}
+                 {newRoomIsPrivate && (
+                     <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">Password</label>
+                        <input
+                          type="password"
+                          value={newRoomPassword}
+                          onChange={(e) => setNewRoomPassword(e.target.value)}
+                          placeholder="Secret Code"
+                          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 outline-none focus:border-red-500 text-white placeholder:text-zinc-600 font-bold"
+                        />
+                    </div>
+                 )}
+            </div>
+
+            <div className="flex gap-3 mt-8">
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="flex-1 py-3 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition font-bold uppercase tracking-wider text-zinc-400"
@@ -635,10 +702,10 @@ export default function LobbyScreen() {
               </button>
               <button
                 onClick={handleCreateRoom}
-                disabled={!newRoomName.trim()}
-                className="flex-1 py-3 bg-cyan-600 rounded-lg hover:bg-cyan-500 transition font-bold uppercase tracking-wider text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newRoomName.trim() || (newRoomIsPrivate && !newRoomPassword)}
+                className="flex-1 py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg hover:scale-105 transition font-black uppercase tracking-wider text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
               >
-                Create
+                Create!
               </button>
             </div>
           </div>
