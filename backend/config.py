@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     azure_speech_region: str = "koreacentral"
     
     # Database
-    database_url: str = "postgresql+asyncpg://vaf_user:vaf_password_2026@127.0.0.1:5435/voice_anime_fighter?ssl=disable"
+    database_url: str = "postgresql+asyncpg://vaf_user:vaf_password_2026@127.0.0.1:5435/voice_anime_fighter"
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
