@@ -8,10 +8,9 @@ export default defineConfig({
     basicSsl()
   ],
   server: {
-    host: true, 
-    port: 5173,
-    https: true,
-    allowedHosts: true,
+    host: true,      // 0.0.0.0 (외부 접속 허용)
+    port: 443,       // 443 포트 사용 (HTTPS 기본 포트)
+    https: true,     // HTTPS 활성화 (마이크 사용 필수)
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
