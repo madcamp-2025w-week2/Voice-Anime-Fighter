@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mic, MicOff, Heart, Sparkles, Zap } from 'lucide-react'
+import { Mic, MicOff, Sparkles } from 'lucide-react'
 import { useBattleStore } from '../stores/battleStore'
 import { useGameStore } from '../stores/gameStore'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
@@ -13,37 +13,54 @@ export default function BattleScreen() {
   const { selectedCharacter } = useGameStore()
   const { sendAttack, on, off } = useSocket()
   const { isRecording, isAnalyzing, startRecording, stopRecording, analyzeVoice, result, reset } = useSpeechRecognition()
-  const { analyzerData, volume, start: startVisualizer, stop: stopVisualizer } = useAudioVisualizer()
+  const { analyzerData, start: startVisualizer, stop: stopVisualizer } = useAudioVisualizer()
   
   const [showDamage, setShowDamage] = useState(null)
-  const [spellText, setSpellText] = useState('')
   const [timer, setTimer] = useState(30)
   const [isAttacking, setIsAttacking] = useState(false)
+  const [gameStarted, setGameStarted] = useState(false)
+  const [countdown, setCountdown] = useState(3) // 3, 2, 1, FIGHT!
+
+  // 캐릭터 이미지
+  const myCharImage = selectedCharacter?.image || '/images/char_otaku.png'
+  const opponentCharImage = '/images/char_otaku.png' // 상대 캐릭터 (데모)
 
   // Get spell text for current character
-  const currentSpell = selectedCharacter?.spell_text || '마법소녀 카와이 러블리 루루핑!'
+  const currentSpell = selectedCharacter?.spell_text || '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!'
+
+  // 게임 시작 카운트다운
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (countdown === 0) {
+      setTimeout(() => {
+        setGameStarted(true)
+        setCountdown(-1)
+      }, 1000)
+    }
+  }, [countdown])
 
   // Initialize battle on mount
   useEffect(() => {
-    if (!battle.isActive) {
+    if (!battle.isActive && gameStarted) {
       battle.initBattle({
         battleId: `battle_${Date.now()}`,
-        playerCharacterId: selectedCharacter?.id || 'char_001',
-        opponentCharacterId: 'char_002',
+        playerCharacterId: selectedCharacter?.id || 'char_000',
+        opponentCharacterId: 'char_001',
         opponentNickname: 'AI 상대',
         goesFirst: true,
       })
     }
-  }, [battle, selectedCharacter])
+  }, [battle, selectedCharacter, gameStarted])
 
   // Timer countdown
   useEffect(() => {
-    if (!battle.isActive) return
+    if (!gameStarted || !battle.isActive) return
     
     const interval = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
-          // Time's up - auto attack
           if (isRecording) stopRecording()
           return 30
         }
@@ -52,7 +69,7 @@ export default function BattleScreen() {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [battle.isActive, isRecording, stopRecording])
+  }, [gameStarted, battle.isActive, isRecording, stopRecording])
 
   // Socket event handlers
   useEffect(() => {
@@ -74,12 +91,13 @@ export default function BattleScreen() {
 
   // Handle recording
   const handleRecordToggle = useCallback(async () => {
+    if (!gameStarted) return
+    
     if (isRecording) {
       stopRecording()
       stopVisualizer()
       setIsAttacking(true)
       
-      // Analyze voice and deal damage
       setTimeout(async () => {
         const analysisResult = await analyzeVoice(
           battle.battleId || 'demo',
@@ -91,16 +109,12 @@ export default function BattleScreen() {
           const damage = analysisResult.damage.total_damage
           battle.dealDamage(damage, analysisResult)
           setShowDamage({ value: damage, isPlayer: false, grade: analysisResult.grade })
-          
-          // Send to opponent via socket
           sendAttack(battle.battleId, analysisResult.damage)
         } else {
-          // Miss attack
           setShowDamage({ value: 0, isPlayer: false, grade: 'F' })
         }
         
         setIsAttacking(false)
-        setSpellText('')
         reset()
         setTimer(30)
       }, 500)
@@ -109,7 +123,7 @@ export default function BattleScreen() {
       startVisualizer(stream)
       startRecording()
     }
-  }, [isRecording, startRecording, stopRecording, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, startVisualizer, stopVisualizer, reset])
+  }, [gameStarted, isRecording, startRecording, stopRecording, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, startVisualizer, stopVisualizer, reset])
 
   // Check for winner
   useEffect(() => {
@@ -121,172 +135,182 @@ export default function BattleScreen() {
   // Clear damage popup
   useEffect(() => {
     if (showDamage) {
-      const timer = setTimeout(() => setShowDamage(null), 1000)
-      return () => clearTimeout(timer)
+      const t = setTimeout(() => setShowDamage(null), 1500)
+      return () => clearTimeout(t)
     }
   }, [showDamage])
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Battle Arena Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-900/50 via-pink-900/30 to-blue-900/50" />
-      <div className="absolute inset-0 stars-bg opacity-30" />
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/battle_bg.png')" }}
+      />
+      <div className="absolute inset-0 bg-black/20" />
 
-      {/* HUD - Top */}
+      {/* 3, 2, 1 카운트다운 */}
+      {countdown >= 0 && (
+        <div className="absolute inset-0 bg-black/70 z-50 flex items-center justify-center">
+          {countdown > 0 ? (
+            <div className="text-9xl font-bold text-white animate-pulse" style={{ textShadow: '0 0 30px rgba(255,255,255,0.5)' }}>
+              {countdown}
+            </div>
+          ) : (
+            <div className="text-7xl font-bold text-yellow-400 animate-bounce" style={{ textShadow: '0 0 30px rgba(255,200,0,0.5)' }}>
+              FIGHT!
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* HUD - Top HP Bars */}
       <div className="relative z-10 p-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Player 1 HP */}
-          <HealthBar 
-            hp={battle.player.hp} 
-            maxHp={battle.player.maxHp}
-            name={selectedCharacter?.name || '나'}
-            isPlayer={true}
-            isShaking={showDamage?.isPlayer}
-          />
+        <div className="flex items-start justify-between gap-4">
+          {/* Opponent HP (왼쪽) */}
+          <div className="flex-1">
+            <div className="bg-gray-800/80 px-4 py-1 rounded-t-lg inline-block">
+              <span className="font-bold text-white">Opponent</span>
+            </div>
+            <div className="h-8 bg-gray-900/80 rounded-r-lg overflow-hidden border-2 border-gray-700">
+              <div 
+                className="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-300"
+                style={{ width: `${(battle.opponent.hp / battle.opponent.maxHp) * 100}%` }}
+              />
+            </div>
+            <div className="text-white font-bold mt-1 text-2xl">{battle.opponent.hp}</div>
+          </div>
           
           {/* Timer */}
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <Heart className="w-16 h-16 text-magical-pink-500 fill-magical-pink-500/50" />
-              <span className="absolute inset-0 flex items-center justify-center font-bold text-xl text-white">
-                {timer}
-              </span>
+          <div className="flex flex-col items-center px-4">
+            <div className="w-16 h-16 rounded-full bg-cyan-400 flex items-center justify-center border-4 border-white shadow-lg">
+              <span className="font-bold text-3xl text-white">{timer}</span>
             </div>
           </div>
           
-          {/* Player 2 HP */}
-          <HealthBar 
-            hp={battle.opponent.hp} 
-            maxHp={battle.opponent.maxHp}
-            name={battle.opponent.nickname}
-            isPlayer={false}
-            isShaking={showDamage && !showDamage.isPlayer}
-          />
-        </div>
-
-        {/* Voice Visualizer */}
-        <div className="mt-4 h-16 glass rounded-xl flex items-center justify-center px-4">
-          {isRecording ? (
-            <div className="voice-wave h-full flex items-center gap-1">
-              {analyzerData.slice(0, 32).map((value, i) => (
-                <div
-                  key={i}
-                  className="voice-wave-bar"
-                  style={{ height: `${Math.max(4, value * 0.6)}px` }}
-                />
-              ))}
+          {/* Me HP (오른쪽) */}
+          <div className="flex-1 text-right">
+            <div className="bg-gray-800/80 px-4 py-1 rounded-t-lg inline-block">
+              <span className="font-bold text-white">Me</span>
             </div>
-          ) : (
-            <p className="text-gray-400">🎤 아래 버튼을 눌러 주문을 외치세요!</p>
-          )}
+            <div className="h-8 bg-gray-900/80 rounded-l-lg overflow-hidden border-2 border-gray-700">
+              <div 
+                className="h-full bg-gradient-to-l from-red-600 to-red-500 transition-all duration-300 ml-auto"
+                style={{ width: `${(battle.player.hp / battle.player.maxHp) * 100}%` }}
+              />
+            </div>
+            <div className="text-white font-bold mt-1 text-2xl">{battle.player.hp}</div>
+          </div>
         </div>
       </div>
 
-      {/* Battle Arena - Characters */}
-      <div className="flex-1 relative z-10 flex items-center justify-center px-8">
-        {/* Player Character */}
-        <div className="absolute left-8 bottom-32 w-32 h-48">
-          <div className={`w-full h-full bg-gradient-to-t from-magical-pink-500/30 to-transparent rounded-lg flex items-end justify-center pb-4 ${
-            isRecording ? 'animate-pulse' : ''
-          } ${isAttacking ? 'animate-shake' : ''}`}>
-            <span className="text-6xl">🌟</span>
-          </div>
+      {/* Battle Arena - Characters with Images */}
+      <div className="flex-1 relative z-10 flex items-end justify-between px-4 pb-4">
+        {/* Opponent Character (왼쪽) */}
+        <div className={`w-1/3 flex flex-col items-center ${
+          showDamage && !showDamage.isPlayer ? 'animate-shake' : ''
+        }`}>
+          <img 
+            src={opponentCharImage} 
+            alt="Opponent"
+            className="h-48 md:h-64 object-contain transform scale-x-[-1]"
+            style={{ filter: 'drop-shadow(0 0 10px rgba(255,0,0,0.3))' }}
+          />
         </div>
 
         {/* Damage Popup */}
         {showDamage && (
-          <div className={`absolute ${showDamage.isPlayer ? 'left-32' : 'right-32'} top-1/2 damage-popup`}>
-            <div className={`text-4xl font-bold grade-${showDamage.grade}`}>
+          <div className={`absolute ${showDamage.isPlayer ? 'right-1/3' : 'left-1/3'} top-1/3 z-20`}>
+            <div className={`text-6xl font-bold ${
+              showDamage.grade === 'SSS' ? 'text-yellow-300' :
+              showDamage.grade === 'S' ? 'text-pink-400' :
+              showDamage.grade === 'A' ? 'text-purple-400' :
+              showDamage.grade === 'B' ? 'text-blue-400' :
+              'text-gray-400'
+            } drop-shadow-lg animate-bounce`}>
               {showDamage.value > 0 ? `-${showDamage.value}` : 'MISS'}
             </div>
-            <div className={`text-center text-2xl grade-badge grade-${showDamage.grade}`}>
+            <div className={`text-center text-3xl font-bold mt-2 ${
+              showDamage.grade === 'SSS' ? 'text-yellow-300' : 'text-white'
+            }`}>
               {showDamage.grade}
             </div>
           </div>
         )}
 
-        {/* Opponent Character */}
-        <div className="absolute right-8 bottom-32 w-32 h-48">
-          <div className={`w-full h-full bg-gradient-to-t from-magical-purple-500/30 to-transparent rounded-lg flex items-end justify-center pb-4 ${
-            showDamage && !showDamage.isPlayer ? 'animate-shake' : ''
-          }`}>
-            <span className="text-6xl">👿</span>
-          </div>
+        {/* My Character (오른쪽) */}
+        <div className={`w-1/3 flex flex-col items-center ${
+          isRecording ? 'animate-pulse' : ''
+        } ${isAttacking ? 'animate-shake' : ''}`}>
+          <img 
+            src={myCharImage} 
+            alt="Me"
+            className="h-48 md:h-64 object-contain"
+            style={{ filter: 'drop-shadow(0 0 10px rgba(0,200,255,0.3))' }}
+          />
         </div>
       </div>
 
-      {/* Bottom Controls */}
-      <div className="relative z-10 p-4 space-y-4">
-        {/* Spell Subtitle */}
-        <div className="glass rounded-xl p-4">
-          <div className="text-sm text-gray-400 mb-1">외칠 주문</div>
-          <div className="text-xl text-magical-pink-300 font-bold">
-            "{currentSpell}"
+      {/* Bottom - Spell Subtitle */}
+      <div className="relative z-10 p-4">
+        {/* 주문 자막 */}
+        <div className="bg-pink-500/90 rounded-2xl p-4 shadow-lg mb-4">
+          <div className="text-white text-lg md:text-xl font-bold leading-relaxed">
+            {currentSpell}
           </div>
           {result?.transcription && (
-            <div className="mt-2 text-sm text-green-400">
+            <div className="mt-2 text-pink-100 text-sm">
               인식됨: "{result.transcription}"
             </div>
           )}
         </div>
 
+        {/* Voice Visualizer */}
+        {isRecording && (
+          <div className="h-12 bg-black/50 rounded-xl flex items-center justify-center px-4 mb-4">
+            <div className="voice-wave h-full flex items-center gap-1">
+              {analyzerData.slice(0, 32).map((value, i) => (
+                <div
+                  key={i}
+                  className="voice-wave-bar bg-pink-400"
+                  style={{ height: `${Math.max(4, value * 0.4)}px` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Record Button */}
         <button
           onClick={handleRecordToggle}
-          disabled={isAnalyzing}
-          className={`w-full py-6 rounded-2xl font-bold text-2xl transition-all duration-300 flex items-center justify-center gap-3 ${
-            isRecording 
-              ? 'bg-red-500 animate-pulse glow-pink' 
-              : 'bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 hover:scale-105'
+          disabled={isAnalyzing || !gameStarted}
+          className={`w-full py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-3 ${
+            !gameStarted
+              ? 'bg-gray-600 text-gray-400'
+              : isRecording 
+                ? 'bg-red-500 animate-pulse' 
+                : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-105'
           } disabled:opacity-50`}
         >
-          {isAnalyzing ? (
+          {!gameStarted ? (
+            '게임 시작 대기 중...'
+          ) : isAnalyzing ? (
             <>
-              <Sparkles className="w-8 h-8 animate-spin" />
+              <Sparkles className="w-7 h-7 animate-spin" />
               분석 중...
             </>
           ) : isRecording ? (
             <>
-              <MicOff className="w-8 h-8" />
-              녹음 중지 (터치하여 공격!)
+              <MicOff className="w-7 h-7" />
+              터치하여 공격!
             </>
           ) : (
             <>
-              <Mic className="w-8 h-8" />
+              <Mic className="w-7 h-7" />
               주문 외치기
             </>
           )}
         </button>
-      </div>
-    </div>
-  )
-}
-
-function HealthBar({ hp, maxHp, name, isPlayer, isShaking }) {
-  const percentage = (hp / maxHp) * 100
-  const barColor = 
-    percentage > 60 ? 'from-green-500 to-emerald-500' :
-    percentage > 30 ? 'from-yellow-500 to-orange-500' :
-    'from-red-500 to-rose-600'
-
-  return (
-    <div className={`flex-1 max-w-[40%] ${isShaking ? 'animate-shake' : ''}`}>
-      <div className={`text-sm font-bold mb-1 ${isPlayer ? 'text-left' : 'text-right'}`}>
-        {name}
-      </div>
-      <div className="h-6 bg-black/50 rounded-full overflow-hidden border border-white/20">
-        <div 
-          className={`h-full bg-gradient-to-r ${barColor} health-bar-fill rounded-full ${
-            isPlayer ? '' : 'ml-auto'
-          }`}
-          style={{ 
-            width: `${percentage}%`,
-            transformOrigin: isPlayer ? 'left' : 'right'
-          }}
-        />
-      </div>
-      <div className={`text-xs mt-1 ${isPlayer ? 'text-left' : 'text-right'} text-gray-400`}>
-        {hp} / {maxHp}
       </div>
     </div>
   )

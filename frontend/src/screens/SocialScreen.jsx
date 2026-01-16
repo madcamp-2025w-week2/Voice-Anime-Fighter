@@ -10,12 +10,13 @@ export default function SocialScreen() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user, token } = useUserStore()
-  const { on, off, joinRoom, sendMessage, sendReady } = useSocket()
+  const { on, off, joinRoom, sendMessage, sendReady, startGame } = useSocket()
   
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'rooms')
   const [rooms, setRooms] = useState([])
   const [rankings, setRankings] = useState([])
   const [selectedRoom, setSelectedRoom] = useState(null)
+  const [opponent, setOpponent] = useState(null) // 상대방 정보
   const [chatMessages, setChatMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -25,6 +26,12 @@ export default function SocialScreen() {
 
   // Fetch rooms
   useEffect(() => {
+    const mockRooms = [
+      { room_id: '1', name: '초보자 환영!', host_nickname: '루루핑마스터', player_count: 1, max_players: 2, status: 'waiting' },
+      { room_id: '2', name: '고수만 와라', host_nickname: '다크플레임', player_count: 1, max_players: 2, status: 'waiting' },
+      { room_id: '3', name: '친선 경기', host_nickname: '냥댕이', player_count: 2, max_players: 2, status: 'playing' },
+    ]
+    
     const fetchRooms = async () => {
       try {
         const res = await fetch(`${API_URL}/rooms`, {
@@ -32,15 +39,14 @@ export default function SocialScreen() {
         })
         if (res.ok) {
           const data = await res.json()
-          setRooms(data.rooms)
+          // 서버 방이 없으면 mock 데이터 표시
+          setRooms(data.rooms.length > 0 ? data.rooms : mockRooms)
+        } else {
+          setRooms(mockRooms)
         }
       } catch (err) {
         // Mock data for demo
-        setRooms([
-          { room_id: '1', name: '초보자 환영!', host_nickname: '루루핑마스터', player_count: 1, max_players: 2, status: 'waiting' },
-          { room_id: '2', name: '고수만 와라', host_nickname: '다크플레임', player_count: 1, max_players: 2, status: 'waiting' },
-          { room_id: '3', name: '친선 경기', host_nickname: '냥댕이', player_count: 2, max_players: 2, status: 'playing' },
-        ])
+        setRooms(mockRooms)
       }
     }
     fetchRooms()
@@ -69,14 +75,61 @@ export default function SocialScreen() {
     fetchRankings()
   }, [])
 
-  // Socket events for chat
+  // Socket events for room and chat
   useEffect(() => {
+    // 채팅 메시지 수신
     on('chat:new_message', (data) => {
       setChatMessages(prev => [...prev, data])
     })
 
-    return () => off('chat:new_message')
-  }, [on, off])
+    // 플레이어 입장 이벤트
+    on('room:player_joined', (data) => {
+      console.log('Player joined:', data)
+      // 상대방 정보 설정
+      if (data.user_id !== user?.id) {
+        setOpponent({
+          id: data.user_id,
+          nickname: data.nickname || '상대방',
+          elo_rating: data.elo_rating || 1200
+        })
+        // 채팅에 입장 메시지
+        setChatMessages(prev => [...prev, {
+          nickname: 'System',
+          message: `${data.nickname || '상대방'}님이 입장했습니다.`,
+          timestamp: new Date().toISOString()
+        }])
+        // 방 정보 업데이트
+        setSelectedRoom(prev => prev ? { ...prev, player_count: 2 } : null)
+      }
+    })
+
+    // 플레이어 퇴장 이벤트
+    on('room:player_left', (data) => {
+      console.log('Player left:', data)
+      if (data.user_id !== user?.id) {
+        setOpponent(null)
+        setChatMessages(prev => [...prev, {
+          nickname: 'System',
+          message: '상대방이 퇴장했습니다.',
+          timestamp: new Date().toISOString()
+        }])
+        setSelectedRoom(prev => prev ? { ...prev, player_count: 1 } : null)
+      }
+    })
+
+    // 게임 시작 이벤트
+    on('room:game_start', (data) => {
+      console.log('Game starting:', data)
+      navigate('/battle')
+    })
+
+    return () => {
+      off('chat:new_message')
+      off('room:player_joined')
+      off('room:player_left')
+      off('room:game_start')
+    }
+  }, [on, off, user?.id, navigate])
 
   // Scroll chat to bottom
   useEffect(() => {
@@ -84,13 +137,23 @@ export default function SocialScreen() {
   }, [chatMessages])
 
   const handleJoinRoom = (room) => {
-    setSelectedRoom(room)
+    setSelectedRoom({ ...room, player_count: room.player_count })
+    setOpponent(null)
     joinRoom(room.room_id)
     // Mock previous messages
     setChatMessages([
-      { nickname: room.host_nickname, message: '안녕하세요!', timestamp: new Date().toISOString() },
+      { nickname: room.host_nickname, message: '안녕하세요! 환영합니다!', timestamp: new Date().toISOString() },
       { nickname: 'System', message: `${user?.nickname || '게스트'}님이 입장했습니다.`, timestamp: new Date().toISOString() },
     ])
+    // 내가 호스트가 아니면 호스트를 상대방으로 설정
+    if (room.host_nickname !== user?.nickname) {
+      setOpponent({
+        id: 'host',
+        nickname: room.host_nickname,
+        elo_rating: 1300
+      })
+      setSelectedRoom(prev => prev ? { ...prev, player_count: 2 } : null)
+    }
   }
 
   const handleSendMessage = () => {
@@ -106,32 +169,26 @@ export default function SocialScreen() {
 
   const handleCreateRoom = async () => {
     if (!newRoomName.trim()) return
-    try {
-      const res = await fetch(`${API_URL}/rooms`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ name: newRoomName })
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setShowCreateModal(false)
-        setNewRoomName('')
-        // Refresh rooms
-        const newRoom = { room_id: data.room_id, name: newRoomName, host_nickname: user?.nickname, player_count: 1, max_players: 2, status: 'waiting' }
-        setRooms(prev => [newRoom, ...prev])
-        handleJoinRoom(newRoom)
-      }
-    } catch (err) {
-      console.error('Failed to create room:', err)
+    // 데모 모드 - 직접 방 생성
+    const newRoom = { 
+      room_id: `room_${Date.now()}`, 
+      name: newRoomName, 
+      host_nickname: user?.nickname || '나', 
+      player_count: 1, 
+      max_players: 2, 
+      status: 'waiting' 
     }
+    setRooms(prev => [newRoom, ...prev])
+    setShowCreateModal(false)
+    setNewRoomName('')
+    handleJoinRoom(newRoom)
   }
 
   const handleStartGame = () => {
-    sendReady(selectedRoom.room_id, true)
-    navigate('/matchmaking')
+    if (selectedRoom) {
+      startGame(selectedRoom.room_id, `battle_${Date.now()}`)
+      navigate('/multi-select') // 철권 스타일 캐릭터 선택으로
+    }
   }
 
   return (
@@ -245,12 +302,16 @@ export default function SocialScreen() {
                 <Swords className="w-8 h-8 text-magical-purple-400" />
               </div>
               <div className="flex-1 glass rounded-xl p-4 text-center">
-                <div className="w-16 h-16 mx-auto rounded-full bg-gray-500/30 flex items-center justify-center mb-2">
-                  <span className="text-2xl">{selectedRoom.player_count > 1 ? '👿' : '❓'}</span>
+                <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-2 ${
+                  opponent ? 'bg-magical-purple-500/30' : 'bg-gray-500/30 animate-pulse'
+                }`}>
+                  <span className="text-2xl">{opponent ? '👿' : '❓'}</span>
                 </div>
-                <p className="font-bold">{selectedRoom.player_count > 1 ? selectedRoom.host_nickname : '대기 중'}</p>
-                {selectedRoom.player_count > 1 && (
-                  <p className="text-xs text-magical-purple-400">ELO 1300</p>
+                <p className="font-bold">{opponent?.nickname || '대기 중...'}</p>
+                {opponent ? (
+                  <p className="text-xs text-magical-purple-400">ELO {opponent.elo_rating}</p>
+                ) : (
+                  <p className="text-xs text-gray-400">상대를 기다리는 중</p>
                 )}
               </div>
             </div>
@@ -289,10 +350,10 @@ export default function SocialScreen() {
             {/* Start Game Button */}
             <button
               onClick={handleStartGame}
-              disabled={selectedRoom.player_count < 2}
-              className="w-full py-4 bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50"
+              disabled={!opponent}
+              className="w-full py-4 bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50 disabled:hover:scale-100"
             >
-              {selectedRoom.player_count < 2 ? '상대방 대기 중...' : '🎮 게임 시작!'}
+              {opponent ? '🎮 게임 시작!' : '⏳ 상대방 대기 중...'}
             </button>
           </div>
         )}

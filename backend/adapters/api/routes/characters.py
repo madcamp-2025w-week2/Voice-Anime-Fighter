@@ -27,8 +27,18 @@ class CharacterListResponse(BaseModel):
     characters: list[CharacterResponse]
 
 
-# Static character data
+# Static character data - 오타쿠 캐릭터가 첫 번째 (기본)
 CHARACTERS = [
+    Character(
+        id="char_000",
+        name="찐따 오타쿠 쿠로",
+        description="방에서 라면만 먹으며 애니만 보는 진정한 오타쿠. 그의 오글거림은 세계 최강.",
+        stats=CharacterStats(cringe_level=100, volume_req=60, precision=85),
+        spell_text="월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!",
+        thumbnail_url="/assets/characters/otaku_kuro_thumb.png",
+        sprite_url="/assets/characters/otaku_kuro_sprite.png",
+        is_unlocked=True
+    ),
     Character(
         id="char_001",
         name="마법소녀 루루핑",
@@ -87,6 +97,16 @@ CHARACTERS = [
         spell_text="오타쿠의 자존심! 피규어 슬래시!",
         thumbnail_url="/assets/characters/otaku_thumb.png",
         sprite_url="/assets/characters/otaku_sprite.png",
+        is_unlocked=True
+    ),
+    Character(
+        id="char_007",
+        name="히키코모리 네코",
+        description="3년간 방에서 안 나온 은둔형 외톨이. 어둠의 힘을 사용.",
+        stats=CharacterStats(cringe_level=88, volume_req=50, precision=92),
+        spell_text="햇빛 싫어... 어둠이여 나를 감싸라!",
+        thumbnail_url="/assets/characters/hikikomori_thumb.png",
+        sprite_url="/assets/characters/hikikomori_sprite.png",
         is_unlocked=True
     ),
 ]

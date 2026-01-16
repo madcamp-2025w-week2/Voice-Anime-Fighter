@@ -19,10 +19,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
+# CORS middleware - allow all origins for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=["*"],  # 개발용: 모든 origin 허용
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,10 +33,10 @@ assets_dir = os.path.join(os.path.dirname(__file__), "assets")
 if os.path.exists(assets_dir):
     app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-# Socket.io setup
+# Socket.io setup - allow all origins for development
 sio = socketio.AsyncServer(
     async_mode="asgi",
-    cors_allowed_origins=settings.cors_origins_list
+    cors_allowed_origins="*"  # 개발용: 모든 origin 허용
 )
 socket_app = socketio.ASGIApp(sio, app)
 

@@ -1,10 +1,9 @@
 import io
 import tempfile
 import os
+import random
 from dataclasses import dataclass
 from difflib import SequenceMatcher
-
-import numpy as np
 
 from domain.entities import VoiceAnalysisResult, DamageResult, Character
 
@@ -22,6 +21,7 @@ class BattleService:
     ) -> VoiceAnalysisResult:
         """
         음성 분석: Azure Speech SDK + Librosa
+        (Azure 키가 없으면 데모 모드로 동작)
         
         Args:
             audio_data: 음성 파일 바이너리
@@ -29,19 +29,36 @@ class BattleService:
             azure_speech_key: Azure Speech 키
             azure_speech_region: Azure Speech 리전
         """
-        # Lazy imports to avoid import errors if libraries not installed
+        # ========== 데모 모드 (Azure 키 없을 때) ==========
+        if not azure_speech_key or azure_speech_key == "your_azure_speech_key_here":
+            # 데모용 Mock 데이터 생성 (랜덤 변동으로 재미있게)
+            accuracy = random.uniform(0.6, 1.0)  # 60~100% 정확도
+            volume = random.uniform(65, 95)       # 65~95 dB
+            confidence = random.uniform(0.7, 0.98)
+            
+            # 가끔은 완벽하게, 가끔은 조금 틀리게
+            if accuracy > 0.85:
+                transcription = expected_spell
+            else:
+                # 일부 텍스트만 인식된 것처럼
+                words = expected_spell.split()
+                keep_count = max(1, int(len(words) * accuracy))
+                transcription = " ".join(words[:keep_count]) + "..."
+            
+            return VoiceAnalysisResult(
+                transcription=transcription,
+                text_accuracy=round(accuracy, 2),
+                volume_db=round(volume, 1),
+                pitch_variance=round(random.uniform(0.15, 0.45), 2),
+                confidence=round(confidence, 2)
+            )
+        
+        # ========== 실제 Azure STT 모드 ==========
         try:
             import azure.cognitiveservices.speech as speechsdk
-            import librosa
         except ImportError:
-            # Fallback for development without Azure SDK
-            return VoiceAnalysisResult(
-                transcription="마법소녀 카와이 러블리 루루핑",
-                text_accuracy=0.85,
-                volume_db=75.0,
-                pitch_variance=0.3,
-                confidence=0.9
-            )
+            # SDK 없으면 데모 모드로 폴백
+            return await self._mock_analysis(expected_spell)
         
         transcription = ""
         confidence = 0.0
@@ -68,8 +85,7 @@ class BattleService:
             
             if result.reason == speechsdk.ResultReason.RecognizedSpeech:
                 transcription = result.text
-                # Get confidence from detailed results if available
-                confidence = 0.9  # Default high confidence for successful recognition
+                confidence = 0.9
             else:
                 transcription = ""
                 confidence = 0.0
@@ -79,30 +95,31 @@ class BattleService:
             transcription = ""
             confidence = 0.0
         
-        # Librosa audio analysis
+        # Librosa audio analysis (optional)
+        volume_db = 75.0
+        pitch_variance = 0.3
+        
         try:
+            import librosa
+            import numpy as np
             y, sr = librosa.load(tmp_path, sr=None)
             
             # Volume (RMS to dB)
             rms = librosa.feature.rms(y=y)
-            volume_db = float(librosa.amplitude_to_db(rms).mean()) + 80  # Normalize to positive
+            volume_db = float(librosa.amplitude_to_db(rms).mean()) + 80
             
             # Pitch variance
             pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
             pitch_values = pitches[magnitudes > np.median(magnitudes)]
             pitch_variance = float(np.std(pitch_values)) if len(pitch_values) > 0 else 0.0
-            
         except Exception as e:
-            print(f"Librosa analysis error: {e}")
-            volume_db = 60.0
-            pitch_variance = 0.2
+            print(f"Librosa analysis error (using defaults): {e}")
         
-        finally:
-            # Cleanup temp file
-            try:
-                os.unlink(tmp_path)
-            except:
-                pass
+        # Cleanup temp file
+        try:
+            os.unlink(tmp_path)
+        except:
+            pass
         
         # Text accuracy (similarity)
         text_accuracy = SequenceMatcher(
@@ -117,6 +134,17 @@ class BattleService:
             volume_db=volume_db,
             pitch_variance=pitch_variance,
             confidence=confidence
+        )
+    
+    async def _mock_analysis(self, expected_spell: str) -> VoiceAnalysisResult:
+        """데모용 Mock 분석 결과"""
+        accuracy = random.uniform(0.6, 1.0)
+        return VoiceAnalysisResult(
+            transcription=expected_spell if accuracy > 0.8 else expected_spell[:len(expected_spell)//2] + "...",
+            text_accuracy=round(accuracy, 2),
+            volume_db=round(random.uniform(65, 95), 1),
+            pitch_variance=round(random.uniform(0.15, 0.45), 2),
+            confidence=round(random.uniform(0.7, 0.98), 2)
         )
     
     def calculate_damage(
