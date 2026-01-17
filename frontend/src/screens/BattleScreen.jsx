@@ -117,22 +117,32 @@ export default function BattleScreen() {
 
     on('battle:damage_received', async (data) => {
       const currentUserId = useUserStore.getState().user?.id
-      if (data.attacker_id === currentUserId) return
+      const isAttacker = data.attacker_id === currentUserId
 
-      // 1. Play attacker's voice/spell audio FIRST
+      // 1. Play attack audio FIRST (same for both attacker and defender)
       if (data.audio_url) {
         await playOtakuSound(data.audio_url)
       }
 
-      // 2. THEN apply damage after audio finishes
-      battle.takeDamage(data.damage)
-      setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade, isCritical: data.is_critical })
+      // 2. Apply damage after audio finishes
+      if (isAttacker) {
+        // Attacker: apply damage to opponent
+        battle.dealDamage(data.damage, { grade: data.grade })
+        setShowDamage({ value: data.damage, isPlayer: false, grade: data.grade, isCritical: data.is_critical })
+      } else {
+        // Defender: take damage on self
+        battle.takeDamage(data.damage)
+        setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade, isCritical: data.is_critical })
+        // Now it's defender's turn
+        battle.setTurn(true)
+      }
 
-      // 3. Critical hit sound effect
-      if (data.is_critical) playCriticalHitSound()
-
-      // 4. Now it's my turn
-      battle.setTurn(true)
+      // 3. Critical hit effect (both see it)
+      if (data.is_critical) {
+        setShowCritical(true)
+        playCriticalHitSound()
+        setTimeout(() => setShowCritical(false), 1000)
+      }
     })
 
     on('battle:result', (data) => {
@@ -158,16 +168,11 @@ export default function BattleScreen() {
         const battleId = roomId || battle.battleId || 'demo'
         const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id)
         if (analysisResult && analysisResult.success) {
-          const damage = analysisResult.damage.total_damage
-          const isCritical = analysisResult.is_critical || analysisResult.damage.is_critical
-          battle.dealDamage(damage, analysisResult)
-          setShowDamage({ value: damage, isPlayer: false, grade: analysisResult.grade, isCritical })
+          // Just send attack to server - both attacker and defender will receive battle:damage_received
+          // and process at the same time (synchronized)
           sendAttack(battleId, { ...analysisResult.damage, audio_url: analysisResult.audio_url })
-          if (isCritical) {
-            setShowCritical(true)
-            playCriticalHitSound()
-            setTimeout(() => setShowCritical(false), 1000)
-          }
+
+          // End my turn immediately after sending
           battle.setTurn(false)
         } else {
           setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
