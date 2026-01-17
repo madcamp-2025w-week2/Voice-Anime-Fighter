@@ -102,9 +102,20 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                 await sio.enter_room(sid, room_id)
                 logger.info(f"Restored user {user_id} to room {room_id} with new sid {sid}")
             
-            # Clean up pending disconnect
+        # Clean up pending disconnect safely
+        if str_user_id in pending_disconnects:
             del pending_disconnects[str_user_id]
         
+        # Remove any stale connections for this user_id to prevent duplicate counts
+        stale_sids = []
+        for existing_sid, info in connected_users.items():
+            if str(info.get("user_id")) == str(user_id):
+                stale_sids.append(existing_sid)
+        
+        for stale_sid in stale_sids:
+            logger.warning(f"Removing stale connection {stale_sid} for user {user_id} before adding new one")
+            connected_users.pop(stale_sid, None)
+
         connected_users[sid] = {
             "user_id": user_id,
             "nickname": nickname,
