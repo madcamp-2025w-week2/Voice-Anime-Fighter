@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 import socketio
 import logging
+import asyncio
 
 # Logger Setup
 logger = logging.getLogger(__name__)
@@ -25,6 +26,12 @@ waiting_queue: list[str] = []
 # Battle ready tracking: room_id -> {player_id: sid, first_turn_player_id: str}
 battle_ready_data: dict[str, dict[str, Any]] = {}
 
+# Pending disconnects for grace period: user_id -> {task, sid, user_info, rooms}
+pending_disconnects: dict[str, dict[str, Any]] = {}
+
+# Grace period in seconds (time to wait for reconnection)
+DISCONNECT_GRACE_PERIOD = 10
+
 
 def register_socket_handlers(sio: socketio.AsyncServer):
     """Register all Socket.io event handlers."""
@@ -39,6 +46,36 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         nickname = auth.get("nickname") if auth else None
         elo_rating = auth.get("elo_rating") if auth else 1200
         
+        # Check if this user has a pending disconnect (reconnecting)
+        str_user_id = str(user_id)
+        if str_user_id in pending_disconnects:
+            pending = pending_disconnects[str_user_id]
+            logger.info(f"User {user_id} reconnecting within grace period! Cancelling disconnect...")
+            
+            # Cancel the pending disconnect task
+            pending["task"].cancel()
+            
+            # Restore room memberships with new sid
+            old_sid = pending["sid"]
+            for room_id in pending["rooms"]:
+                # Remove old sid from room members first
+                if room_id in room_members and old_sid in room_members[room_id]:
+                    room_members[room_id].remove(old_sid)
+                    logger.info(f"Removed old sid {old_sid} from room {room_id}")
+                
+                # Add new sid to room
+                if room_id not in room_members:
+                    room_members[room_id] = []
+                if sid not in room_members[room_id]:
+                    room_members[room_id].append(sid)
+                
+                # Join socket room
+                await sio.enter_room(sid, room_id)
+                logger.info(f"Restored user {user_id} to room {room_id} with new sid {sid}")
+            
+            # Clean up pending disconnect
+            del pending_disconnects[str_user_id]
+        
         connected_users[sid] = {
             "user_id": user_id,
             "nickname": nickname or f"Player_{sid[:6]}",
@@ -51,29 +88,68 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         await sio.emit("connected", {"message": "Connected to Voice-Anime-Fighter!"}, room=sid)
     
+    async def delayed_disconnect(user_id: str, sid: str, user_info: dict, rooms: list):
+        """Execute actual disconnect after grace period."""
+        try:
+            await asyncio.sleep(DISCONNECT_GRACE_PERIOD)
+            
+            # Still pending after grace period - execute disconnect
+            if user_id in pending_disconnects:
+                logger.info(f"Grace period expired for user {user_id}. Executing disconnect...")
+                
+                # Notify rooms about the player leaving
+                for room_id in rooms:
+                    if room_id in room_members and sid in room_members[room_id]:
+                        room_members[room_id].remove(sid)
+                    await sio.emit("room:player_left", {
+                        "user_id": user_info.get("user_id", sid)
+                    }, room=room_id)
+                
+                # Clean up
+                del pending_disconnects[user_id]
+                
+                # Broadcast updated user count
+                await sio.emit("user:count", {"count": len(connected_users)})
+                
+        except asyncio.CancelledError:
+            logger.info(f"Disconnect cancelled for user {user_id} (reconnected)")
+    
     @sio.event
     async def disconnect(sid):
-        """Handle client disconnection."""
+        """Handle client disconnection with grace period for reconnection."""
         logger.info(f"Client disconnected: {sid}")
         
-        # Remove from matchmaking queue
+        # Remove from matchmaking queue immediately
         if sid in waiting_queue:
             waiting_queue.remove(sid)
         
-        # Remove from all rooms
-        for room_id, members in list(room_members.items()):
-            if sid in members:
-                members.remove(sid)
-                user_info = connected_users.get(sid, {})
-                await sio.emit("room:player_left", {
-                    "user_id": user_info.get("user_id", sid)
-                }, room=room_id)
+        user_info = connected_users.get(sid, {})
+        user_id = str(user_info.get("user_id", sid))
         
-        # Remove from connected users
+        # Find all rooms this user is in
+        user_rooms = []
+        for room_id, members in room_members.items():
+            if sid in members:
+                user_rooms.append(room_id)
+        
+        # Remove from connected users immediately
         connected_users.pop(sid, None)
         
-        # Broadcast user count
-        await sio.emit("user:count", {"count": len(connected_users)})
+        # If user was in any rooms, start grace period instead of immediate removal
+        if user_rooms:
+            logger.info(f"Starting {DISCONNECT_GRACE_PERIOD}s grace period for user {user_id} in rooms: {user_rooms}")
+            
+            # Create a task for delayed disconnect
+            task = asyncio.create_task(delayed_disconnect(user_id, sid, user_info, user_rooms))
+            pending_disconnects[user_id] = {
+                "task": task,
+                "sid": sid,
+                "user_info": user_info,
+                "rooms": user_rooms
+            }
+        else:
+            # Not in any rooms, just broadcast user count
+            await sio.emit("user:count", {"count": len(connected_users)})
 
     # --- Matchmaking Handlers ---
     @sio.on("match:join_queue")
@@ -185,10 +261,13 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         if room_id not in room_members:
             room_members[room_id] = []
         
+        # Check if this is a new join or a rejoin (e.g., after page refresh)
+        is_new_player = sid not in room_members[room_id]
+        
         # Get existing members before adding new one (to send to new player)
         existing_members = []
         for existing_sid in room_members[room_id]:
-            # Skip self if already in list (shouldn't happen with logic below, but safety check)
+            # Skip self if already in list
             if existing_sid == sid:
                 continue
                 
@@ -199,11 +278,11 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                 "elo_rating": existing_info.get("elo_rating", 1200)
             })
         
-        if sid not in room_members[room_id]:
+        if is_new_player:
             room_members[room_id].append(sid)
             logger.info(f"[{sid}] Added to room_members[{room_id}]. Current members: {room_members[room_id]}")
         else:
-            logger.info(f"[{sid}] Already in room_members[{room_id}]")
+            logger.info(f"[{sid}] Already in room_members[{room_id}] (rejoin)")
         
         user_info = connected_users.get(sid, {})
         logger.info(f"[{sid}] User Info: {user_info}")
@@ -215,13 +294,16 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                 "players": existing_members
             }, room=sid)
         
-        # Notify room members (including new player)
-        logger.info(f"[{sid}] Broadcasting room:player_joined to room {room_id}")
-        await sio.emit("room:player_joined", {
-            "user_id": user_info.get("user_id", sid),
-            "nickname": user_info.get("nickname", "Unknown"),
-            "elo_rating": user_info.get("elo_rating", 1200)
-        }, room=room_id)
+        # Only broadcast player_joined for genuinely new players, not rejoins
+        if is_new_player:
+            logger.info(f"[{sid}] Broadcasting room:player_joined to room {room_id}")
+            await sio.emit("room:player_joined", {
+                "user_id": user_info.get("user_id", sid),
+                "nickname": user_info.get("nickname", "Unknown"),
+                "elo_rating": user_info.get("elo_rating", 1200)
+            }, room=room_id)
+        else:
+            logger.info(f"[{sid}] Skipping player_joined broadcast (rejoin)")
 
     @sio.event
     async def room_leave(sid, data):

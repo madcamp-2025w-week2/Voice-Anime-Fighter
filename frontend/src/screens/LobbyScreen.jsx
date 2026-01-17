@@ -175,13 +175,28 @@ export default function LobbyScreen() {
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
 
+  // Restore room state from sessionStorage (for page refresh)
+  const getSavedRoomState = () => {
+    try {
+      const saved = sessionStorage.getItem('voiceAnime_currentRoom');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Failed to restore room state:', e);
+      sessionStorage.removeItem('voiceAnime_currentRoom');
+    }
+    return null;
+  };
+  const savedRoomState = getSavedRoomState();
+
   // Data State
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]); // For search
   const [searchTerm, setSearchTerm] = useState("");
   const [rankings, setRankings] = useState([]);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [isHost, setIsHost] = useState(false); // Track if current user is the room creator
+  const [selectedRoom, setSelectedRoom] = useState(savedRoomState?.room || null);
+  const [isHost, setIsHost] = useState(savedRoomState?.isHost || false); // Track if current user is the room creator
 
   // Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -192,7 +207,7 @@ export default function LobbyScreen() {
 
   // ... (Matchmaking State) ...
   const [matchState, setMatchState] = useState('IDLE');
-  const [opponent, setOpponent] = useState(null);
+  const [opponent, setOpponent] = useState(savedRoomState?.opponent || null);
   const [countdown, setCountdown] = useState(null);
   const [battleId, setBattleId] = useState(null);  // Store matched battle ID
 
@@ -390,6 +405,26 @@ export default function LobbyScreen() {
       socket.off('room:game_start');
     };
   }, [socket, user?.id, navigate, selectedRoom, matchState]);
+
+  // Save room state to sessionStorage when in a room
+  useEffect(() => {
+    if (selectedRoom) {
+      sessionStorage.setItem('voiceAnime_currentRoom', JSON.stringify({
+        room: selectedRoom,
+        isHost: isHost,
+        opponent: opponent
+      }));
+    } else {
+      sessionStorage.removeItem('voiceAnime_currentRoom');
+    }
+  }, [selectedRoom, isHost, opponent]);
+
+  // Log if room state was restored from sessionStorage
+  useEffect(() => {
+    if (savedRoomState?.room) {
+      console.log('Restored room state from sessionStorage:', savedRoomState.room);
+    }
+  }, []); // Only on mount
 
   // Re-join room on connection restore
   useEffect(() => {
