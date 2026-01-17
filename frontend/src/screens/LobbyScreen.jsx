@@ -27,6 +27,7 @@ export default function LobbyScreen() {
   const [searchTerm, setSearchTerm] = useState("");
   const [rankings, setRankings] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isHost, setIsHost] = useState(false); // Track if current user is the room creator
 
   // Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -151,7 +152,7 @@ export default function LobbyScreen() {
 
     const handleGameStart = (data) => {
       console.log('socket: [room:game_start]', data);
-      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id } });
+      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id, is_host: isHost } });
     };
 
     // Handle existing players when joining a room
@@ -271,6 +272,7 @@ export default function LobbyScreen() {
 
         setRooms(prev => [newRoom, ...prev]);
         setSelectedRoom(newRoom);
+        setIsHost(true); // Creator is the host
         setOpponent(null);
         setChatMessages([]); // Clear chat for new room
         setShowCreateModal(false);
@@ -301,6 +303,7 @@ export default function LobbyScreen() {
         const data = await res.json();
         const joinedRoom = { ...room, player_count: room.player_count + 1 };
         setSelectedRoom(joinedRoom);
+        setIsHost(false); // Joiner is NOT the host
         setChatMessages([]);
 
         // Set opponent if host already exists (we're joining as 2nd player)
