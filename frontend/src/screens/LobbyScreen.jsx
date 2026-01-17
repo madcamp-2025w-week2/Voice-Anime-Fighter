@@ -23,9 +23,19 @@ export default function LobbyScreen() {
   // Sync selected character with user's saved choice
   useEffect(() => {
     if (user?.main_character_id) {
-      if (!selectedCharacter || selectedCharacter.id !== user.main_character_id) {
+      const isPlaceholder = selectedCharacter?.name === 'Main Character';
+      const isMismatch = !selectedCharacter || selectedCharacter.id !== user.main_character_id;
+      
+      if (isMismatch || isPlaceholder) {
         const fullChar = characters.find(c => c.id === user.main_character_id);
-        selectCharacter(fullChar || { id: user.main_character_id, name: 'Main Character' });
+        
+        if (fullChar) {
+          // 캐릭터 정보가 로드되었으면 교체
+          selectCharacter(fullChar);
+        } else if (isMismatch) {
+          // 로드 전이고 ID가 다르면 임시 객체 설정 (이미지는 뜸)
+          selectCharacter({ id: user.main_character_id, name: 'Main Character' });
+        }
       }
     }
   }, [user?.main_character_id, characters, selectedCharacter, selectCharacter]);
@@ -719,21 +729,10 @@ export default function LobbyScreen() {
                     {/* Character Emoji/Image */}
                     <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
                       {(() => {
-                        const CHARACTER_IMAGES = {
-                          'char_000': '/images/otacu.webp',
-                          'char_001': '/images/satoru.webp',
-                          'char_002': '/images/lupy.webp',
-                          'char_003': '/images/tan.webp',
-                          'char_004': '/images/rika.webp',
-                          'char_005': '/images/nyang.webp',
-                          'char_006': '/images/ogeul.webp',
-                          'char_007': '/images/livi.webp',
-                          'default': '/images/otacu.webp'
-                        };
-
                         const imgSrc = mainCharacter?.image
-                          || CHARACTER_IMAGES[mainCharacter?.id]
-                          || CHARACTER_IMAGES['default'];
+                          || mainCharacter?.sprite_url
+                          || mainCharacter?.thumbnail_url
+                          || '/images/otacu.webp';
 
                         return (
                           <img
