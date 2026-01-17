@@ -52,6 +52,7 @@ export default function LobbyScreen() {
         const updatedUser = await res.json();
         updateUser(updatedUser);
         setIsEditModalOpen(false);
+        alert("Profile updated successfully! ✨");
       } else {
         await handleApiError(res);
       }
@@ -128,6 +129,7 @@ export default function LobbyScreen() {
             const updatedUser = await res.json();
             updateUser(updatedUser);
             setEditAvatar(updatedUser.avatar_url);
+            alert("Profile image uploaded successfully! 📸");
         } else {
             await handleApiError(res);
         }
@@ -757,7 +759,13 @@ export default function LobbyScreen() {
 
               <div className="flex gap-4 mb-4 shrink-0">
                 <div className="flex-1 glass p-4 rounded-xl flex items-center gap-4 border border-cyan-500/30">
-                  <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center text-2xl border border-cyan-500">🌟</div>
+                  <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center text-2xl border border-cyan-500 overflow-hidden">
+                    {user?.avatar_url ? (
+                      <img src={user.avatar_url} alt="Me" className="w-full h-full object-cover" />
+                    ) : (
+                      '🌟'
+                    )}
+                  </div>
                   <div className="min-w-0">
                     <div className="font-black italic text-lg truncate">{user?.nickname}</div>
                     <div className="text-xs text-cyan-400 font-bold">READY</div>
@@ -765,7 +773,13 @@ export default function LobbyScreen() {
                 </div>
                 <div className="flex items-center justify-center"><Sword size={32} className="text-zinc-600" /></div>
                 <div className="flex-1 glass p-4 rounded-xl flex items-center gap-4 border border-pink-500/30">
-                  <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center text-2xl border border-pink-500">{opponent ? '😈' : '❓'}</div>
+                  <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center text-2xl border border-pink-500 overflow-hidden">
+                    {opponent?.avatar_url ? (
+                      <img src={opponent.avatar_url} alt="Opponent" className="w-full h-full object-cover" />
+                    ) : (
+                      opponent ? '😈' : '❓'
+                    )}
+                  </div>
                   <div className="min-w-0">
                     <div className={`font-black italic text-lg truncate ${opponent ? 'text-white' : 'text-zinc-500'}`}>{opponent ? opponent.nickname : 'Waiting...'}</div>
                     <div className="text-xs text-pink-400 font-bold">{opponent ? `ELO ${opponent.elo_rating}` : 'WAITING'}</div>

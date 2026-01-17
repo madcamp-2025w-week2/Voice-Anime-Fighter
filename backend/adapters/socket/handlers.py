@@ -73,6 +73,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         # ===== Extract user info from auth (client-provided, but user_id from token) =====
         nickname = auth.get("nickname") or f"Player_{sid[:6]}"
         elo_rating = auth.get("elo_rating") or 1200
+        avatar_url = auth.get("avatar_url") or None
         
         # Check if this user has a pending disconnect (reconnecting)
         str_user_id = str(user_id)
@@ -108,6 +109,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "user_id": user_id,
             "nickname": nickname,
             "elo_rating": elo_rating,
+            "avatar_url": avatar_url,
             "connected_at": datetime.utcnow().isoformat()
         }
         
@@ -245,6 +247,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     "user_id": p2_info.get("user_id"),
                     "nickname": p2_info.get("nickname", "Unknown"),
                     "elo_rating": p2_info.get("elo_rating", 1200),
+                    "avatar_url": p2_info.get("avatar_url"),
                 }
             }, room=sid)
             
@@ -254,6 +257,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     "user_id": p1_info.get("user_id"),
                     "nickname": p1_info.get("nickname", "Unknown"),
                     "elo_rating": p1_info.get("elo_rating", 1200),
+                    "avatar_url": p1_info.get("avatar_url"),
                 }
             }, room=opponent_sid)
             
@@ -305,7 +309,8 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             existing_members.append({
                 "user_id": existing_info.get("user_id", existing_sid),
                 "nickname": existing_info.get("nickname", "Unknown"),
-                "elo_rating": existing_info.get("elo_rating", 1200)
+                "elo_rating": existing_info.get("elo_rating", 1200),
+                "avatar_url": existing_info.get("avatar_url")
             })
         
         if is_new_player:
@@ -330,7 +335,8 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             await sio.emit("room:player_joined", {
                 "user_id": user_info.get("user_id", sid),
                 "nickname": user_info.get("nickname", "Unknown"),
-                "elo_rating": user_info.get("elo_rating", 1200)
+                "elo_rating": user_info.get("elo_rating", 1200),
+                "avatar_url": user_info.get("avatar_url")
             }, room=room_id)
         else:
             logger.info(f"[{sid}] Skipping player_joined broadcast (rejoin)")

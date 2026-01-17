@@ -65,6 +65,7 @@ export function useSocket() {
       user_id: user?.id,
       nickname: user?.nickname,
       elo_rating: user?.elo_rating,
+      avatar_url: user?.avatar_url,
     }
 
     // Get or create singleton socket
@@ -98,7 +99,7 @@ export function useSocket() {
       socket.off('disconnect', handleDisconnect)
       socket.off('user:count', handleUserCount)
     }
-  }, [token, user?.id, user?.nickname, user?.elo_rating])
+  }, [token, user?.id, user?.nickname, user?.elo_rating, user?.avatar_url])
 
   const emit = useCallback((event, data) => {
     if (socketInstance) {
