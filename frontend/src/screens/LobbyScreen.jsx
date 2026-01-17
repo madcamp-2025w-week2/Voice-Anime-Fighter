@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Users, Sword,
-  PlusCircle, Search, Menu, Lock, Crown, Loader2, ArrowLeft, Send
+  PlusCircle, Search, Menu, Lock, Crown, Loader2, ArrowLeft, Send, LogOut, Volume2, Mic, Video, Settings, MapPin, Smile, X, Pencil
 } from 'lucide-react';
 import { useUserStore } from '../stores/userStore';
 import { useGameStore } from '../stores/gameStore';
@@ -14,11 +14,49 @@ const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export default function LobbyScreen() {
   const navigate = useNavigate();
-  const { user, token } = useUserStore();
-  const { characters, selectedCharacter, selectCharacter } = useGameStore();
+  const { user, token, disconnectSocket, updateUser } = useUserStore();
+  const { characters, setCharacters, selectedCharacter, selectCharacter } = useGameStore();
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
   const [onlineCount, setOnlineCount] = useState(1);
+
+  // Profile Edit States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editNickname, setEditNickname] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setEditNickname(user.nickname || '');
+      setEditAvatar(user.avatar_url || '🌟');
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nickname: editNickname,
+          avatar_url: editAvatar
+        })
+      });
+      
+      if (res.ok) {
+        const updatedUser = await res.json();
+        updateUser(updatedUser);
+        setIsEditModalOpen(false);
+      } else {
+        await handleApiError(res);
+      }
+    } catch (err) {
+      handleApiError(err);
+    }
+  };
 
   // Sync selected character with user's saved choice
   useEffect(() => {
@@ -751,10 +789,20 @@ export default function LobbyScreen() {
                     </div>
                   </div>
 
-                  {/* 메인 정보 (Rating, Tier) */}
-                  <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden group">
+                  {/* 메인 정보 (Rating, Tier) with Edit Hover */}
+                  <div 
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden group cursor-pointer hover:border-pink-500/50 transition-colors"
+                  >
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-sm">
+                      <p className="text-white font-bold tracking-widest flex items-center gap-2">EDIT PROFILE <Pencil size={14}/></p>
+                    </div>
+                    
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10">🌟</div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10">
+                      {(user?.avatar_url && !user.avatar_url.startsWith('/')) ? user.avatar_url : '🌟'}
+                    </div>
                     <div className="z-10">
                       <div className="flex items-center gap-2">
                         <span className="text-xl font-black italic text-white">{user?.nickname || 'Guest'}</span>
@@ -946,6 +994,50 @@ export default function LobbyScreen() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
       `}</style>
+      
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"><X size={20}/></button>
+            
+            <h2 className="text-2xl font-black italic text-white mb-6 uppercase tracking-wider flex items-center gap-2">
+              <Pencil className="text-pink-500" /> Edit Profile
+            </h2>
+            
+            {/* Avatar Selection */}
+            <div className="mb-6">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Avatar Icon</label>
+              <div className="grid grid-cols-5 gap-2">
+                {['🌟', '💀', '🤖', '👾', '👽', '🎃', '👻', '🤡', '👹', '👺'].map(emoji => (
+                  <button 
+                    key={emoji}
+                    onClick={() => setEditAvatar(emoji)}
+                    className={`text-2xl p-2 rounded-lg border transition-all hover:scale-110 ${editAvatar === emoji ? 'border-pink-500 bg-pink-900/20 scale-110 shadow-[0_0_10px_rgba(236,72,153,0.3)]' : 'border-zinc-800 bg-zinc-950 hover:bg-zinc-800'}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nickname Input */}
+            <div className="mb-6">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Nickname</label>
+              <input 
+                value={editNickname}
+                onChange={(e) => setEditNickname(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-white focus:border-pink-500 outline-none font-bold transition-colors"
+                placeholder="Enter nickname..."
+              />
+            </div>
+
+            <button onClick={handleSaveProfile} className="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

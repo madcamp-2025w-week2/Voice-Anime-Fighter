@@ -75,3 +75,14 @@ class RankingService:
             user.main_character_id = character_id
             return user
         return None
+
+    async def update_user_profile(self, user_id: UUID, nickname: str = None, avatar_url: str = None) -> Optional[User]:
+        """Update user's nickname and avatar."""
+        user = self._users.get(user_id)
+        if user:
+            if nickname:
+                user.nickname = nickname
+            if avatar_url:
+                user.avatar_url = avatar_url
+            return user
+        return None

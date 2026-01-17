@@ -23,6 +23,7 @@ class UserDetailResponse(BaseModel):
     wins: int
     losses: int
     main_character_id: str
+    avatar_url: str | None = None
     created_at: str
 
 
@@ -78,6 +79,7 @@ async def get_current_user(
         wins=user.wins,
         losses=user.losses,
         main_character_id=user.main_character_id,
+        avatar_url=user.avatar_url,
         created_at=user.created_at.isoformat()
     )
 
@@ -107,6 +109,11 @@ async def get_rankings(limit: int = 50, offset: int = 0):
 class UpdateCharacterRequest(BaseModel):
     character_id: str
 
+class UpdateProfileRequest(BaseModel):
+    nickname: str | None = None
+    avatar_url: str | None = None
+
+
 
 @router.put("/me/character", response_model=UserDetailResponse)
 async def update_main_character(
@@ -134,5 +141,33 @@ async def update_main_character(
         wins=user.wins,
         losses=user.losses,
         main_character_id=user.main_character_id,
+        avatar_url=user.avatar_url,
+        created_at=user.created_at.isoformat()
+    )
+
+@router.put("/me", response_model=UserDetailResponse)
+async def update_profile(
+    request: UpdateProfileRequest,
+    user_id: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """프로필(닉네임, 아바타) 변경"""
+    repo = UserRepository(db)
+    user = await repo.update_profile(user_id, request.nickname, request.avatar_url)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 인메모리 싱크
+    await ranking_service.update_user_profile(user_id, request.nickname, request.avatar_url)
+    
+    return UserDetailResponse(
+        id=user.id,
+        nickname=user.nickname,
+        elo_rating=user.elo_rating,
+        wins=user.wins,
+        losses=user.losses,
+        main_character_id=user.main_character_id,
+        avatar_url=user.avatar_url,
         created_at=user.created_at.isoformat()
     )
