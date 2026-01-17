@@ -13,12 +13,12 @@ export default defineConfig({
     https: true,     // HTTPS 활성화 (마이크 사용 필수)
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
       },
       '/socket.io': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         ws: true,
         changeOrigin: true,
         secure: false,

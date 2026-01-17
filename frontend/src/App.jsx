@@ -7,6 +7,7 @@ import MatchmakingScreen from './screens/MatchmakingScreen'
 import BattleScreen from './screens/BattleScreen'
 import ResultScreen from './screens/ResultScreen'
 import SocialScreen from './screens/SocialScreen'
+import ErrorModal from './components/ErrorModal'
 
 function App() {
   return (
@@ -22,9 +23,12 @@ function App() {
           <Route path="/result" element={<ResultScreen />} />
           <Route path="/social" element={<SocialScreen />} />
         </Routes>
+        {/* Global Error Modal */}
+        <ErrorModal />
       </div>
     </BrowserRouter>
   )
 }
 
 export default App
+

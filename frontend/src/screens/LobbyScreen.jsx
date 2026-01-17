@@ -7,8 +7,10 @@ import {
 import { useUserStore } from '../stores/userStore';
 import { useGameStore } from '../stores/gameStore';
 import { useSocket } from '../hooks/useSocket';
+import { handleApiError } from '../utils/errorHandler';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
+
 
 export default function LobbyScreen() {
   const navigate = useNavigate();
@@ -50,12 +52,14 @@ export default function LobbyScreen() {
     const fetchRankings = async () => {
       try {
         const res = await fetch(`${API_URL}/users/ranking?limit=10`);
-        if (res.ok) {
-          const data = await res.json();
-          setRankings(data.rankings);
+        if (!res.ok) {
+          await handleApiError(res);
+          return;
         }
+        const data = await res.json();
+        setRankings(data.rankings);
       } catch (err) {
-        console.error("Failed to fetch rankings", err);
+        handleApiError(err);
       }
     };
 
@@ -64,12 +68,16 @@ export default function LobbyScreen() {
         const res = await fetch(`${API_URL}/rooms`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) {
-          const data = await res.json();
-          setRooms(data.rooms);
+        
+        if (!res.ok) {
+          await handleApiError(res);
+          return;
         }
+        
+        const data = await res.json();
+        setRooms(data.rooms);
       } catch (err) {
-        console.error("Failed to fetch rooms", err);
+        handleApiError(err);
       }
     };
 
@@ -79,6 +87,7 @@ export default function LobbyScreen() {
 
     return () => clearInterval(interval);
   }, [token]);
+
 
   // Search Filter
   useEffect(() => {
@@ -257,32 +266,37 @@ export default function LobbyScreen() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        const newRoom = {
-          room_id: data.room_id,
-          name: finalName,
-          host_nickname: user?.nickname || 'Host',
-          player_count: 1,
-          max_players: 2,
-          status: 'waiting',
-          is_private: newRoomIsPrivate
-        };
-
-        setRooms(prev => [newRoom, ...prev]);
-        setSelectedRoom(newRoom);
-        setOpponent(null);
-        setChatMessages([]); // Clear chat for new room
-        setShowCreateModal(false);
-        setNewRoomName("");
-        setNewRoomIsPrivate(false);
-        setNewRoomPassword("");
-
-        console.log('Creating room and joining:', data.room_id);
-        joinRoom(data.room_id); // Join socket room
+      if (!res.ok) {
+        await handleApiError(res);
+        return;
       }
+
+      const data = await res.json();
+      const newRoom = {
+        room_id: data.room_id,
+        name: finalName,
+        host_nickname: user?.nickname || 'Host',
+        host_id: user?.id, // 추가: 방장 ID 명시
+        player_count: 1,
+        max_players: 2,
+        status: 'waiting',
+        is_private: newRoomIsPrivate
+      };
+
+      setRooms(prev => [newRoom, ...prev]);
+      setSelectedRoom(newRoom);
+      setOpponent(null);
+      setChatMessages([]); // Clear chat for new room
+      setShowCreateModal(false);
+      setNewRoomName("");
+      setNewRoomIsPrivate(false);
+      setNewRoomPassword("");
+
+      console.log('Creating room and joining:', data.room_id);
+      joinRoom(data.room_id); // Join socket room
+
     } catch (err) {
-      console.error("Create room failed", err);
+      handleApiError(err);
     }
   };
 
@@ -297,27 +311,32 @@ export default function LobbyScreen() {
         },
         body: JSON.stringify({}),
       });
-      if (res.ok) {
-        const data = await res.json();
-        const joinedRoom = { ...room, player_count: room.player_count + 1 };
-        setSelectedRoom(joinedRoom);
-        setChatMessages([]);
 
-        // Set opponent if host already exists (we're joining as 2nd player)
-        if (room.player_count >= 1 && room.host_nickname) {
-          setOpponent({
-            id: room.host_id,
-            nickname: room.host_nickname,
-            elo_rating: room.host_elo || 1200
-          });
-        } else {
-          setOpponent(null);
-        }
-
-        joinRoom(room.room_id);
+      if (!res.ok) {
+        await handleApiError(res);
+        return;
       }
+
+      const data = await res.json();
+      const joinedRoom = { ...room, player_count: room.player_count + 1 };
+      setSelectedRoom(joinedRoom);
+      setChatMessages([]);
+
+      // Set opponent if host already exists (we're joining as 2nd player)
+      if (room.player_count >= 1 && room.host_nickname) {
+        setOpponent({
+          id: room.host_id,
+          nickname: room.host_nickname,
+          elo_rating: room.host_elo || 1200
+        });
+      } else {
+        setOpponent(null);
+      }
+
+      joinRoom(room.room_id);
+
     } catch (err) {
-      console.error("Join room failed", err);
+      handleApiError(err);
     }
   };
 
@@ -330,19 +349,30 @@ export default function LobbyScreen() {
     if (!selectedRoom) return;
 
     try {
-      // Call backend API to leave room (this will delete room if last player)
-      await fetch(`${API_URL}/rooms/${selectedRoom.room_id}/leave`, {
-        method: 'POST',
+      // Logic: If I am the only one (or last one), DELETE room. Else, just LEAVE.
+      const isLastMember = selectedRoom.player_count <= 1;
+      
+      const method = isLastMember ? 'DELETE' : 'POST';
+      const endpoint = isLastMember 
+        ? `${API_URL}/rooms/${selectedRoom.room_id}` 
+        : `${API_URL}/rooms/${selectedRoom.room_id}/leave`;
+
+      const res = await fetch(endpoint, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      // Notify via socket
-      socketLeaveRoom(selectedRoom.room_id);
+      if (!res.ok) {
+        await handleApiError(res);
+      } else {
+        // Notify via socket
+        socketLeaveRoom(selectedRoom.room_id);
+      }
     } catch (err) {
-      console.error("Leave room failed", err);
+      handleApiError(err);
     }
 
     // Clear local state regardless
