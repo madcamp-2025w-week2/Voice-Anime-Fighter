@@ -67,3 +67,11 @@ class RankingService:
             if user.id == user_id:
                 return i
         return None
+
+    async def update_user_character(self, user_id: UUID, character_id: str) -> Optional[User]:
+        """Update user's main character."""
+        user = self._users.get(user_id)
+        if user:
+            user.main_character_id = character_id
+            return user
+        return None

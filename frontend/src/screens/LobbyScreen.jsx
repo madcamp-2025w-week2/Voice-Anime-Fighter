@@ -15,8 +15,20 @@ const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 export default function LobbyScreen() {
   const navigate = useNavigate();
   const { user, token } = useUserStore();
-  const { characters, selectedCharacter } = useGameStore();
+  const { characters, selectedCharacter, selectCharacter } = useGameStore();
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
+
+  // Sync selected character with user's saved choice
+  useEffect(() => {
+    if (user?.main_character_id) {
+      if (!selectedCharacter || selectedCharacter.id !== user.main_character_id) {
+        const fullChar = characters.find(c => c.id === user.main_character_id);
+        // If fullChar is found (characters loaded), use it.
+        // Otherwise use minimal object with ID so Lobby can render image from map
+        selectCharacter(fullChar || { id: user.main_character_id, name: 'Main Character' });
+      }
+    }
+  }, [user?.main_character_id, characters, selectedCharacter, selectCharacter]);
 
   // State
   const [rankingTab, setRankingTab] = useState('RANKING');
@@ -81,8 +93,42 @@ export default function LobbyScreen() {
       }
     };
 
+    const fetchUserInfo = async () => {
+      try {
+        const res = await fetch(`${API_URL}/users/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const userData = await res.json();
+          // userStore 업데이트 (최신 main_character_id 반영)
+          useUserStore.getState().updateUser(userData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user info:", err);
+      }
+    };
+
+    const fetchCharacters = async () => {
+      if (characters.length > 0) return; // 이미 있으면 스킵
+      try {
+        const res = await fetch(`${API_URL}/characters`);
+        if (res.ok) {
+          const data = await res.json();
+          const charsWithImages = data.characters.map(c => ({
+            ...c,
+            image: c.sprite_url || c.thumbnail_url
+          }));
+          useGameStore.getState().setCharacters(charsWithImages);
+        }
+      } catch (err) {
+        console.error("Failed to fetch characters:", err);
+      }
+    };
+
     fetchRankings();
     fetchRooms();
+    fetchUserInfo();
+    fetchCharacters();
     const interval = setInterval(fetchRooms, 3000);
 
     return () => clearInterval(interval);
@@ -645,6 +691,49 @@ export default function LobbyScreen() {
             <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
               {rankingTab === 'MY' ? (
                 <div className="flex flex-col gap-4">
+                  {/* MAIN Character Display - Moved to top of MyStats */}
+                  <div
+                    onClick={() => navigate('/select')}
+                    className="h-[200px] flex items-center justify-center relative cursor-pointer group shrink-0 bg-black/40 rounded-xl border border-zinc-800 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl group-hover:from-pink-900/50 transition-colors"></div>
+
+                    {/* Character Emoji/Image */}
+                    <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
+                      {(() => {
+                        const CHARACTER_IMAGES = {
+                          'char_000': '/images/otacu.webp',
+                          'char_001': '/images/satoru.webp',
+                          'char_002': '/images/lupy.webp',
+                          'char_003': '/images/tan.webp',
+                          'char_004': '/images/rika.webp',
+                          'char_005': '/images/nyang.webp',
+                          'char_006': '/images/ogeul.webp',
+                          'char_007': '/images/livi.webp',
+                          'default': '/images/otacu.webp'
+                        };
+
+                        const imgSrc = mainCharacter?.image
+                          || CHARACTER_IMAGES[mainCharacter?.id]
+                          || CHARACTER_IMAGES['default'];
+
+                        return (
+                          <img
+                            src={imgSrc}
+                            alt={mainCharacter?.name || 'Character'}
+                            className="h-full object-contain filter drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        );
+                      })()}
+                    </div>
+
+                    <div className="absolute bottom-2 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center group-hover:bg-pink-900/80 transition-colors">
+                      <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest group-hover:text-white">MAIN CHARACTER</p>
+                      <p className="text-xs font-black text-white italic truncate">{mainCharacter?.name || 'Lulu Ping'}</p>
+                    </div>
+                  </div>
+
                   {/* 메인 정보 (Rating, Tier) */}
                   <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -743,50 +832,6 @@ export default function LobbyScreen() {
                   })}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Character Display (Fixed Height, Smaller) */}
-          <div
-            onClick={() => navigate('/select')}
-            className="h-[200px] flex items-center justify-center relative corsor-pointer group shrink-0"
-          >
-            {/* ... Same inner content but scaled down logic if needed ... */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl group-hover:from-pink-900/50 transition-colors"></div>
-
-            {/* Character Emoji/Image */}
-            <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
-              {(() => {
-                const CHARACTER_IMAGES = {
-                  'char_000': '/images/otacu.webp',
-                  'char_001': '/images/satoru.webp',
-                  'char_002': '/images/lupy.webp',
-                  'char_003': '/images/tan.webp',
-                  'char_004': '/images/rika.webp',
-                  'char_005': '/images/nyang.webp',
-                  'char_006': '/images/ogeul.webp',
-                  'char_007': '/images/livi.webp',
-                  'default': '/images/otacu.webp'
-                };
-
-                const imgSrc = mainCharacter?.image
-                  || CHARACTER_IMAGES[mainCharacter?.id]
-                  || CHARACTER_IMAGES['default'];
-
-                return (
-                  <img
-                    src={imgSrc}
-                    alt={mainCharacter?.name || 'Character'}
-                    className="h-full object-contain filter drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                );
-              })()}
-            </div>
-
-            <div className="absolute bottom-2 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center group-hover:bg-pink-900/80 transition-colors">
-              <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest group-hover:text-white">MAIN CHARACTER</p>
-              <p className="text-xs font-black text-white italic truncate">{mainCharacter?.name || 'Lulu Ping'}</p>
             </div>
           </div>
         </section>

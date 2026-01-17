@@ -13,6 +13,7 @@ export function useSocket() {
   const { showUnauthorized, showSocketDisconnect, clearError } = useErrorStore()
   
   const [isConnected, setIsConnected] = useState(false)
+  const [onlineUsers, setOnlineUsers] = useState(0)
 
   useEffect(() => {
     // Initialize socket connection
@@ -74,6 +75,12 @@ export function useSocket() {
     
     socketRef.current.on('connected', (data) => {
       console.log('✨', data.message)
+    })
+    
+    // Online user count listener
+    socketRef.current.on('user:count', (data) => {
+      console.log('👥 Online users:', data.count)
+      setOnlineUsers(data.count)
     })
     
     return () => {
@@ -141,5 +148,6 @@ export function useSocket() {
     sendMessage,
     sendAttack,
     startGame,
+    onlineUsers,
   }
 }

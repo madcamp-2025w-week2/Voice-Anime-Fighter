@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Check, Volume2, Target, Sparkles, Loader2 } from 'lucide-react'
 import { useGameStore } from '../stores/gameStore'
+import { useUserStore } from '../stores/userStore'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
@@ -45,10 +46,39 @@ export default function CharacterSelectScreen() {
     setPreviewChar(char)
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (previewChar) {
-      selectCharacter(previewChar)
-      navigate('/lobby')
+      try {
+        const { token, updateUser } = useUserStore.getState(); // userStore 접근
+        
+        // 1. 백엔드 저장 API 호출
+        const res = await fetch(`${API_URL}/users/me/character`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ character_id: previewChar.id })
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to update character');
+        }
+
+        const updatedUser = await res.json();
+        
+        // 2. 스토어 업데이트
+        updateUser({ main_character_id: previewChar.id }); // userStore 업데이트
+        selectCharacter(previewChar); // gameStore 업데이트
+        
+        navigate('/lobby');
+      } catch (err) {
+        console.error('Character update failed:', err);
+        // 에러 발생시에도 일단 로컬 상태 업데이트하고 이동할지, 아니면 막을지 결정
+        // 여기서는 일단 로컬만이라도 업데이트하고 이동 (사용자 경험 우선)
+        selectCharacter(previewChar);
+        navigate('/lobby');
+      }
     }
   }
 

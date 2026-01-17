@@ -31,6 +31,7 @@ class UserResponse(BaseModel):
     nickname: str
     elo_rating: int
     avatar_url: str
+    main_character_id: str
 
 
 class LoginResponse(BaseModel):
@@ -85,6 +86,20 @@ async def _handle_google_login(access_token: str, db: AsyncSession) -> LoginResp
             email=user_info.get("email"),
             avatar_url=user_info.get("picture"),
         )
+    
+    # Sync with RankingService (In-Memory)
+    from domain.entities import User as DomainUser
+    domain_user = DomainUser(
+        id=user.id,
+        nickname=user.nickname,
+        elo_rating=user.elo_rating,
+        wins=user.wins,
+        losses=user.losses,
+        main_character_id=user.main_character_id,
+        avatar_url=user.avatar_url,
+        created_at=user.created_at
+    )
+    ranking_service._users[user.id] = domain_user
 
     token = create_access_token(user.id)
     return LoginResponse(
@@ -93,7 +108,8 @@ async def _handle_google_login(access_token: str, db: AsyncSession) -> LoginResp
             id=user.id,
             nickname=user.nickname,
             elo_rating=user.elo_rating,
-            avatar_url=user.avatar_url
+            avatar_url=user.avatar_url,
+            main_character_id=user.main_character_id
         )
     )
 
@@ -115,6 +131,20 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
         # For simplicity, we assume uuid hex is unique enough or handle collision later
         user = await repo.create_user(nickname=nickname)
         
+        # Sync with RankingService
+        from domain.entities import User as DomainUser
+        domain_user = DomainUser(
+            id=user.id,
+            nickname=user.nickname,
+            elo_rating=user.elo_rating,
+            wins=user.wins,
+            losses=user.losses,
+            main_character_id=user.main_character_id,
+            avatar_url=user.avatar_url,
+            created_at=user.created_at
+        )
+        ranking_service._users[user.id] = domain_user
+        
         token = create_access_token(user.id)
         
         return LoginResponse(
@@ -123,7 +153,8 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
                 id=user.id,
                 nickname=user.nickname,
                 elo_rating=user.elo_rating,
-                avatar_url=user.avatar_url
+                avatar_url=user.avatar_url,
+                main_character_id=user.main_character_id
             )
         )
     elif request.provider == "google":
