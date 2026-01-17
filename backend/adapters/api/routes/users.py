@@ -3,6 +3,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from uuid import UUID
 from jose import jwt, JWTError
+import shutil
+import os
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 
 from config import get_settings
 from use_cases.ranking_service import RankingService
@@ -160,6 +164,55 @@ async def update_profile(
     
     # 인메모리 싱크
     await ranking_service.update_user_profile(user_id, request.nickname, request.avatar_url)
+    
+    return UserDetailResponse(
+        id=user.id,
+        nickname=user.nickname,
+        elo_rating=user.elo_rating,
+        wins=user.wins,
+        losses=user.losses,
+        main_character_id=user.main_character_id,
+        avatar_url=user.avatar_url,
+        created_at=user.created_at.isoformat()
+    )
+
+@router.post("/me/avatar", response_model=UserDetailResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    user_id: UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """프로필 이미지 업로드"""
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    
+    # Ensure directory exists
+    os.makedirs("assets/avatars", exist_ok=True)
+    
+    # Generate filename
+    file_extension = file.filename.split(".")[-1] if "." in file.filename else "png"
+    filename = f"{user_id}_{int(datetime.now().timestamp())}.{file_extension}"
+    file_path = f"assets/avatars/{filename}"
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        print(f"File upload error: {e}")
+        raise HTTPException(status_code=500, detail="File upload failed")
+        
+    avatar_url = f"/assets/avatars/{filename}"
+    
+    # Update DB
+    repo = UserRepository(db)
+    user = await repo.update_profile(user_id, avatar_url=avatar_url)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Sync Memory
+    await ranking_service.update_user_profile(user_id, avatar_url=avatar_url)
     
     return UserDetailResponse(
         id=user.id,

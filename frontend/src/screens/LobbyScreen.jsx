@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Users, Sword,
-  PlusCircle, Search, Menu, Lock, Crown, Loader2, ArrowLeft, Send, LogOut, Volume2, Mic, Video, Settings, MapPin, Smile, X, Pencil
+  PlusCircle, Search, Menu, Lock, Crown, Loader2, ArrowLeft, Send, LogOut, Volume2, Mic, Video, Settings, MapPin, Smile, X, Pencil, Camera
 } from 'lucide-react';
 import { useUserStore } from '../stores/userStore';
 import { useGameStore } from '../stores/gameStore';
@@ -24,6 +24,8 @@ export default function LobbyScreen() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editNickname, setEditNickname] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -55,6 +57,84 @@ export default function LobbyScreen() {
       }
     } catch (err) {
       handleApiError(err);
+    }
+  };
+
+  // Image compression to WebP
+  const compressImageToWebP = (file, maxSize = 256) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Resize if larger than maxSize
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => resolve(new File([blob], 'avatar.webp', { type: 'image/webp' })),
+          'image/webp',
+          0.8 // 80% quality
+        );
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file.');
+        return;
+    }
+
+    setIsUploading(true);
+
+    try {
+        // Compress to WebP
+        const compressedFile = await compressImageToWebP(file);
+        console.log(`📸 Compressed: ${file.size} → ${compressedFile.size} bytes`);
+
+        const formData = new FormData();
+        formData.append('file', compressedFile);
+
+        const res = await fetch(`${API_URL}/users/me/avatar`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+
+        if (res.ok) {
+            const updatedUser = await res.json();
+            updateUser(updatedUser);
+            setEditAvatar(updatedUser.avatar_url);
+        } else {
+            await handleApiError(res);
+        }
+    } catch (err) {
+        handleApiError(err);
+    } finally {
+        setIsUploading(false);
     }
   };
 
@@ -808,8 +888,12 @@ export default function LobbyScreen() {
                     </div>
                     
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10">
-                      {(user?.avatar_url && !user.avatar_url.startsWith('/')) ? user.avatar_url : '🌟'}
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
+                      {(user?.avatar_url && (user.avatar_url.startsWith('/') || user.avatar_url.startsWith('http'))) ? (
+                        <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        user?.avatar_url || '🌟'
+                      )}
                     </div>
                     <div className="z-10">
                       <div className="flex items-center gap-2">
@@ -1015,7 +1099,27 @@ export default function LobbyScreen() {
             
             {/* Avatar Selection */}
             <div className="mb-6">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Avatar Icon</label>
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Avatar Image</label>
+              
+              {/* Upload Button */}
+              <div className="flex gap-2 mb-4">
+                  <button 
+                      onClick={() => fileInputRef.current.click()}
+                      className="flex-1 py-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition font-bold text-xs uppercase flex items-center justify-center gap-2 text-zinc-300 border border-zinc-700 hover:border-zinc-500"
+                      disabled={isUploading}
+                  >
+                      {isUploading ? <Loader2 className="animate-spin text-pink-500" size={16}/> : <><Camera size={16} className="text-pink-500"/> Upload Photo</>}
+                  </button>
+                  <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      hidden 
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                  />
+              </div>
+
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Or Select Icon</label>
               <div className="grid grid-cols-5 gap-2">
                 {['🌟', '💀', '🤖', '👾', '👽', '🎃', '👻', '🤡', '👹', '👺'].map(emoji => (
                   <button 

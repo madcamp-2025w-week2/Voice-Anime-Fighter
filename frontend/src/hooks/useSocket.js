@@ -6,29 +6,10 @@ import { useErrorStore } from '../stores/errorStore'
 // 빈 문자열이면 현재 origin 사용 (nginx를 통해 프록시됨)
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined
 
-export function useSocket() {
-  const socketRef = useRef(null)
-  const reconnectAttempts = useRef(0)
-  const { token, user } = useUserStore()
-  const { showUnauthorized, showSocketDisconnect, clearError } = useErrorStore()
-  
-  const [isConnected, setIsConnected] = useState(false)
-  const [onlineUsers, setOnlineUsers] = useState(0)
-
-  useEffect(() => {
-    // Initialize socket connection
-    socketRef.current = io(SOCKET_URL, {
-      auth: {
-        token,
-        user_id: user?.id,
-        nickname: user?.nickname,
-        elo_rating: user?.elo_rating,
-      },
 // ============================================
 // SINGLETON SOCKET INSTANCE (module level)
 // ============================================
 let socketInstance = null
-let isInitialized = false
 
 function getSocket(auth) {
   if (!socketInstance) {
@@ -36,12 +17,9 @@ function getSocket(auth) {
       auth,
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     })
 
     // 디버깅용: 전역으로 소켓 노출
@@ -49,8 +27,6 @@ function getSocket(auth) {
 
     socketInstance.on('connect', () => {
       console.log('🔌 Socket connected:', socketInstance.id)
-      reconnectAttempts.current = 0
-      clearError() // 연결 성공 시 에러 클리어
     })
 
     socketInstance.on('disconnect', (reason) => {
@@ -62,44 +38,8 @@ function getSocket(auth) {
     })
 
     socketInstance.on('connected', (data) => {
-    
-    socketRef.current.on('disconnect', (reason) => {
-      console.log('🔌 Socket disconnected:', reason)
-      setIsConnected(false)
-      
-      // 서버에서 강제 종료한 경우 (인증 실패 등)
-      if (reason === 'io server disconnect') {
-        showUnauthorized()
-      }
-    })
-    
-    // 연결 에러 핸들링
-    socketRef.current.on('connect_error', (error) => {
-      console.error('🔌 Socket connection error:', error.message)
-      reconnectAttempts.current += 1
-      
-      // 인증 에러인 경우
-      if (error.message.includes('401') || error.message.includes('unauthorized') || error.message.includes('Unauthorized')) {
-        showUnauthorized()
-        socketRef.current.disconnect()
-      }
-      // 재연결 시도 횟수 초과
-      else if (reconnectAttempts.current >= 5) {
-        showSocketDisconnect()
-      }
-    })
-    
-    // 재연결 실패 핸들링
-    socketRef.current.on('reconnect_failed', () => {
-      console.error('🔌 Socket reconnection failed')
-      showSocketDisconnect()
-    })
-    
-    socketRef.current.on('connected', (data) => {
       console.log('✨', data.message)
     })
-
-    isInitialized = true
   }
   return socketInstance
 }
@@ -115,7 +55,9 @@ function updateSocketAuth(auth) {
 
 export function useSocket() {
   const { token, user } = useUserStore()
+  
   const [isConnected, setIsConnected] = useState(false)
+  const [onlineUsers, setOnlineUsers] = useState(0)
 
   useEffect(() => {
     const auth = {
@@ -131,9 +73,14 @@ export function useSocket() {
     // Update connection state
     const handleConnect = () => setIsConnected(true)
     const handleDisconnect = () => setIsConnected(false)
+    const handleUserCount = (data) => {
+      console.log('👥 Online users:', data.count)
+      setOnlineUsers(data.count)
+    }
 
     socket.on('connect', handleConnect)
     socket.on('disconnect', handleDisconnect)
+    socket.on('user:count', handleUserCount)
 
     // Set initial state
     setIsConnected(socket.connected)
@@ -146,15 +93,10 @@ export function useSocket() {
 
     // DON'T disconnect on unmount - socket persists across screens
     
-    // Online user count listener
-    socketRef.current.on('user:count', (data) => {
-      console.log('👥 Online users:', data.count)
-      setOnlineUsers(data.count)
-    })
-    
     return () => {
       socket.off('connect', handleConnect)
       socket.off('disconnect', handleDisconnect)
+      socket.off('user:count', handleUserCount)
     }
   }, [token, user?.id, user?.nickname, user?.elo_rating])
 
