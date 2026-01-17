@@ -142,12 +142,12 @@ export default function CharacterSelectScreen() {
 
         {/* Character Grid - Right Side (Scrollable) */}
         <div className="lg:w-2/3 h-full overflow-y-auto custom-scrollbar pr-2">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 p-2 pb-8">
             {characters.map((char) => (
               <button
                 key={char.id}
                 onClick={() => handleSelect(char)}
-                className={`group glass rounded-xl p-3 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 ${previewChar?.id === char.id ? 'ring-2 ring-magical-pink-400 glow-pink bg-magical-pink-900/20' : 'border border-white/5'
+                className={`group glass rounded-xl p-3 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 relative hover:z-50 ${previewChar?.id === char.id ? 'ring-2 ring-magical-pink-400 glow-pink bg-magical-pink-900/20' : 'border border-white/5'
                   } ${selectedCharacter?.id === char.id ? 'ring-2 ring-star-gold shadow-[0_0_15px_rgba(250,204,21,0.3)]' : ''}`}
               >
                 <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-magical-pink-500/10 to-magical-purple-500/10 flex items-center justify-center mb-2 overflow-hidden border border-white/5 group-hover:border-white/20 transition-colors">
