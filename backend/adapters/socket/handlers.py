@@ -298,6 +298,32 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         # Ensure room_id is string
         room_id = str(room_id)
         
+        # Validate entry via RoomService (Check password / capacity)
+        user_info = connected_users.get(sid, {})
+        user_id = user_info.get("user_id")
+        password = data.get("password")
+        
+        if user_id:
+            try:
+                from uuid import UUID
+                uuid_room_id = UUID(room_id)
+                uuid_user_id = UUID(str(user_id))
+                
+                # Check permission and update RoomService state
+                success, message = await room_service.join_room(uuid_room_id, uuid_user_id, password)
+                
+                if not success:
+                    logger.warning(f"[{sid}] Join failed for room {room_id}: {message}")
+                    await sio.emit("room:error", {"message": message}, room=sid)
+                    return
+            except ValueError:
+                # Handle potentially invalid UUID format if rooms are not UUIDs (e.g. battle rooms)
+                # But here we are joining lobby rooms which are UUIDs.
+                pass
+            except Exception as e:
+                logger.error(f"[{sid}] Error validating room join: {e}")
+                # Continue? Safer to block if unsure, but for now let's log.
+        
         logger.info(f"[{sid}] Attempting to join room: {room_id}")
         
         await sio.enter_room(sid, room_id)

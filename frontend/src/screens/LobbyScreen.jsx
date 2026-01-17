@@ -20,6 +20,11 @@ export default function LobbyScreen() {
 
   const [onlineCount, setOnlineCount] = useState(1);
 
+  // Private Room Join State
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [pendingRoom, setPendingRoom] = useState(null);
+
   // Profile Edit States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editNickname, setEditNickname] = useState('');
@@ -432,7 +437,7 @@ export default function LobbyScreen() {
   useEffect(() => {
     if (isConnected && selectedRoom) {
       console.log('Socket Connected/Room Selected - Ensuring Room Join:', selectedRoom.room_id);
-      joinRoom(selectedRoom.room_id);
+      joinRoom(selectedRoom.room_id, selectedRoom.clientPassword);
     }
   }, [isConnected, selectedRoom?.room_id, joinRoom]);
 
@@ -531,7 +536,7 @@ export default function LobbyScreen() {
   };
 
 
-  const handleJoinRoom = async (room) => {
+  const processJoinRoom = async (room, password = null) => {
     try {
       const res = await fetch(`${API_URL}/rooms/${room.room_id}/join`, {
         method: 'POST',
@@ -539,7 +544,7 @@ export default function LobbyScreen() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ password }),
       });
 
       if (!res.ok) {
@@ -548,9 +553,12 @@ export default function LobbyScreen() {
       }
 
       const data = await res.json();
-      const joinedRoom = { ...room, player_count: room.player_count + 1 };
+      // Save password for re-joining
+      const roomWithData = { ...room, clientPassword: password };
+      const joinedRoom = { ...roomWithData, player_count: room.player_count + 1 };
+      
       setSelectedRoom(joinedRoom);
-        setIsHost(false); // Joiner is NOT the host
+      setIsHost(false); // Joiner is NOT the host
       setChatMessages([]);
 
       // Set opponent if host already exists (we're joining as 2nd player)
@@ -562,12 +570,29 @@ export default function LobbyScreen() {
         });
       } else {
         setOpponent(null);
+        // Wait for connect?
       }
 
-      joinRoom(room.room_id);
+      // Join socket room
+      joinRoom(room.room_id, password);
+      
+      // Close modal if open
+      setPasswordModalOpen(false);
+      setPasswordInput('');
+      setPendingRoom(null);
 
     } catch (err) {
       handleApiError(err);
+    }
+  };
+
+  const handleJoinRoom = (room) => {
+    if (room.is_private) {
+        setPendingRoom(room);
+        setPasswordInput('');
+        setPasswordModalOpen(true);
+    } else {
+        processJoinRoom(room);
     }
   };
 
@@ -1196,6 +1221,44 @@ export default function LobbyScreen() {
             <button onClick={handleSaveProfile} className="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none">
               Save Changes
             </button>
+          </div>
+        </div>
+      )}
+      {/* Private Room Password Modal */}
+      {passwordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-zinc-900 border border-pink-500/30 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative">
+            <h3 className="text-xl font-black italic text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+              <Lock className="text-pink-500" /> Private Room
+            </h3>
+            <p className="text-zinc-400 mb-4 text-sm">Enter password to join <span className="text-white font-bold">{pendingRoom?.name}</span></p>
+            
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Enter room password..."
+              className="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-3 text-white mb-6 focus:outline-none focus:border-pink-500 transition-colors font-mono"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') processJoinRoom(pendingRoom, passwordInput);
+              }}
+            />
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPasswordModalOpen(false)}
+                className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg font-bold transition-all uppercase text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => processJoinRoom(pendingRoom, passwordInput)}
+                className="flex-1 py-3 bg-pink-600 hover:bg-pink-500 text-white rounded-lg font-bold transition-all uppercase text-sm shadow-lg shadow-pink-500/20"
+              >
+                Access
+              </button>
+            </div>
           </div>
         </div>
       )}

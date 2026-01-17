@@ -124,9 +124,9 @@ export function useSocket() {
   }, [])
 
   // Room actions
-  const joinRoom = useCallback((roomId) => {
+  const joinRoom = useCallback((roomId, password = null) => {
     console.log('📨 joinRoom:', roomId)
-    emit('room_join', { room_id: roomId })
+    emit('room_join', { room_id: roomId, password })
   }, [emit])
 
   const leaveRoom = useCallback((roomId) => {

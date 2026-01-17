@@ -90,10 +90,10 @@ class RoomService:
         return True
     
     async def get_open_rooms(self) -> list[Room]:
-        """Get all open (non-private, waiting or playing) rooms."""
+        """Get all waiting rooms (including private ones)."""
         return [
             room for room in self._rooms.values()
-            if not room.is_private and room.status in [RoomStatus.WAITING, RoomStatus.PLAYING]
+            if room.status == RoomStatus.WAITING
         ]
     
     async def delete_room(self, room_id: UUID, user_id: UUID) -> tuple[bool, str]:
