@@ -62,8 +62,10 @@ class RoomService:
         if room.status != RoomStatus.WAITING:
             return False, "Game already in progress"
         
-        if room.is_private and room.password and room.password != password:
-            return False, "Incorrect password"
+        # Skip password check for host or existing members
+        if user_id != room.host_id and user_id not in room.player_ids:
+            if room.is_private and room.password and room.password != password:
+                return False, "Incorrect password"
         
         if user_id not in room.player_ids:
             room.player_ids.append(user_id)
