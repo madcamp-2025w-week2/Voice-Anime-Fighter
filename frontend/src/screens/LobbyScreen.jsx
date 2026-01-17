@@ -207,13 +207,14 @@ export default function LobbyScreen() {
   useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {
-      // Navigate to battle with battle_id
-      navigate('/battle', { state: { battle_id: battleId, opponent } });
+      // Navigate to character select (same as CREATE ROOM flow)
+      // Use battle_id as room_id since they serve the same purpose
+      navigate('/multi-select', { state: { room_id: battleId, is_host: true } });
       return;
     }
     const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(timer);
-  }, [countdown, navigate, battleId, opponent]);
+  }, [countdown, navigate, battleId]);
 
   // --- Handlers ---
   const handleSendChat = (e) => {

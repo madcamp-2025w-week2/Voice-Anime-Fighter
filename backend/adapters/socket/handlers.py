@@ -105,6 +105,29 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             await sio.enter_room(opponent_sid, battle_id)
             logger.info(f"[Matchmaking] Both players joined battle room: {battle_id}")
             
+            # Track room members (same as CREATE ROOM flow)
+            room_members[battle_id] = [sid, opponent_sid]
+            
+            # Store battle data for battle:ready handler (same as CREATE ROOM flow)
+            player_ids = [str(p1_info.get("user_id", sid)), str(p2_info.get("user_id", opponent_sid))]
+            players = [
+                {"user_id": p1_info.get("user_id", sid), "nickname": p1_info.get("nickname", "Player 1")},
+                {"user_id": p2_info.get("user_id", opponent_sid), "nickname": p2_info.get("nickname", "Player 2")}
+            ]
+            
+            import random
+            first_player_index = random.randint(0, 1)
+            first_player_id = player_ids[first_player_index]
+            
+            battle_ready_data[battle_id] = {
+                "battle_id": battle_id,
+                "players": players,
+                "player_ids": player_ids,
+                "first_turn_player_id": first_player_id,
+                "members": [sid, opponent_sid],
+            }
+            logger.info(f"[Matchmaking] Stored battle_ready_data for {battle_id}")
+            
             # Notify both players
             await sio.emit("match:found", {
                 "battle_id": battle_id,
