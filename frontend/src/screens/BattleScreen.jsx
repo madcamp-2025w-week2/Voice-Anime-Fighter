@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Mic, MicOff, Sparkles, Zap } from 'lucide-react'
 import { useBattleStore } from '../stores/battleStore'
 import { useGameStore } from '../stores/gameStore'
@@ -10,22 +10,27 @@ import { useOtakuAudio } from '../hooks/useOtakuAudio'
 
 export default function BattleScreen() {
   const navigate = useNavigate()
+  const location = useLocation()
   const battle = useBattleStore()
   const { selectedCharacter } = useGameStore()
   const { sendAttack, on, off } = useSocket()
-  const { 
-    isRecording, 
-    isAnalyzing, 
-    startRecording, 
-    stopRecording, 
-    analyzeVoice, 
-    result, 
+  const {
+    isRecording,
+    isAnalyzing,
+    startRecording,
+    stopRecording,
+    analyzeVoice,
+    result,
     reset,
     liveTranscript  // Real-time transcription
   } = useSpeechRecognition()
   const { analyzerData, start: startVisualizer, stop: stopVisualizer } = useAudioVisualizer()
   const { playOtakuSound, playCriticalHitSound, cleanup: cleanupAudio } = useOtakuAudio()
-  
+
+  // Get battle info from navigation state (Fast Matching)
+  const matchedBattleId = location.state?.battle_id
+  const matchedOpponent = location.state?.opponent
+
   const [showDamage, setShowDamage] = useState(null)
   const [timer, setTimer] = useState(30)
   const [isAttacking, setIsAttacking] = useState(false)
@@ -62,19 +67,19 @@ export default function BattleScreen() {
   useEffect(() => {
     if (!battle.isActive && gameStarted) {
       battle.initBattle({
-        battleId: `battle_${Date.now()}`,
+        battleId: matchedBattleId || `battle_${Date.now()}`,  // Use matched battle ID if available
         playerCharacterId: selectedCharacter?.id || 'char_000',
-        opponentCharacterId: 'char_001',
-        opponentNickname: 'AI 상대',
+        opponentCharacterId: matchedOpponent?.character_id || 'char_001',
+        opponentNickname: matchedOpponent?.nickname || 'AI 상대',
         goesFirst: true,
       })
     }
-  }, [battle, selectedCharacter, gameStarted])
+  }, [battle, selectedCharacter, gameStarted, matchedBattleId, matchedOpponent])
 
   // Timer countdown
   useEffect(() => {
     if (!gameStarted || !battle.isActive) return
-    
+
     const interval = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
@@ -93,12 +98,12 @@ export default function BattleScreen() {
     on('battle:damage_received', async (data) => {
       battle.takeDamage(data.damage)
       setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade, isCritical: data.is_critical })
-      
+
       // Play opponent's attack audio with otaku effects
       if (data.audio_url) {
         await playOtakuSound(data.audio_url)
       }
-      
+
       // Critical hit effect
       if (data.is_critical) {
         playCriticalHitSound()
@@ -119,27 +124,27 @@ export default function BattleScreen() {
   // Handle recording
   const handleRecordToggle = useCallback(async () => {
     if (!gameStarted) return
-    
+
     if (isRecording) {
       stopRecording()
       stopVisualizer()
       setIsAttacking(true)
-      
+
       setTimeout(async () => {
         const analysisResult = await analyzeVoice(
           battle.battleId || 'demo',
           currentSpell,
           selectedCharacter?.id
         )
-        
+
         if (analysisResult && analysisResult.success) {
           const damage = analysisResult.damage.total_damage
           const isCritical = analysisResult.is_critical || analysisResult.damage.is_critical
-          
+
           battle.dealDamage(damage, analysisResult)
           setShowDamage({ value: damage, isPlayer: false, grade: analysisResult.grade, isCritical })
           sendAttack(battle.battleId, { ...analysisResult.damage, audio_url: analysisResult.audio_url })
-          
+
           // Show critical effect
           if (isCritical) {
             setShowCritical(true)
@@ -149,7 +154,7 @@ export default function BattleScreen() {
         } else {
           setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
         }
-        
+
         setIsAttacking(false)
         reset()
         setTimer(30)
@@ -179,7 +184,7 @@ export default function BattleScreen() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Battle Arena Background */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/battle_bg.png')" }}
       />
@@ -214,28 +219,28 @@ export default function BattleScreen() {
               <span className="font-bold text-white">Opponent</span>
             </div>
             <div className="h-8 bg-gray-900/80 rounded-r-lg overflow-hidden border-2 border-gray-700">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-300"
                 style={{ width: `${(battle.opponent.hp / battle.opponent.maxHp) * 100}%` }}
               />
             </div>
             <div className="text-white font-bold mt-1 text-2xl">{battle.opponent.hp}</div>
           </div>
-          
+
           {/* Timer */}
           <div className="flex flex-col items-center px-4">
             <div className="w-16 h-16 rounded-full bg-cyan-400 flex items-center justify-center border-4 border-white shadow-lg">
               <span className="font-bold text-3xl text-white">{timer}</span>
             </div>
           </div>
-          
+
           {/* Me HP (오른쪽) */}
           <div className="flex-1 text-right">
             <div className="bg-gray-800/80 px-4 py-1 rounded-t-lg inline-block">
               <span className="font-bold text-white">Me</span>
             </div>
             <div className="h-8 bg-gray-900/80 rounded-l-lg overflow-hidden border-2 border-gray-700">
-              <div 
+              <div
                 className="h-full bg-gradient-to-l from-red-600 to-red-500 transition-all duration-300 ml-auto"
                 style={{ width: `${(battle.player.hp / battle.player.maxHp) * 100}%` }}
               />
@@ -248,11 +253,10 @@ export default function BattleScreen() {
       {/* Battle Arena - Characters with Images */}
       <div className="flex-1 relative z-10 flex items-end justify-between px-4 pb-4">
         {/* Opponent Character (왼쪽) */}
-        <div className={`w-1/3 flex flex-col items-center ${
-          showDamage && !showDamage.isPlayer ? 'animate-shake' : ''
-        }`}>
-          <img 
-            src={opponentCharImage} 
+        <div className={`w-1/3 flex flex-col items-center ${showDamage && !showDamage.isPlayer ? 'animate-shake' : ''
+          }`}>
+          <img
+            src={opponentCharImage}
             alt="Opponent"
             className="h-48 md:h-64 object-contain transform scale-x-[-1]"
             style={{ filter: 'drop-shadow(0 0 10px rgba(255,0,0,0.3))' }}
@@ -270,29 +274,26 @@ export default function BattleScreen() {
                 <Zap className="w-8 h-8 text-yellow-400 fill-yellow-400" />
               </div>
             )}
-            <div className={`text-6xl font-bold ${
-              showDamage.grade === 'SSS' ? 'text-yellow-300' :
-              showDamage.grade === 'S' ? 'text-pink-400' :
-              showDamage.grade === 'A' ? 'text-purple-400' :
-              showDamage.grade === 'B' ? 'text-blue-400' :
-              'text-gray-400'
-            } drop-shadow-lg animate-bounce`}>
+            <div className={`text-6xl font-bold ${showDamage.grade === 'SSS' ? 'text-yellow-300' :
+                showDamage.grade === 'S' ? 'text-pink-400' :
+                  showDamage.grade === 'A' ? 'text-purple-400' :
+                    showDamage.grade === 'B' ? 'text-blue-400' :
+                      'text-gray-400'
+              } drop-shadow-lg animate-bounce`}>
               {showDamage.value > 0 ? `-${showDamage.value}` : 'MISS'}
             </div>
-            <div className={`text-center text-3xl font-bold mt-2 ${
-              showDamage.grade === 'SSS' ? 'text-yellow-300' : 'text-white'
-            }`}>
+            <div className={`text-center text-3xl font-bold mt-2 ${showDamage.grade === 'SSS' ? 'text-yellow-300' : 'text-white'
+              }`}>
               {showDamage.grade}
             </div>
           </div>
         )}
 
         {/* My Character (오른쪽) */}
-        <div className={`w-1/3 flex flex-col items-center ${
-          isAttacking || showCritical ? 'animate-shake' : ''
-        }`}>
-          <img 
-            src={myCharImage} 
+        <div className={`w-1/3 flex flex-col items-center ${isAttacking || showCritical ? 'animate-shake' : ''
+          }`}>
+          <img
+            src={myCharImage}
             alt="Me"
             className="h-48 md:h-64 object-contain"
             style={{ filter: `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})` }}
@@ -307,7 +308,7 @@ export default function BattleScreen() {
           <div className="text-white text-lg md:text-xl font-bold leading-relaxed">
             {currentSpell}
           </div>
-          
+
           {/* Real-time Live Transcript (Fast Track) */}
           {isRecording && liveTranscript && (
             <div className="mt-2 p-2 bg-white/20 rounded-lg">
@@ -315,7 +316,7 @@ export default function BattleScreen() {
               <p className="text-white font-medium">{liveTranscript}</p>
             </div>
           )}
-          
+
           {/* Final Transcription Result */}
           {result?.transcription && !isRecording && (
             <div className="mt-2 text-pink-100 text-sm">
@@ -343,13 +344,12 @@ export default function BattleScreen() {
         <button
           onClick={handleRecordToggle}
           disabled={isAnalyzing || !gameStarted}
-          className={`w-full py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-3 ${
-            !gameStarted
+          className={`w-full py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-3 ${!gameStarted
               ? 'bg-gray-600 text-gray-400'
-              : isRecording 
-                ? 'bg-red-500 animate-pulse' 
+              : isRecording
+                ? 'bg-red-500 animate-pulse'
                 : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-105'
-          } disabled:opacity-50`}
+            } disabled:opacity-50`}
         >
           {!gameStarted ? (
             '게임 시작 대기 중...'

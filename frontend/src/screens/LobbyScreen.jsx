@@ -39,6 +39,7 @@ export default function LobbyScreen() {
   const [matchState, setMatchState] = useState('IDLE');
   const [opponent, setOpponent] = useState(null);
   const [countdown, setCountdown] = useState(null);
+  const [battleId, setBattleId] = useState(null);  // Store matched battle ID
 
   const chatEndRef = useRef(null);
   const mainCharacter = selectedCharacter || characters[0];
@@ -99,7 +100,9 @@ export default function LobbyScreen() {
 
     // Matchmaking
     const handleMatchFound = (data) => {
+      console.log('[Matchmaking] match:found received:', data);
       setOpponent(data.opponent);
+      setBattleId(data.battle_id);  // Save battle ID
       setMatchState('FOUND');
       setTimeout(() => setCountdown(3), 1000);
     };
@@ -203,12 +206,13 @@ export default function LobbyScreen() {
   useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {
-      navigate('/battle');
+      // Navigate to battle with battle_id
+      navigate('/battle', { state: { battle_id: battleId, opponent } });
       return;
     }
     const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(timer);
-  }, [countdown, navigate]);
+  }, [countdown, navigate, battleId, opponent]);
 
   // --- Handlers ---
   const handleSendChat = (e) => {

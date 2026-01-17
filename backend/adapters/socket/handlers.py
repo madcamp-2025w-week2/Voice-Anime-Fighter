@@ -72,43 +72,60 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     @sio.on("match:join_queue")
     async def join_queue(sid, data):
         """Join matchmaking queue."""
-        logger.info(f"User {sid} joined matchmaking queue")
+        logger.info(f"[Matchmaking] User {sid} requesting to join queue")
+        logger.info(f"[Matchmaking] Current queue: {waiting_queue}")
         
         if sid in waiting_queue:
+            logger.info(f"[Matchmaking] User {sid} already in queue, ignoring")
             return
             
         # Check if anyone is waiting
         if waiting_queue:
             opponent_sid = waiting_queue.pop(0)
+            logger.info(f"[Matchmaking] Found opponent {opponent_sid} in queue")
+            
+            # Verify opponent is still connected
+            if opponent_sid not in connected_users:
+                logger.warning(f"[Matchmaking] Opponent {opponent_sid} disconnected, adding {sid} to queue")
+                waiting_queue.append(sid)
+                await sio.emit("match:searching", {}, room=sid)
+                return
             
             # Create a match
-            battle_id = f"battle_{datetime.utcnow().timestamp()}"
+            battle_id = f"battle_{int(datetime.utcnow().timestamp() * 1000)}"
             
             p1_info = connected_users.get(sid, {})
             p2_info = connected_users.get(opponent_sid, {})
+            
+            # Add both players to the battle room for real-time communication
+            await sio.enter_room(sid, battle_id)
+            await sio.enter_room(opponent_sid, battle_id)
+            logger.info(f"[Matchmaking] Both players joined battle room: {battle_id}")
             
             # Notify both players
             await sio.emit("match:found", {
                 "battle_id": battle_id,
                 "opponent": {
+                    "user_id": p2_info.get("user_id"),
                     "nickname": p2_info.get("nickname", "Unknown"),
                     "elo_rating": p2_info.get("elo_rating", 1200),
-                    # TODO: Pass character info if available
                 }
             }, room=sid)
             
             await sio.emit("match:found", {
                 "battle_id": battle_id,
                 "opponent": {
+                    "user_id": p1_info.get("user_id"),
                     "nickname": p1_info.get("nickname", "Unknown"),
                     "elo_rating": p1_info.get("elo_rating", 1200),
                 }
             }, room=opponent_sid)
             
-            logger.info(f"Match found: {sid} vs {opponent_sid}")
+            logger.info(f"[Matchmaking] ✅ Match found: {p1_info.get('nickname')} vs {p2_info.get('nickname')} (battle_id: {battle_id})")
             
         else:
             waiting_queue.append(sid)
+            logger.info(f"[Matchmaking] No opponent available, {sid} added to queue. Queue size: {len(waiting_queue)}")
             await sio.emit("match:searching", {}, room=sid)
 
     @sio.on("match:leave_queue")
