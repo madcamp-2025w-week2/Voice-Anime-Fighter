@@ -119,11 +119,20 @@ export default function BattleScreen() {
       const currentUserId = useUserStore.getState().user?.id
       if (data.attacker_id === currentUserId) return
 
+      // 1. Play attacker's voice/spell audio FIRST
+      if (data.audio_url) {
+        await playOtakuSound(data.audio_url)
+      }
+
+      // 2. THEN apply damage after audio finishes
       battle.takeDamage(data.damage)
       setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade, isCritical: data.is_critical })
-      battle.setTurn(true)
-      if (data.audio_url) await playOtakuSound(data.audio_url)
+
+      // 3. Critical hit sound effect
       if (data.is_critical) playCriticalHitSound()
+
+      // 4. Now it's my turn
+      battle.setTurn(true)
     })
 
     on('battle:result', (data) => {
