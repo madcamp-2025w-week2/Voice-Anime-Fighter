@@ -18,17 +18,29 @@ export default function LobbyScreen() {
   const { characters, selectedCharacter, selectCharacter } = useGameStore();
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
+  const [onlineCount, setOnlineCount] = useState(1);
+
   // Sync selected character with user's saved choice
   useEffect(() => {
     if (user?.main_character_id) {
       if (!selectedCharacter || selectedCharacter.id !== user.main_character_id) {
         const fullChar = characters.find(c => c.id === user.main_character_id);
-        // If fullChar is found (characters loaded), use it.
-        // Otherwise use minimal object with ID so Lobby can render image from map
         selectCharacter(fullChar || { id: user.main_character_id, name: 'Main Character' });
       }
     }
   }, [user?.main_character_id, characters, selectedCharacter, selectCharacter]);
+
+  // Online Count Listener
+  useEffect(() => {
+    if (socket) {
+      socket.on('user:count', (data) => {
+        setOnlineCount(data.count);
+      });
+      return () => {
+        socket.off('user:count');
+      };
+    }
+  }, [socket]);
 
   // State
   const [rankingTab, setRankingTab] = useState('RANKING');
@@ -464,13 +476,19 @@ export default function LobbyScreen() {
       <header className="px-8 py-4 flex items-center justify-between border-b border-purple-500/30 bg-black/60 backdrop-blur-sm z-30 shrink-0 h-[80px] shadow-[0_4px_20px_-10px_rgba(168,85,247,0.5)]">
         {/* Same Header */}
         <div className="flex items-center gap-3 min-w-0">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] whitespace-nowrap">
-            오타쿠 대변신 대작전 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse">Lobby</span>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] whitespace-nowrap pr-2">
+            오타쿠 대변신 대작전 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse inline-block pr-2">Lobby</span>
           </h1>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Online Status */}
             <div className="flex items-center gap-2 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-700">
               <div className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_currentColor] ${isConnected ? 'bg-green-500 text-green-500' : 'bg-red-500 text-red-500'}`}></div>
               <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">{isConnected ? 'ONLINE' : 'OFFLINE'}</span>
+            </div>
+            {/* Online User Count */}
+            <div className="flex items-center gap-1.5 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-700 text-zinc-400">
+              <Users size={12} />
+              <span className="text-[10px] font-bold">{onlineCount}</span>
             </div>
           </div>
         </div>
