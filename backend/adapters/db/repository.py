@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func, desc
 from .models import UserModel
 
 class UserRepository:
@@ -46,6 +47,34 @@ class UserRepository:
                 user.nickname = nickname
             if avatar_url:
                 user.avatar_url = avatar_url
+            await self.db.commit()
+            await self.db.refresh(user)
+        return user
+
+    # ---- Ranking Methods ----
+    
+    async def get_top_rankings(self, limit: int = 10, offset: int = 0):
+        """Get top ranked users from database, ordered by elo_rating DESC."""
+        result = await self.db.execute(
+            select(UserModel)
+            .order_by(desc(UserModel.elo_rating))
+            .offset(offset)
+            .limit(limit)
+        )
+        return result.scalars().all()
+    
+    async def get_total_users_count(self) -> int:
+        """Get total count of all users in database."""
+        result = await self.db.execute(select(func.count(UserModel.id)))
+        return result.scalar() or 0
+    
+    async def update_elo_rating(self, user_id, new_rating: int, wins_delta: int = 0, losses_delta: int = 0):
+        """Update user's ELO rating and win/loss counts in database."""
+        user = await self.get_by_id(user_id)
+        if user:
+            user.elo_rating = new_rating
+            user.wins += wins_delta
+            user.losses += losses_delta
             await self.db.commit()
             await self.db.refresh(user)
         return user

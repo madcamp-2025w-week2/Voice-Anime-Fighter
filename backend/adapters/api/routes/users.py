@@ -89,11 +89,17 @@ async def get_current_user(
 
 
 @router.get("/ranking", response_model=RankingResponse)
-async def get_rankings(limit: int = 50, offset: int = 0):
-    """글로벌 랭킹 조회"""
-    # 랭킹은 일단 인메모리 서비스 유지 (추후 DB 기반으로 변경 권장)
-    users = await ranking_service.get_rankings(limit, offset)
-    total = await ranking_service.get_total_users()
+async def get_rankings(
+    limit: int = 10,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db)
+):
+    """글로벌 랭킹 조회 (DB 기반 - 전체 유저 대상)"""
+    repo = UserRepository(db)
+    
+    # DB에서 elo_rating 순으로 정렬된 유저 조회
+    users = await repo.get_top_rankings(limit, offset)
+    total = await repo.get_total_users_count()
     
     rankings = [
         RankingEntry(
