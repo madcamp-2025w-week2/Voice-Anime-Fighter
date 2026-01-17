@@ -216,11 +216,11 @@ export default function LobbyScreen() {
     if (!chatInput.trim()) return;
 
     if (selectedRoom) {
-      // 서버로 전송 (서버가 다시 broadcast하면 handleNewMessage에서 받음)
+      // Room chat - 서버로 전송 (해당 방에만 broadcast)
       sendMessage(selectedRoom.room_id, chatInput.trim());
     } else {
-      // 글로벌 채팅은 로컬로만 (데모)
-      setChatMessages(prev => [...prev, { id: Date.now(), user: user?.nickname || "Me", text: chatInput, type: "self" }]);
+      // Global chat - 서버로 전송 (모든 연결된 소켓에 broadcast)
+      sendMessage(null, chatInput.trim());
     }
     setChatInput("");
   };

@@ -11,6 +11,7 @@ python-socketio>=5.11.0
 sqlalchemy>=2.0.25
 asyncpg>=0.29.0
 redis>=5.0.1
+psycopg2-binary>=2.9.9
 
 # Validation & Settings
 pydantic>=2.5.3

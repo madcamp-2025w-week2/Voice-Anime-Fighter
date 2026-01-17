@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, Loader2 } from 'lucide-react'
 import { useGameStore } from '../stores/gameStore'
 import { useUserStore } from '../stores/userStore'
 import { useSocket } from '../hooks/useSocket'
 
-// 캐릭터 데이터
-const CHARACTERS = [
-  { id: 'char_000', name: '찐따 오타쿠 쿠로', image: '/images/otacu.webp', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!' },
-  { id: 'char_008', name: '고졸 사토루', image: '/images/output_satoru.webp', stats: { cringe_level: 75, volume_req: 90, precision: 95 }, spell_text: '무량공처! 죽여버린다 이 새끼!' },
-  { id: 'char_001', name: '몽키 D: 드라이브', image: '/images/lupy.webp', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!' },
-  { id: 'char_002', name: '딸바이', image: '/images/livi.webp', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!' },
-  { id: 'char_003', name: '바싹 탄지로', image: '/images/output_tan.webp', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!' },
-  { id: 'char_004', name: '중2병 환자 리카', image: null, stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!' },
-  { id: 'char_005', name: '고양이 집사 냥댕이', image: null, stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!' },
-  { id: 'char_006', name: '오타쿠 전사 오글이', image: null, stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!' },
-]
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
 export default function MultiCharacterSelect() {
   const navigate = useNavigate()
@@ -24,6 +14,33 @@ export default function MultiCharacterSelect() {
   const { user } = useUserStore()
   const { selectCharacter } = useGameStore()
   const { on, off, emit, joinRoom } = useSocket()
+
+  // 캐릭터 데이터 (API에서 로드)
+  const [characters, setCharacters] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // 캐릭터 목록 API 호출
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      try {
+        const res = await fetch(`${API_URL}/characters`)
+        if (res.ok) {
+          const data = await res.json()
+          // 백엔드에서 받은 데이터에 image 필드 추가 (sprite_url 사용)
+          const charsWithImages = data.characters.map(c => ({
+            ...c,
+            image: c.sprite_url || c.thumbnail_url
+          }))
+          setCharacters(charsWithImages)
+        }
+      } catch (err) {
+        console.error('Failed to fetch characters:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchCharacters()
+  }, [])
 
   // 방 ID가 없으면 로비로 리다이렉트
   useEffect(() => {
@@ -50,7 +67,11 @@ export default function MultiCharacterSelect() {
   useEffect(() => {
     on('character:selected', (data) => {
       if (data.user_id !== user?.id) {
-        setOpponentSelected(CHARACTERS.find(c => c.id === data.character_id))
+        // characters 배열에서 상대방이 선택한 캐릭터 찾기
+        const selectedChar = characters.find(c => c.id === data.character_id)
+        if (selectedChar) {
+          setOpponentSelected(selectedChar)
+        }
       }
     })
 
@@ -74,7 +95,7 @@ export default function MultiCharacterSelect() {
       off('battle:countdown')
       off('battle:start')
     }
-  }, [on, off, user?.id, navigate, roomId])
+  }, [on, off, user?.id, navigate, roomId, characters])
 
   // 둘 다 확정하면 카운트다운 시작
   useEffect(() => {
@@ -108,15 +129,6 @@ export default function MultiCharacterSelect() {
     if (mySelected && !myConfirmed) {
       setMyConfirmed(true)
       emit('character:confirm', { character_id: mySelected.id, room_id: roomId })
-
-      // 데모: 상대도 자동 선택/확정
-      if (!opponentSelected) {
-        const randomChar = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)]
-        setOpponentSelected(randomChar)
-      }
-      setTimeout(() => {
-        setOpponentConfirmed(true)
-      }, 1500)
     }
   }
 
@@ -200,38 +212,45 @@ export default function MultiCharacterSelect() {
           )}
         </div>
 
-        {/* 중앙 - 2x4 캐릭터 그리드 */}
+        {/* 중앙 - 캐릭터 그리드 */}
         <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="grid grid-cols-4 grid-rows-2 gap-3 p-4 bg-black/30 backdrop-blur-sm rounded-2xl border border-purple-500/20">
-            {CHARACTERS.map((char) => (
-              <button
-                key={char.id}
-                onClick={() => handleSelect(char)}
-                disabled={myConfirmed}
-                className={`relative w-24 h-28 rounded-xl overflow-hidden border-2 transition-all duration-200 group ${
-                  mySelected?.id === char.id
-                    ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-105'
-                    : 'border-gray-700 hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                } ${myConfirmed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-              >
-                {char.image ? (
-                  <img src={char.image} alt={char.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-red-900/50 flex items-center justify-center">
-                    <span className="text-3xl">✨</span>
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
+              <span className="text-gray-400">캐릭터 로딩 중...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-4 bg-black/30 backdrop-blur-sm rounded-2xl border border-purple-500/20 max-w-4xl">
+              {characters.map((char) => (
+                <button
+                  key={char.id}
+                  onClick={() => handleSelect(char)}
+                  disabled={myConfirmed}
+                  className={`relative w-24 h-28 rounded-xl overflow-hidden border-2 transition-all duration-200 group ${
+                    mySelected?.id === char.id
+                      ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-105'
+                      : 'border-gray-700 hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                  } ${myConfirmed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  {char.image ? (
+                    <img src={char.image} alt={char.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-red-900/50 flex items-center justify-center">
+                      <span className="text-3xl">✨</span>
+                    </div>
+                  )}
+                  {/* 캐릭터 이름 오버레이 */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1">
+                    <span className="text-white text-[10px] font-bold truncate block text-center">{char.name}</span>
                   </div>
-                )}
-                {/* 캐릭터 이름 오버레이 */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1">
-                  <span className="text-white text-[10px] font-bold truncate block text-center">{char.name}</span>
-                </div>
-                {/* 선택됨 표시 */}
-                {mySelected?.id === char.id && (
-                  <div className="absolute inset-0 border-4 border-purple-400 rounded-xl pointer-events-none" />
-                )}
-              </button>
-            ))}
-          </div>
+                  {/* 선택됨 표시 */}
+                  {mySelected?.id === char.id && (
+                    <div className="absolute inset-0 border-4 border-purple-400 rounded-xl pointer-events-none" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* 확정 버튼 */}
           <button

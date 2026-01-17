@@ -2,7 +2,8 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useUserStore } from '../stores/userStore'
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000'
+// 빈 문자열이면 현재 origin 사용 (nginx를 통해 프록시됨)
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined
 
 export function useSocket() {
   const socketRef = useRef(null)
@@ -21,6 +22,9 @@ export function useSocket() {
       },
       transports: ['websocket', 'polling'],
     })
+    
+    // 디버깅용: 전역으로 소켓 노출
+    window.__socket = socketRef.current
     
     socketRef.current.on('connect', () => {
       console.log('🔌 Socket connected:', socketRef.current.id)
@@ -76,6 +80,7 @@ export function useSocket() {
   
   // Chat actions
   const sendMessage = useCallback((roomId, message) => {
+    console.log('📤 sendMessage called:', { roomId, message })
     emit('chat_message', { room_id: roomId, message })
   }, [emit])
   

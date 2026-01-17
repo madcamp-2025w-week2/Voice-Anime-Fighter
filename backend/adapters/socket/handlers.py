@@ -6,6 +6,9 @@ import logging
 # Logger Setup
 logger = logging.getLogger(__name__)
 
+# Redis Battle State Manager
+from adapters.redis.battle_state import battle_state_manager
+
 # Connected users mapping: sid -> user_info
 connected_users: dict[str, dict[str, Any]] = {}
 
@@ -209,25 +212,35 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     
     @sio.event
     async def chat_message(sid, data):
-        """Handle chat message."""
+        """Handle chat message. If room_id is provided, sends to that room only.
+        If room_id is empty/None, broadcasts to ALL connected sockets (Global Chat).
+        """
+        print(f"🔥 chat_message received! sid={sid}, data={data}")
         room_id = data.get("room_id")
         message = data.get("message", "")
         
-        if not room_id or not message:
+        if not message:
             return
         
         user_info = connected_users.get(sid, {})
         nickname = user_info.get("nickname", "Unknown")
         
-        # LOGGING CHAT MESSAGE HERE
-        logger.info(f"[Chat] Room {room_id} | {nickname}: {message}")
-        
-        await sio.emit("chat:new_message", {
+        chat_data = {
             "user_id": user_info.get("user_id", sid),
             "nickname": nickname,
             "message": message,
-            "timestamp": datetime.utcnow().isoformat()
-        }, room=room_id)
+            "timestamp": datetime.utcnow().isoformat(),
+            "is_global": not bool(room_id)
+        }
+        
+        if room_id:
+            # Room-specific chat
+            logger.info(f"[Chat] Room {room_id} | {nickname}: {message}")
+            await sio.emit("chat:new_message", chat_data, room=room_id)
+        else:
+            # Global broadcast to ALL connected sockets
+            logger.info(f"[Global Chat] {nickname}: {message}")
+            await sio.emit("chat:new_message", chat_data)
 
     # --- Character Selection Handlers ---
     @sio.on("character:select")
@@ -273,7 +286,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     
     @sio.event
     async def battle_attack(sid, data):
-        """Handle battle attack."""
+        """Handle battle attack with Redis HP synchronization."""
         battle_id = data.get("battle_id")
         damage_data = data.get("damage_data", {})
         
@@ -281,20 +294,39 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             return
         
         user_info = connected_users.get(sid, {})
+        user_id = user_info.get("user_id", sid)
+        damage = damage_data.get("total_damage", 0)
+        
+        # Redis에서 HP 업데이트 및 동기화
+        hp_update = None
+        try:
+            hp_update = await battle_state_manager.update_hp(battle_id, user_id, damage)
+        except Exception as e:
+            logger.warning(f"Redis HP update failed: {e}")
         
         # Broadcast damage to battle room (includes audio_url for opponent playback)
-        await sio.emit("battle:damage_received", {
-            "attacker_id": user_info.get("user_id", sid),
-            "damage": damage_data.get("total_damage", 0),
+        emit_data = {
+            "attacker_id": user_id,
+            "damage": damage,
             "grade": damage_data.get("grade", "F"),
             "animation_trigger": damage_data.get("animation_trigger", "miss"),
             "is_critical": damage_data.get("is_critical", False),
             "audio_url": damage_data.get("audio_url", None)
-        }, room=battle_id)
+        }
+        
+        # Redis에서 동기화된 HP 정보 추가
+        if hp_update:
+            emit_data["player1_hp"] = hp_update["player1_hp"]
+            emit_data["player2_hp"] = hp_update["player2_hp"]
+            emit_data["current_turn"] = hp_update["current_turn"]
+            emit_data["game_status"] = hp_update["status"]
+            emit_data["winner_id"] = hp_update.get("winner_id")
+        
+        await sio.emit("battle:damage_received", emit_data, room=battle_id)
     
     @sio.event
     async def battle_result(sid, data):
-        """Handle battle result and cleanup audio files."""
+        """Handle battle result and cleanup."""
         battle_id = data.get("battle_id")
         winner_id = data.get("winner_id")
         stats = data.get("stats", {})
@@ -307,39 +339,61 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "stats": stats
         }, room=battle_id)
         
-        # Cleanup audio files for this battle
+        # Cleanup audio files
         try:
             from adapters.api.routes.battle import cleanup_battle_audio
             cleanup_battle_audio(battle_id)
         except Exception as e:
-            print(f"⚠️ Audio cleanup error: {e}")
+            logger.warning(f"Audio cleanup error: {e}")
+        
+        # Cleanup Redis battle session
+        try:
+            await battle_state_manager.delete_battle(battle_id)
+        except Exception as e:
+            logger.warning(f"Redis cleanup error: {e}")
     
     @sio.event
     async def game_start(sid, data):
-        """Start the game (host only)."""
+        """Start the game (host only) and create Redis battle session."""
         room_id = data.get("room_id")
-        battle_id = data.get("battle_id")
+        battle_id = data.get("battle_id") or room_id
         
-        print(f"[{sid}] game_start triggered for room_id: {room_id}, battle_id: {battle_id}")
+        logger.info(f"[{sid}] game_start triggered for room_id: {room_id}, battle_id: {battle_id}")
         
         if not room_id:
-            print(f"[{sid}] game_start failed: No room_id")
+            logger.warning(f"[{sid}] game_start failed: No room_id")
             return
         
         # Get players in room
         players = []
+        player_ids = []
         members = room_members.get(str(room_id), [])
-        print(f"[{sid}] Members in room {room_id}: {members}")
+        logger.info(f"[{sid}] Members in room {room_id}: {members}")
         
         for member_sid in members:
             user_info = connected_users.get(member_sid, {})
+            player_id = user_info.get("user_id", member_sid)
             players.append({
-                "user_id": user_info.get("user_id", member_sid),
+                "user_id": player_id,
                 "nickname": user_info.get("nickname", "Unknown")
             })
+            player_ids.append(player_id)
         
-        print(f"[{sid}] Emitting room:game_start to {room_id} with players: {players}")
+        # Create Redis battle session for HP synchronization
+        if len(player_ids) >= 2:
+            try:
+                await battle_state_manager.create_battle(
+                    battle_id=str(battle_id),
+                    player1_id=str(player_ids[0]),
+                    player2_id=str(player_ids[1])
+                )
+                logger.info(f"[{sid}] Redis battle session created: {battle_id}")
+            except Exception as e:
+                logger.warning(f"[{sid}] Redis battle creation failed: {e}")
+        
+        logger.info(f"[{sid}] Emitting room:game_start to {room_id} with players: {players}")
         await sio.emit("room:game_start", {
-            "battle_id": battle_id or room_id,
+            "battle_id": battle_id,
             "players": players
         }, room=room_id)
+
