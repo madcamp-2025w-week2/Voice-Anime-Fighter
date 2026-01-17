@@ -139,11 +139,13 @@ export default function LobbyScreen() {
     };
 
     const handleNewMessage = (data) => {
+      // 자기 자신이 보낸 메시지는 이미 추가했으므로 스킵 (중복 방지)
+      // 서버에서 오는 메시지만 추가
       setChatMessages(prev => [...prev, {
         id: Date.now(),
         user: data.nickname,
         text: data.message,
-        type: 'normal'
+        type: data.user_id === user?.id ? 'self' : 'normal'
       }]);
     };
 
@@ -214,9 +216,11 @@ export default function LobbyScreen() {
     if (!chatInput.trim()) return;
 
     if (selectedRoom) {
+      // 서버로 전송 (서버가 다시 broadcast하면 handleNewMessage에서 받음)
       sendMessage(selectedRoom.room_id, chatInput.trim());
     } else {
-      setChatMessages(prev => [...prev, { id: Date.now(), user: user?.nickname || "Me", text: chatInput, type: "normal" }]);
+      // 글로벌 채팅은 로컬로만 (데모)
+      setChatMessages(prev => [...prev, { id: Date.now(), user: user?.nickname || "Me", text: chatInput, type: "self" }]);
     }
     setChatInput("");
   };
@@ -527,9 +531,15 @@ export default function LobbyScreen() {
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
               {chatMessages.map(msg => (
-                <div key={msg.id} className="text-xs break-words">
-                  <span className={`font-bold mr-2 ${msg.user === (user?.nickname || 'Me') ? 'text-cyan-400' : 'text-pink-400'}`}>{msg.user}:</span>
-                  <span className="text-zinc-300">{msg.text}</span>
+                <div key={msg.id} className={`text-xs break-words ${msg.type === 'system' ? 'text-center italic' : ''}`}>
+                  {msg.type === 'system' ? (
+                    <span className="text-yellow-500/70">{msg.text}</span>
+                  ) : (
+                    <>
+                      <span className={`font-bold mr-2 ${msg.type === 'self' ? 'text-cyan-400' : 'text-pink-400'}`}>{msg.user}:</span>
+                      <span className="text-zinc-300">{msg.text}</span>
+                    </>
+                  )}
                 </div>
               ))}
               <div ref={chatEndRef} />
@@ -653,12 +663,15 @@ export default function LobbyScreen() {
             <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
               {(() => {
                 const CHARACTER_IMAGES = {
-                  'char_000': '/images/char_otaku.png',
-                  'char_001': '/images/char_satoru.png',
-                  'char_003': '/images/char_satoru.png',
-                  'char_005': '/images/char_satoru.png',
-                  'char_007': '/images/char_satoru.png',
-                  'default': '/images/char_otaku.png'
+                  'char_000': '/images/otacu.webp',
+                  'char_001': '/images/satoru.webp',
+                  'char_002': '/images/lupy.webp',
+                  'char_003': '/images/tan.webp',
+                  'char_004': '/images/rika.webp',
+                  'char_005': '/images/nyang.webp',
+                  'char_006': '/images/ogeul.webp',
+                  'char_007': '/images/livi.webp',
+                  'default': '/images/otacu.webp'
                 };
 
                 const imgSrc = mainCharacter?.image

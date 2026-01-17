@@ -1,32 +1,49 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mic, MicOff, Sparkles } from 'lucide-react'
+import { Mic, MicOff, Sparkles, Zap } from 'lucide-react'
 import { useBattleStore } from '../stores/battleStore'
 import { useGameStore } from '../stores/gameStore'
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition'
 import { useAudioVisualizer } from '../hooks/useAudioVisualizer'
 import { useSocket } from '../hooks/useSocket'
+import { useOtakuAudio } from '../hooks/useOtakuAudio'
 
 export default function BattleScreen() {
   const navigate = useNavigate()
   const battle = useBattleStore()
   const { selectedCharacter } = useGameStore()
   const { sendAttack, on, off } = useSocket()
-  const { isRecording, isAnalyzing, startRecording, stopRecording, analyzeVoice, result, reset } = useSpeechRecognition()
+  const { 
+    isRecording, 
+    isAnalyzing, 
+    startRecording, 
+    stopRecording, 
+    analyzeVoice, 
+    result, 
+    reset,
+    liveTranscript  // Real-time transcription
+  } = useSpeechRecognition()
   const { analyzerData, start: startVisualizer, stop: stopVisualizer } = useAudioVisualizer()
+  const { playOtakuSound, playCriticalHitSound, cleanup: cleanupAudio } = useOtakuAudio()
   
   const [showDamage, setShowDamage] = useState(null)
   const [timer, setTimer] = useState(30)
   const [isAttacking, setIsAttacking] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
   const [countdown, setCountdown] = useState(3) // 3, 2, 1, FIGHT!
+  const [showCritical, setShowCritical] = useState(false)
 
   // 캐릭터 이미지
-  const myCharImage = selectedCharacter?.image || '/images/char_otaku.png'
-  const opponentCharImage = '/images/char_otaku.png' // 상대 캐릭터 (데모)
+  const myCharImage = selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/otacu.webp'
+  const opponentCharImage = '/images/satoru.webp' // 상대 캐릭터 (데모)
 
   // Get spell text for current character
   const currentSpell = selectedCharacter?.spell_text || '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!'
+
+  // Cleanup audio context on unmount
+  useEffect(() => {
+    return () => cleanupAudio()
+  }, [cleanupAudio])
 
   // 게임 시작 카운트다운
   useEffect(() => {
@@ -73,9 +90,19 @@ export default function BattleScreen() {
 
   // Socket event handlers
   useEffect(() => {
-    on('battle:damage_received', (data) => {
+    on('battle:damage_received', async (data) => {
       battle.takeDamage(data.damage)
-      setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade })
+      setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade, isCritical: data.is_critical })
+      
+      // Play opponent's attack audio with otaku effects
+      if (data.audio_url) {
+        await playOtakuSound(data.audio_url)
+      }
+      
+      // Critical hit effect
+      if (data.is_critical) {
+        playCriticalHitSound()
+      }
     })
 
     on('battle:result', (data) => {
@@ -87,7 +114,7 @@ export default function BattleScreen() {
       off('battle:damage_received')
       off('battle:result')
     }
-  }, [on, off, battle, navigate])
+  }, [on, off, battle, navigate, playOtakuSound, playCriticalHitSound])
 
   // Handle recording
   const handleRecordToggle = useCallback(async () => {
@@ -107,11 +134,20 @@ export default function BattleScreen() {
         
         if (analysisResult && analysisResult.success) {
           const damage = analysisResult.damage.total_damage
+          const isCritical = analysisResult.is_critical || analysisResult.damage.is_critical
+          
           battle.dealDamage(damage, analysisResult)
-          setShowDamage({ value: damage, isPlayer: false, grade: analysisResult.grade })
-          sendAttack(battle.battleId, analysisResult.damage)
+          setShowDamage({ value: damage, isPlayer: false, grade: analysisResult.grade, isCritical })
+          sendAttack(battle.battleId, { ...analysisResult.damage, audio_url: analysisResult.audio_url })
+          
+          // Show critical effect
+          if (isCritical) {
+            setShowCritical(true)
+            playCriticalHitSound()
+            setTimeout(() => setShowCritical(false), 1000)
+          }
         } else {
-          setShowDamage({ value: 0, isPlayer: false, grade: 'F' })
+          setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
         }
         
         setIsAttacking(false)
@@ -123,7 +159,7 @@ export default function BattleScreen() {
       startVisualizer(stream)
       startRecording()
     }
-  }, [gameStarted, isRecording, startRecording, stopRecording, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, startVisualizer, stopVisualizer, reset])
+  }, [gameStarted, isRecording, startRecording, stopRecording, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, startVisualizer, stopVisualizer, reset, playCriticalHitSound])
 
   // Check for winner
   useEffect(() => {
@@ -148,6 +184,11 @@ export default function BattleScreen() {
         style={{ backgroundImage: "url('/images/battle_bg.png')" }}
       />
       <div className="absolute inset-0 bg-black/20" />
+
+      {/* Critical Hit Flash Effect */}
+      {showCritical && (
+        <div className="absolute inset-0 bg-yellow-500/30 z-40 animate-pulse" />
+      )}
 
       {/* 3, 2, 1 카운트다운 */}
       {countdown >= 0 && (
@@ -221,6 +262,14 @@ export default function BattleScreen() {
         {/* Damage Popup */}
         {showDamage && (
           <div className={`absolute ${showDamage.isPlayer ? 'right-1/3' : 'left-1/3'} top-1/3 z-20`}>
+            {/* Critical Hit Badge */}
+            {showDamage.isCritical && (
+              <div className="flex items-center justify-center gap-2 mb-2 animate-bounce">
+                <Zap className="w-8 h-8 text-yellow-400 fill-yellow-400" />
+                <span className="text-yellow-400 font-bold text-2xl">CRITICAL!</span>
+                <Zap className="w-8 h-8 text-yellow-400 fill-yellow-400" />
+              </div>
+            )}
             <div className={`text-6xl font-bold ${
               showDamage.grade === 'SSS' ? 'text-yellow-300' :
               showDamage.grade === 'S' ? 'text-pink-400' :
@@ -240,13 +289,13 @@ export default function BattleScreen() {
 
         {/* My Character (오른쪽) */}
         <div className={`w-1/3 flex flex-col items-center ${
-          isAttacking ? 'animate-shake' : ''
+          isAttacking || showCritical ? 'animate-shake' : ''
         }`}>
           <img 
             src={myCharImage} 
             alt="Me"
             className="h-48 md:h-64 object-contain"
-            style={{ filter: 'drop-shadow(0 0 10px rgba(0,200,255,0.3))' }}
+            style={{ filter: `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})` }}
           />
         </div>
       </div>
@@ -258,7 +307,17 @@ export default function BattleScreen() {
           <div className="text-white text-lg md:text-xl font-bold leading-relaxed">
             {currentSpell}
           </div>
-          {result?.transcription && (
+          
+          {/* Real-time Live Transcript (Fast Track) */}
+          {isRecording && liveTranscript && (
+            <div className="mt-2 p-2 bg-white/20 rounded-lg">
+              <p className="text-sm text-pink-100 mb-1">🎤 실시간 인식 중...</p>
+              <p className="text-white font-medium">{liveTranscript}</p>
+            </div>
+          )}
+          
+          {/* Final Transcription Result */}
+          {result?.transcription && !isRecording && (
             <div className="mt-2 text-pink-100 text-sm">
               인식됨: "{result.transcription}"
             </div>

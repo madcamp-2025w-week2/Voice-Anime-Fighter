@@ -10,13 +10,16 @@ export default function CharacterSelectScreen() {
   const { characters, setCharacters, selectedCharacter, selectCharacter } = useGameStore()
   const [previewChar, setPreviewChar] = useState(null)
 
-  /* Image Mapping */
+  /* Image Mapping - 백엔드 sprite_url 사용하거나 fallback */
   const CHARACTER_IMAGES = {
     'char_000': '/images/otacu.webp',
-    'char_001': '/images/output_satoru.webp',
+    'char_001': '/images/satoru.webp',
     'char_002': '/images/lupy.webp',
-    'char_003': '/images/livi.webp',
-    'char_004': '/images/output_tan.webp',
+    'char_003': '/images/tan.webp',
+    'char_004': '/images/rika.webp',
+    'char_005': '/images/nyang.webp',
+    'char_006': '/images/ogeul.webp',
+    'char_007': '/images/livi.webp',
     // Default fallback
     'default': '/images/otacu.webp'
   };
@@ -27,26 +30,26 @@ export default function CharacterSelectScreen() {
         const res = await fetch(`${API_URL}/characters`)
         if (res.ok) {
           const data = await res.json()
-          // Inject images
+          // 백엔드에서 sprite_url을 사용하거나 fallback
           const charsWithImages = data.characters.map(c => ({
             ...c,
-            image: CHARACTER_IMAGES[c.id] || CHARACTER_IMAGES['default']
+            image: c.sprite_url || CHARACTER_IMAGES[c.id] || CHARACTER_IMAGES['default']
           }))
           setCharacters(charsWithImages)
           setPreviewChar(charsWithImages[0])
         }
       } catch (err) {
         console.error(err)
-        // Use mock data for development - 오타쿠 캐릭터가 첫 번째 (기본)
+        // Use mock data for development
         const mockChars = [
           { id: 'char_000', name: '찐따 오타쿠 쿠로', description: '방에서 라면만 먹으며 애니만 보는 진정한 오타쿠', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!', image: '/images/otacu.webp' },
-          { id: 'char_001', name: '고졸 사토루', description: '오글거림의 여왕', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!', image: '/images/output_satoru.webp' },
-          { id: 'char_002', name: '몽키 D: 드라이브', description: '마음을 읽는 초능력 소녀', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!', image: '/images/lupy.webp' },
-          { id: 'char_003', name: '딸바이', description: '삼도류의 달인', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!', image: '/images/livi.webp' },
-          { id: 'char_004', name: '바싹 탄지로', description: '다크플레임 마스터', stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!', image: '/images/output_tan.webp' },
-          { id: 'char_005', name: '냥냥펀치', description: '냥냥펀치로 공격', stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!', image: '/images/output_tan.webp' },
-          { id: 'char_006', name: '오타쿠 전사 오글이', description: '피규어 파워', stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!', image: '/images/output_tan.webp' },
-          { id: 'char_007', name: '히키코모리 네코', description: '3년간 방에서 안 나온 은둔형 외톨이', stats: { cringe_level: 88, volume_req: 50, precision: 92 }, spell_text: '햇빛 싫어... 어둠이여 나를 감싸라!', image: '/images/output_tan.webp' },
+          { id: 'char_001', name: '고졸 사토루', description: '오글거림의 여왕', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!', image: '/images/satoru.webp' },
+          { id: 'char_002', name: '마법소녀 루피', description: '마음을 읽는 초능력 소녀', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!', image: '/images/lupy.webp' },
+          { id: 'char_003', name: '바싹 탄지로', description: '불의 호흡을 사용하는 귀살대 대원', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '물의 호흡! 첫번째 형!', image: '/images/tan.webp' },
+          { id: 'char_004', name: '중2병 리카', description: '다크플레임 마스터', stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!', image: '/images/rika.webp' },
+          { id: 'char_005', name: '고양이 집사 냥댕이', description: '냥냥펀치로 공격', stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!', image: '/images/nyang.webp' },
+          { id: 'char_006', name: '오타쿠 전사 오글이', description: '피규어 파워', stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!', image: '/images/ogeul.webp' },
+          { id: 'char_007', name: '마법의검 리비', description: '신비로운 마법의 검을 사용하는 소녀', stats: { cringe_level: 88, volume_req: 50, precision: 92 }, spell_text: '빛이여! 나의 검에 깃들어라!', image: '/images/livi.webp' },
         ]
         setCharacters(mockChars)
         setPreviewChar(mockChars[0])

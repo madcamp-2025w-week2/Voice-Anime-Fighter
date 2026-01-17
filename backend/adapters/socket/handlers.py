@@ -275,17 +275,19 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         user_info = connected_users.get(sid, {})
         
-        # Broadcast damage to battle room
+        # Broadcast damage to battle room (includes audio_url for opponent playback)
         await sio.emit("battle:damage_received", {
             "attacker_id": user_info.get("user_id", sid),
             "damage": damage_data.get("total_damage", 0),
             "grade": damage_data.get("grade", "F"),
-            "animation_trigger": damage_data.get("animation_trigger", "miss")
+            "animation_trigger": damage_data.get("animation_trigger", "miss"),
+            "is_critical": damage_data.get("is_critical", False),
+            "audio_url": damage_data.get("audio_url", None)
         }, room=battle_id)
     
     @sio.event
     async def battle_result(sid, data):
-        """Handle battle result."""
+        """Handle battle result and cleanup audio files."""
         battle_id = data.get("battle_id")
         winner_id = data.get("winner_id")
         stats = data.get("stats", {})
@@ -297,6 +299,13 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "winner_id": winner_id,
             "stats": stats
         }, room=battle_id)
+        
+        # Cleanup audio files for this battle
+        try:
+            from adapters.api.routes.battle import cleanup_battle_audio
+            cleanup_battle_audio(battle_id)
+        except Exception as e:
+            print(f"⚠️ Audio cleanup error: {e}")
     
     @sio.event
     async def game_start(sid, data):

@@ -27,7 +27,7 @@ class CharacterListResponse(BaseModel):
     characters: list[CharacterResponse]
 
 
-# Static character data - 오타쿠 캐릭터가 첫 번째 (기본)
+# Static character data - 실제 이미지 파일에 매핑
 CHARACTERS = [
     Character(
         id="char_000",
@@ -35,8 +35,8 @@ CHARACTERS = [
         description="방에서 라면만 먹으며 애니만 보는 진정한 오타쿠. 그의 오글거림은 세계 최강.",
         stats=CharacterStats(cringe_level=100, volume_req=60, precision=85),
         spell_text="월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!",
-        thumbnail_url="",
-        sprite_url="/images/otaku.webp",
+        thumbnail_url="/images/otacu.webp",
+        sprite_url="/images/otacu.webp",
         is_unlocked=True
     ),
     Character(
@@ -45,38 +45,38 @@ CHARACTERS = [
         description="오글거림의 여왕. 오타쿠 세계를 지배하는 언더독 마법소녀.",
         stats=CharacterStats(cringe_level=95, volume_req=70, precision=80),
         spell_text="마법소녀 카와이 러블리 루루핑!",
-        thumbnail_url="/images/otaku.webp",
-        sprite_url="/images/otaku.webp",
+        thumbnail_url="/images/satoru.webp",
+        sprite_url="/images/satoru.webp",
         is_unlocked=True
     ),
     Character(
         id="char_002",
-        name="몽키 D: 드라이브",
+        name="마법소녀 루피",
         description="마음을 읽는 초능력 소녀. 와쿠와쿠 에너지로 공격.",
         stats=CharacterStats(cringe_level=75, volume_req=60, precision=90),
         spell_text="와쿠와쿠! 피넛츠가 좋아!",
-        thumbnail_url="/assets/characters/anya_thumb.png",
-        sprite_url="/assets/characters/anya_sprite.png",
+        thumbnail_url="/images/lupy.webp",
+        sprite_url="/images/lupy.webp",
         is_unlocked=True
     ),
     Character(
         id="char_003",
-        name="딸바이",
-        description="삼도류의 달인. 박력 넘치는 기합으로 상대를 압도.",
+        name="바싹 탄지로",
+        description="불의 호흡을 사용하는 귀살대 대원. 박력 넘치는 기합으로 상대를 압도.",
         stats=CharacterStats(cringe_level=50, volume_req=95, precision=60),
-        spell_text="산젠세카이! 오니기리!",
-        thumbnail_url="/assets/characters/zoro_thumb.png",
-        sprite_url="/assets/characters/zoro_sprite.png",
+        spell_text="물의 호흡! 첫번째 형!",
+        thumbnail_url="/images/tan.webp",
+        sprite_url="/images/tan.webp",
         is_unlocked=True
     ),
     Character(
         id="char_004",
-        name="바싹 탄지로",
+        name="중2병 리카",
         description="사역눈을 가진 진정한 중2병 환자. 다크플레임 마스터.",
         stats=CharacterStats(cringe_level=100, volume_req=65, precision=75),
         spell_text="폭렬하라! 다크 플레임 마스터!",
-        thumbnail_url="/assets/characters/rika_thumb.png",
-        sprite_url="/assets/characters/rika_sprite.png",
+        thumbnail_url="/images/rika.webp",
+        sprite_url="/images/rika.webp",
         is_unlocked=True
     ),
     Character(
@@ -85,8 +85,8 @@ CHARACTERS = [
         description="고양이와 대화하는 신비로운 집사. 냥냥펀치로 공격.",
         stats=CharacterStats(cringe_level=85, volume_req=55, precision=85),
         spell_text="냥냥펀치! 고양이의 힘을 빌려라!",
-        thumbnail_url="/assets/characters/catbutler_thumb.png",
-        sprite_url="/assets/characters/catbutler_sprite.png",
+        thumbnail_url="/images/nyang.webp",
+        sprite_url="/images/nyang.webp",
         is_unlocked=True
     ),
     Character(
@@ -95,18 +95,18 @@ CHARACTERS = [
         description="분홍 머리띠의 오타쿠. 피규어 파워로 공격.",
         stats=CharacterStats(cringe_level=90, volume_req=80, precision=70),
         spell_text="오타쿠의 자존심! 피규어 슬래시!",
-        thumbnail_url="/assets/characters/otaku_thumb.png",
-        sprite_url="/assets/characters/otaku_sprite.png",
+        thumbnail_url="/images/ogeul.webp",
+        sprite_url="/images/ogeul.webp",
         is_unlocked=True
     ),
     Character(
         id="char_007",
-        name="히키코모리 네코",
-        description="3년간 방에서 안 나온 은둔형 외톨이. 어둠의 힘을 사용.",
+        name="마법의검 리비",
+        description="신비로운 마법의 검을 사용하는 소녀. 빛의 힘을 다룬다.",
         stats=CharacterStats(cringe_level=88, volume_req=50, precision=92),
-        spell_text="햇빛 싫어... 어둠이여 나를 감싸라!",
-        thumbnail_url="/assets/characters/hikikomori_thumb.png",
-        sprite_url="/assets/characters/hikikomori_sprite.png",
+        spell_text="빛이여! 나의 검에 깃들어라!",
+        thumbnail_url="/images/livi.webp",
+        sprite_url="/images/livi.webp",
         is_unlocked=True
     ),
 ]

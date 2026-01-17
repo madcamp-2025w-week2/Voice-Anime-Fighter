@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Check, Volume2, Target, Sparkles } from 'lucide-react'
+import { ArrowLeft, Check } from 'lucide-react'
 import { useGameStore } from '../stores/gameStore'
 import { useUserStore } from '../stores/userStore'
 import { useSocket } from '../hooks/useSocket'
@@ -8,14 +8,13 @@ import { useSocket } from '../hooks/useSocket'
 // 캐릭터 데이터
 const CHARACTERS = [
   { id: 'char_000', name: '찐따 오타쿠 쿠로', image: '/images/otacu.webp', stats: { cringe_level: 100, volume_req: 60, precision: 85 }, spell_text: '월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!' },
-  { id: 'char_008', name: '고졸 사토루', image: '/images/satoru.webp', stats: { cringe_level: 75, volume_req: 90, precision: 95 }, spell_text: '무량공처! 죽여버린다 이 새끼!' },
-  { id: 'char_001', name: '몽키 D: 드라이브', image: '/images/lufy.webp', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!' },
+  { id: 'char_008', name: '고졸 사토루', image: '/images/output_satoru.webp', stats: { cringe_level: 75, volume_req: 90, precision: 95 }, spell_text: '무량공처! 죽여버린다 이 새끼!' },
+  { id: 'char_001', name: '몽키 D: 드라이브', image: '/images/lupy.webp', stats: { cringe_level: 95, volume_req: 70, precision: 80 }, spell_text: '마법소녀 카와이 러블리 루루핑!' },
   { id: 'char_002', name: '딸바이', image: '/images/livi.webp', stats: { cringe_level: 75, volume_req: 60, precision: 90 }, spell_text: '와쿠와쿠! 피넛츠가 좋아!' },
-  { id: 'char_003', name: '바싹 탄지로', image: '/images/tanjiro.webp', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!' },
+  { id: 'char_003', name: '바싹 탄지로', image: '/images/output_tan.webp', stats: { cringe_level: 50, volume_req: 95, precision: 60 }, spell_text: '산젠세카이! 오니기리!' },
   { id: 'char_004', name: '중2병 환자 리카', image: null, stats: { cringe_level: 100, volume_req: 65, precision: 75 }, spell_text: '폭렬하라! 다크 플레임 마스터!' },
   { id: 'char_005', name: '고양이 집사 냥댕이', image: null, stats: { cringe_level: 85, volume_req: 55, precision: 85 }, spell_text: '냥냥펀치! 고양이의 힘을 빌려라!' },
   { id: 'char_006', name: '오타쿠 전사 오글이', image: null, stats: { cringe_level: 90, volume_req: 80, precision: 70 }, spell_text: '오타쿠의 자존심! 피규어 슬래시!' },
-  { id: 'char_007', name: '히키코모리 네코', image: null, stats: { cringe_level: 88, volume_req: 50, precision: 92 }, spell_text: '햇빛 싫어... 어둠이여 나를 감싸라!' },
 ]
 
 export default function MultiCharacterSelect() {
@@ -24,7 +23,7 @@ export default function MultiCharacterSelect() {
   const roomId = location.state?.room_id
   const { user } = useUserStore()
   const { selectCharacter } = useGameStore()
-  const { on, off, emit } = useSocket()
+  const { on, off, emit, joinRoom } = useSocket()
 
   // 방 ID가 없으면 로비로 리다이렉트
   useEffect(() => {
@@ -33,13 +32,19 @@ export default function MultiCharacterSelect() {
     }
   }, [roomId, navigate])
 
+  // 소켓 방 참여 (진입 시)
+  useEffect(() => {
+    if (roomId) {
+      joinRoom(roomId)
+    }
+  }, [roomId, joinRoom])
+
   // Player 1 (나) / Player 2 (상대)
   const [mySelected, setMySelected] = useState(null)
   const [opponentSelected, setOpponentSelected] = useState(null)
   const [myConfirmed, setMyConfirmed] = useState(false)
   const [opponentConfirmed, setOpponentConfirmed] = useState(false)
   const [countdown, setCountdown] = useState(null)
-  const [isPlayer1, setIsPlayer1] = useState(true) // 나는 왼쪽(Player 1)인지 오른쪽인지
 
   // Socket events
   useEffect(() => {
@@ -71,7 +76,7 @@ export default function MultiCharacterSelect() {
     }
   }, [on, off, user?.id, navigate, roomId])
 
-  // 둘 다 확정하면 카운트다운 시작 (데모)
+  // 둘 다 확정하면 카운트다운 시작
   useEffect(() => {
     if (myConfirmed && opponentConfirmed) {
       let count = 3
@@ -123,159 +128,163 @@ export default function MultiCharacterSelect() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col relative overflow-hidden">
       {/* 배경 */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-800 via-gray-900 to-black" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-black to-red-900/20" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(88,28,135,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(88,28,135,0.2)_1px,transparent_1px)] bg-[size:30px_30px] opacity-30" />
 
       {/* 카운트다운 오버레이 */}
       {countdown !== null && countdown > 0 && (
-        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center">
-          <div className="text-9xl font-bold text-white animate-pulse">
+        <div className="absolute inset-0 bg-black/90 z-50 flex items-center justify-center">
+          <div className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse">
             {countdown}
           </div>
         </div>
       )}
       {countdown === 0 && (
-        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center">
-          <div className="text-6xl font-bold text-yellow-400 animate-bounce">
+        <div className="absolute inset-0 bg-black/90 z-50 flex items-center justify-center">
+          <div className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 animate-bounce">
             FIGHT!
           </div>
         </div>
       )}
 
       {/* 상단 */}
-      <div className="relative z-10 p-4 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="p-2 bg-white/10 rounded-lg hover:bg-white/20">
-          <ArrowLeft className="w-6 h-6 text-white" />
+      <div className="relative z-10 p-4 flex items-center justify-between border-b border-purple-500/30 bg-black/60 backdrop-blur-sm">
+        <button onClick={() => navigate(-1)} className="p-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/40 border border-purple-500/30 transition">
+          <ArrowLeft className="w-6 h-6 text-purple-300" />
         </button>
-        <h1 className="font-title text-2xl text-white">캐릭터 선택</h1>
+        <h1 className="font-black text-2xl text-white uppercase tracking-wider drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
+          캐릭터 선택
+        </h1>
         <div className="w-10" />
       </div>
 
-      {/* 메인 - 양쪽 캐릭터 */}
-      <div className="flex-1 relative z-10 flex">
-        {/* 왼쪽 - Player 1 (나) */}
-        <div className="w-1/2 flex flex-col items-center justify-center p-4">
-          <div className="text-cyan-400 font-bold text-xl mb-2">{user?.nickname || 'Player 1'}</div>
-
-          {/* 캐릭터 이미지 */}
-          <div className="relative h-64 w-48 mb-4">
+      {/* 메인 컨텐츠: 좌 P1 | 중앙 그리드 | 우 P2 */}
+      <div className="flex-1 relative z-10 flex items-stretch p-4 gap-4">
+        
+        {/* 좌측 - Player 1 (나의 선택) */}
+        <div className="w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+          <div className="text-cyan-400 font-black text-lg mb-3 uppercase tracking-wider">{user?.nickname || 'Player 1'}</div>
+          
+          <div className="relative h-48 w-36 mb-3">
             {mySelected ? (
               mySelected.image ? (
-                <img src={mySelected.image} alt={mySelected.name} className="w-full h-full object-contain" />
+                <img src={mySelected.image} alt={mySelected.name} className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-t from-cyan-500/30 to-transparent rounded-lg flex items-end justify-center pb-4">
-                  <span className="text-8xl">🌟</span>
+                <div className="w-full h-full bg-gradient-to-t from-cyan-500/30 to-transparent rounded-lg flex items-end justify-center pb-4 border border-cyan-500/30">
+                  <span className="text-6xl">🌟</span>
                 </div>
               )
             ) : (
-              <div className="w-full h-full bg-gray-700/50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600">
-                <span className="text-gray-500">캐릭터 선택</span>
+              <div className="w-full h-full bg-gray-800/50 rounded-lg flex items-center justify-center border-2 border-dashed border-cyan-500/30">
+                <span className="text-gray-500 text-sm">선택 대기</span>
               </div>
             )}
             {myConfirmed && (
-              <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1">
+              <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1 shadow-[0_0_10px_rgba(34,197,94,0.8)]">
                 <Check className="w-4 h-4 text-white" />
               </div>
             )}
           </div>
 
-          {/* 이름 & 스탯 */}
           {mySelected && (
-            <div className="text-center">
-              <h2 className="text-white font-bold text-lg">{mySelected.name}</h2>
-              <div className="mt-2 space-y-1 text-xs">
-                <StatMini label="오글거림" value={mySelected.stats.cringe_level} color={getStatColor(mySelected.stats.cringe_level)} />
+            <div className="text-center w-full">
+              <h2 className="text-white font-bold text-sm truncate">{mySelected.name}</h2>
+              <div className="mt-2 space-y-1">
+                <StatMini label="오글" value={mySelected.stats.cringe_level} color={getStatColor(mySelected.stats.cringe_level)} />
                 <StatMini label="성량" value={mySelected.stats.volume_req} color={getStatColor(mySelected.stats.volume_req)} />
-                <StatMini label="정확도" value={mySelected.stats.precision} color={getStatColor(mySelected.stats.precision)} />
+                <StatMini label="정밀" value={mySelected.stats.precision} color={getStatColor(mySelected.stats.precision)} />
               </div>
             </div>
           )}
         </div>
 
-        {/* VS */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-          <div className="text-4xl font-bold text-white/50">VS</div>
+        {/* 중앙 - 2x4 캐릭터 그리드 */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="grid grid-cols-4 grid-rows-2 gap-3 p-4 bg-black/30 backdrop-blur-sm rounded-2xl border border-purple-500/20">
+            {CHARACTERS.map((char) => (
+              <button
+                key={char.id}
+                onClick={() => handleSelect(char)}
+                disabled={myConfirmed}
+                className={`relative w-24 h-28 rounded-xl overflow-hidden border-2 transition-all duration-200 group ${
+                  mySelected?.id === char.id
+                    ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-105'
+                    : 'border-gray-700 hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                } ${myConfirmed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                {char.image ? (
+                  <img src={char.image} alt={char.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-red-900/50 flex items-center justify-center">
+                    <span className="text-3xl">✨</span>
+                  </div>
+                )}
+                {/* 캐릭터 이름 오버레이 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1">
+                  <span className="text-white text-[10px] font-bold truncate block text-center">{char.name}</span>
+                </div>
+                {/* 선택됨 표시 */}
+                {mySelected?.id === char.id && (
+                  <div className="absolute inset-0 border-4 border-purple-400 rounded-xl pointer-events-none" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* 확정 버튼 */}
+          <button
+            onClick={handleConfirm}
+            disabled={!mySelected || myConfirmed}
+            className={`mt-6 px-12 py-4 rounded-xl font-black text-xl uppercase tracking-wider transition-all ${
+              myConfirmed
+                ? 'bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.5)]'
+                : mySelected
+                  ? 'bg-gradient-to-r from-purple-600 to-red-600 text-white hover:scale-105 shadow-[0_4px_0_rgba(88,28,135,1)] active:translate-y-[4px] active:shadow-none'
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {myConfirmed ? '✓ 선택 완료!' : mySelected ? '선택 확정' : '캐릭터를 선택하세요'}
+          </button>
         </div>
 
-        {/* 오른쪽 - Player 2 (상대) */}
-        <div className="w-1/2 flex flex-col items-center justify-center p-4">
-          <div className="text-red-400 font-bold text-xl mb-2">Opponent</div>
-
-          {/* 캐릭터 이미지 */}
-          <div className="relative h-64 w-48 mb-4">
+        {/* 우측 - Player 2 (상대의 선택) */}
+        <div className="w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-red-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+          <div className="text-red-400 font-black text-lg mb-3 uppercase tracking-wider">Opponent</div>
+          
+          <div className="relative h-48 w-36 mb-3">
             {opponentSelected ? (
               opponentSelected.image ? (
-                <img src={opponentSelected.image} alt={opponentSelected.name} className="w-full h-full object-contain transform scale-x-[-1]" />
+                <img src={opponentSelected.image} alt={opponentSelected.name} className="w-full h-full object-contain transform scale-x-[-1] drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-t from-red-500/30 to-transparent rounded-lg flex items-end justify-center pb-4">
-                  <span className="text-8xl">👿</span>
+                <div className="w-full h-full bg-gradient-to-t from-red-500/30 to-transparent rounded-lg flex items-end justify-center pb-4 border border-red-500/30">
+                  <span className="text-6xl">👿</span>
                 </div>
               )
             ) : (
-              <div className="w-full h-full bg-gray-700/50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600 animate-pulse">
-                <span className="text-gray-500">선택 중...</span>
+              <div className="w-full h-full bg-gray-800/50 rounded-lg flex items-center justify-center border-2 border-dashed border-red-500/30 animate-pulse">
+                <span className="text-gray-500 text-sm">선택 중...</span>
               </div>
             )}
             {opponentConfirmed && (
-              <div className="absolute top-2 left-2 bg-green-500 rounded-full p-1">
+              <div className="absolute top-2 left-2 bg-green-500 rounded-full p-1 shadow-[0_0_10px_rgba(34,197,94,0.8)]">
                 <Check className="w-4 h-4 text-white" />
               </div>
             )}
           </div>
 
-          {/* 이름 & 스탯 */}
           {opponentSelected && (
-            <div className="text-center">
-              <h2 className="text-white font-bold text-lg">{opponentSelected.name}</h2>
-              <div className="mt-2 space-y-1 text-xs">
-                <StatMini label="오글거림" value={opponentSelected.stats.cringe_level} color={getStatColor(opponentSelected.stats.cringe_level)} />
+            <div className="text-center w-full">
+              <h2 className="text-white font-bold text-sm truncate">{opponentSelected.name}</h2>
+              <div className="mt-2 space-y-1">
+                <StatMini label="오글" value={opponentSelected.stats.cringe_level} color={getStatColor(opponentSelected.stats.cringe_level)} />
                 <StatMini label="성량" value={opponentSelected.stats.volume_req} color={getStatColor(opponentSelected.stats.volume_req)} />
-                <StatMini label="정확도" value={opponentSelected.stats.precision} color={getStatColor(opponentSelected.stats.precision)} />
+                <StatMini label="정밀" value={opponentSelected.stats.precision} color={getStatColor(opponentSelected.stats.precision)} />
               </div>
             </div>
           )}
         </div>
-      </div>
-
-      {/* 하단 - 캐릭터 그리드 */}
-      <div className="relative z-10 p-4 bg-black/50">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {CHARACTERS.map((char) => (
-            <button
-              key={char.id}
-              onClick={() => handleSelect(char)}
-              disabled={myConfirmed}
-              className={`flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${mySelected?.id === char.id
-                ? 'border-cyan-400 ring-2 ring-cyan-400/50'
-                : 'border-gray-600 hover:border-gray-400'
-                } ${myConfirmed ? 'opacity-50' : ''}`}
-            >
-              {char.image ? (
-                <img src={char.image} alt={char.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center">
-                  <span className="text-2xl">✨</span>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* 확정 버튼 */}
-        <button
-          onClick={handleConfirm}
-          disabled={!mySelected || myConfirmed}
-          className={`w-full mt-4 py-4 rounded-xl font-bold text-xl transition-all ${myConfirmed
-            ? 'bg-green-600 text-white'
-            : mySelected
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105'
-              : 'bg-gray-700 text-gray-400'
-            }`}
-        >
-          {myConfirmed ? '✓ 선택 완료!' : mySelected ? '선택 확정' : '캐릭터를 선택하세요'}
-        </button>
       </div>
     </div>
   )
@@ -283,12 +292,12 @@ export default function MultiCharacterSelect() {
 
 function StatMini({ label, value, color }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-gray-400 w-12">{label}</span>
-      <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+    <div className="flex items-center gap-1 text-[10px]">
+      <span className="text-gray-400 w-8">{label}</span>
+      <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
         <div className={`h-full ${color}`} style={{ width: `${value}%` }} />
       </div>
-      <span className="text-white w-6 text-right">{value}</span>
+      <span className="text-white w-5 text-right">{value}</span>
     </div>
   )
 }

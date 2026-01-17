@@ -5,7 +5,8 @@ backend/**/__pycache__/
 backend/*.pyc
 backend/.pytest_cache/
 backend/venv/
-backend/requirements.txt
+!backend/requirements.txt
+
 
 # Frontend
 frontend/node_modules/

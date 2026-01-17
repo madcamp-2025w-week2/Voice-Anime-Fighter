@@ -130,6 +130,7 @@ class VoiceAnalysisResult:
     volume_db: float      # 데시벨
     pitch_variance: float # 주파수 변화량
     confidence: float     # 인식 신뢰도 0.0 - 1.0
+    is_critical: bool = False  # 크리티컬 히트 여부
 
 
 @dataclass
@@ -142,3 +143,4 @@ class DamageResult:
     total_damage: int
     grade: str  # SSS, S, A, B, C, F
     animation_trigger: str
+    is_critical: bool = False  # 크리티컬 히트 여부
