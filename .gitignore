@@ -29,3 +29,6 @@ Thumbs.db
 # Certbot
 certbot/conf/
 certbot/www/
+
+*.md
+!README.md
