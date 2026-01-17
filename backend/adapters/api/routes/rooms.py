@@ -120,8 +120,8 @@ async def leave_room(
     user_id: UUID = Depends(get_current_user_id)
 ):
     """방 퇴장"""
-    success = await room_service.leave_room(room_id, user_id)
-    if not success:
+    result = await room_service.leave_room(room_id, user_id)
+    if not result["success"]:
         raise HTTPException(status_code=400, detail="Failed to leave room")
     
     return MessageResponse(success=True, message="Left room successfully")

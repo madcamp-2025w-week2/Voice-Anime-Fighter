@@ -389,12 +389,44 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         if not room_id:
             return
         
+        user_info = connected_users.get(sid, {})
+        user_id = user_info.get("user_id")
+
+        # Sync with RoomService
+        if user_id:
+            try:
+                from uuid import UUID
+                uuid_room_id = UUID(str(room_id))
+                uuid_user_id = UUID(str(user_id))
+                
+                result = await room_service.leave_room(uuid_room_id, uuid_user_id)
+                
+                # Check for host migration
+                new_host_id = result.get("new_host_id")
+                if new_host_id:
+                    new_host_id_str = str(new_host_id)
+                    new_host_nickname = "Unknown"
+                    
+                    # Find nickname of new host
+                    for s, info in connected_users.items():
+                        if str(info.get("user_id")) == new_host_id_str:
+                            new_host_nickname = info.get("nickname", "Unknown")
+                            break
+                    
+                    logger.info(f"Host migrated to {new_host_nickname} ({new_host_id_str}) in room {room_id}")
+                    await sio.emit("room:host_changed", {
+                        "new_host_id": new_host_id_str,
+                        "new_host_nickname": new_host_nickname
+                    }, room=str(room_id))
+                    
+            except Exception as e:
+                logger.error(f"Error in room_leave service sync: {e}")
+
+        # Socket management
         await sio.leave_room(sid, room_id)
         
         if room_id in room_members and sid in room_members[room_id]:
             room_members[room_id].remove(sid)
-        
-        user_info = connected_users.get(sid, {})
         
         await sio.emit("room:player_left", {
             "user_id": user_info.get("user_id", sid)

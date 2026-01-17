@@ -72,24 +72,39 @@ class RoomService:
         
         return True, "Joined successfully"
     
-    async def leave_room(self, room_id: UUID, user_id: UUID) -> bool:
-        """Leave a room."""
+    async def leave_room(self, room_id: UUID, user_id: UUID) -> dict:
+        """
+        Leave a room.
+        Returns: {
+            "success": bool,
+            "room_deleted": bool,
+            "new_host_id": UUID | None
+        }
+        """
         room = self._rooms.get(room_id)
         if not room:
-            return False
+            return {"success": False, "room_deleted": False, "new_host_id": None}
         
         if user_id in room.player_ids:
             room.player_ids.remove(user_id)
         
+        result = {
+            "success": True, 
+            "room_deleted": False, 
+            "new_host_id": None
+        }
+
         # If host leaves, transfer host or close room
         if user_id == room.host_id:
             if room.player_ids:
                 room.host_id = room.player_ids[0]
+                result["new_host_id"] = room.host_id
             else:
                 room.status = RoomStatus.CLOSED
                 del self._rooms[room_id]
+                result["room_deleted"] = True
         
-        return True
+        return result
     
     async def get_open_rooms(self) -> list[Room]:
         """Get all waiting rooms (including private ones)."""

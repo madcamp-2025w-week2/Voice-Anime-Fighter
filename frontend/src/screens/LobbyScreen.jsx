@@ -371,6 +371,25 @@ export default function LobbyScreen() {
       }]);
     };
 
+    const handleHostChanged = (data) => {
+      console.log('socket: [room:host_changed]', data);
+      if (data.new_host_id === user?.id) {
+        setIsHost(true);
+        setChatMessages(prev => [...prev, {
+          id: Date.now(),
+          user: 'System',
+          text: '방장이 되었습니다!',
+          type: 'system'
+        }]);
+      }
+      
+      setSelectedRoom(prev => prev ? {
+        ...prev,
+        host_id: data.new_host_id,
+        host_nickname: data.new_host_nickname
+      } : null);
+    };
+
     const handleGameStart = (data) => {
       console.log('socket: [room:game_start]', data);
       navigate('/multi-select', { state: { room_id: selectedRoom?.room_id, is_host: isHost } });
@@ -398,6 +417,7 @@ export default function LobbyScreen() {
 
     socket.on('room:player_joined', handlePlayerJoined);
     socket.on('room:player_left', handlePlayerLeft);
+    socket.on('room:host_changed', handleHostChanged);
     socket.on('room:existing_players', handleExistingPlayers);
     socket.on('chat:new_message', handleNewMessage);
     socket.on('room:game_start', handleGameStart);
@@ -408,11 +428,12 @@ export default function LobbyScreen() {
       socket.off('match:cancelled');
       socket.off('room:player_joined');
       socket.off('room:player_left');
+      socket.off('room:host_changed');
       socket.off('room:existing_players');
       socket.off('chat:new_message');
       socket.off('room:game_start');
     };
-  }, [socket, user?.id, navigate, selectedRoom, matchState]);
+  }, [socket, user?.id, navigate, selectedRoom, matchState, isHost]);
 
   // Save room state to sessionStorage when in a room
   useEffect(() => {
