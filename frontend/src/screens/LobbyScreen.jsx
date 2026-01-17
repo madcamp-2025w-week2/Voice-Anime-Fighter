@@ -680,8 +680,8 @@ export default function LobbyScreen() {
                       <span className="bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-zinc-400 uppercase tracking-wider border border-zinc-700 rounded truncate max-w-[150px] shrink-0">
                         HOST: {room.host_nickname}
                       </span>
-                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${room.status === 'waiting' ? 'text-cyan-400 bg-cyan-950/30 border border-cyan-900' : 'text-red-500 bg-red-950/30 border border-red-900'}`}>
-                        {room.status}
+                      <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${room.status === 'waiting' ? 'text-cyan-400 bg-cyan-950/30 border border-cyan-900' : 'text-orange-500 bg-orange-950/30 border border-orange-900'}`}>
+                        {room.status === 'waiting' ? 'WAITING' : '🎮 IN GAME'}
                       </span>
                     </div>
                     <h3 className="text-lg font-black italic text-white group-hover:text-cyan-300 transition-colors mb-3 line-clamp-2 min-h-[1.75rem] leading-tight">
@@ -701,7 +701,7 @@ export default function LobbyScreen() {
                           : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
                           }`}
                       >
-                        <span className="block skew-x-[10deg]">{room.status === 'waiting' ? 'JOIN' : 'FULL'}</span>
+                        <span className="block skew-x-[10deg]">{room.status === 'waiting' ? 'JOIN' : 'IN GAME'}</span>
                       </button>
                     </div>
                   </div>

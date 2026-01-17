@@ -7,10 +7,17 @@ from domain.entities import Room, RoomStatus
 
 
 class RoomService:
-    """방 관리 서비스"""
+    """방 관리 서비스 (Singleton)"""
+    
+    _instance = None
     
     # In-memory storage for development (replace with Redis in production)
     _rooms: dict[UUID, Room] = {}
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
     
     def generate_invite_code(self, length: int = 6) -> str:
         """Generate random invite code."""
@@ -83,10 +90,10 @@ class RoomService:
         return True
     
     async def get_open_rooms(self) -> list[Room]:
-        """Get all open (non-private, waiting) rooms."""
+        """Get all open (non-private, waiting or playing) rooms."""
         return [
             room for room in self._rooms.values()
-            if not room.is_private and room.status == RoomStatus.WAITING
+            if not room.is_private and room.status in [RoomStatus.WAITING, RoomStatus.PLAYING]
         ]
     
     async def delete_room(self, room_id: UUID, user_id: UUID) -> tuple[bool, str]:

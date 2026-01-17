@@ -9,6 +9,10 @@ logger = logging.getLogger(__name__)
 # Redis Battle State Manager
 from adapters.redis.battle_state import battle_state_manager
 
+# Room Service for status updates
+from use_cases.room_service import RoomService
+room_service = RoomService()
+
 # Connected users mapping: sid -> user_info
 connected_users: dict[str, dict[str, Any]] = {}
 
@@ -405,6 +409,17 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             await battle_state_manager.delete_battle(battle_id)
         except Exception as e:
             logger.warning(f"Redis cleanup error: {e}")
+        
+        # Delete the room after game ends
+        try:
+            from uuid import UUID
+            room_uuid = UUID(str(battle_id))
+            # Force delete room (bypass host check by using internal method)
+            if room_uuid in room_service._rooms:
+                del room_service._rooms[room_uuid]
+                logger.info(f"[{sid}] Room {battle_id} deleted after game end")
+        except Exception as e:
+            logger.warning(f"Room cleanup error: {e}")
     
     @sio.event
     async def game_start(sid, data):
@@ -417,6 +432,20 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         if not room_id:
             logger.warning(f"[{sid}] game_start failed: No room_id")
             return
+        
+        # Update room status to PLAYING
+        from uuid import UUID
+        from domain.entities import RoomStatus
+        try:
+            room_uuid = UUID(str(room_id))
+            # Directly update room status (bypass host check)
+            if room_uuid in room_service._rooms:
+                room_service._rooms[room_uuid].status = RoomStatus.PLAYING
+                logger.info(f"[{sid}] Room {room_id} status changed to PLAYING")
+            else:
+                logger.warning(f"[{sid}] Room {room_id} not found in room_service._rooms")
+        except Exception as e:
+            logger.warning(f"[{sid}] Failed to update room status: {e}")
         
         # Get players in room
         players = []
