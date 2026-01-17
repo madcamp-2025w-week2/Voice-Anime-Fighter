@@ -37,7 +37,7 @@ export default function TitleScreen() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ access_token: tokenResponse.access_token }),
         })
-        
+
         if (response.ok) {
           const data = await response.json()
           login(data.user, data.access_token)
@@ -90,11 +90,16 @@ export default function TitleScreen() {
   // 로그인 버튼 핸들러
   const handleTransform = () => {
     setIsLoading(true)
+    // Testing: Force Guest Login (Google Login Disabled)
+    handleTransformDemo()
+
+    /* 
     if (DEMO_MODE) {
       handleTransformDemo()
     } else {
       googleLogin()
     }
+    */
   }
 
 
@@ -102,7 +107,7 @@ export default function TitleScreen() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/title_bg.png')" }}
       />
@@ -129,7 +134,7 @@ export default function TitleScreen() {
       {/* Top Right - Icon Buttons */}
       <div className="absolute top-4 right-4 z-20 flex gap-2">
 
-        <button 
+        <button
           onClick={testMicrophone}
           className="w-12 h-12 bg-yellow-400 hover:bg-yellow-500 rounded-lg flex items-center justify-center transition"
         >
@@ -142,27 +147,27 @@ export default function TitleScreen() {
       <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h1 className="font-title text-6xl md:text-8xl text-red-900" 
-                style={{ 
-                  textShadow: '0 0 10px #000, 2px 2px 0 #4a0404, 0 0 30px #8b0000',
-                  animation: 'breathe 3s ease-in-out infinite'
-                }}>
+            <h1 className="font-title text-6xl md:text-8xl text-red-900"
+              style={{
+                textShadow: '0 0 10px #000, 2px 2px 0 #4a0404, 0 0 30px #8b0000',
+                animation: 'breathe 3s ease-in-out infinite'
+              }}>
               흑염룡이
             </h1>
-            <span className="text-purple-400 text-2xl font-bold" 
-                  style={{ 
-                    textShadow: '2px 2px 4px #000',
-                    animation: 'wobble 2s ease-in-out infinite' 
-                  }}>
-              날뛰어서<br/>크아아앙
+            <span className="text-purple-400 text-2xl font-bold"
+              style={{
+                textShadow: '2px 2px 4px #000',
+                animation: 'wobble 2s ease-in-out infinite'
+              }}>
+              날뛰어서<br />크아아앙
             </span>
           </div>
-          <h2 className="font-title text-4xl md:text-5xl text-gray-400 mb-2" 
-              style={{ 
-                textShadow: '0 0 5px #000, 2px 2px 0 #333',
-              }}>
+          <h2 className="font-title text-4xl md:text-5xl text-gray-400 mb-2"
+            style={{
+              textShadow: '0 0 5px #000, 2px 2px 0 #333',
+            }}>
             {Array.from("야레야레 다이스키다요").map((char, i) => (
-              <span key={i} style={{ 
+              <span key={i} style={{
                 display: 'inline-block',
                 animation: 'wave 1.5s ease-in-out infinite',
                 animationDelay: `${i * 0.1}s`,
@@ -172,11 +177,11 @@ export default function TitleScreen() {
               </span>
             ))}
           </h2>
-          <h3 className="font-title text-5xl md:text-8xl text-white" 
-              style={{ 
-                textShadow: '4px 4px 0 #2e1065, 0 0 20px #a855f7', // Deep purple hard shadow + Bright purple glow
-                WebkitTextStroke: '2px #000' // Black stroke for definition
-              }}>
+          <h3 className="font-title text-5xl md:text-8xl text-white"
+            style={{
+              textShadow: '4px 4px 0 #2e1065, 0 0 20px #a855f7', // Deep purple hard shadow + Bright purple glow
+              WebkitTextStroke: '2px #000' // Black stroke for definition
+            }}>
             중이병핑
           </h3>
         </div>
@@ -190,7 +195,7 @@ export default function TitleScreen() {
             onClick={handleTransform}
             disabled={isLoading}
             className="max-w-md py-5 px-12 bg-gradient-to-r from-purple-900 to-black hover:from-black hover:to-red-900 rounded-xl font-bold text-2xl text-red-500 shadow-lg hover:scale-105 transition-all duration-300 disabled:opacity-50 border-4 border-red-900 overflow-hidden relative group"
-            style={{ 
+            style={{
               textShadow: '0 0 10px #ff0000',
               boxShadow: '0 0 20px #8b0000'
             }}

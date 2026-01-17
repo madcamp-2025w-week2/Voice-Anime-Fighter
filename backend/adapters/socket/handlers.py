@@ -18,6 +18,9 @@ room_members: dict[str, list[str]] = {}
 # Matchmaking queue: list of waiting user sids
 waiting_queue: list[str] = []
 
+# Battle ready tracking: room_id -> {player_id: sid, first_turn_player_id: str}
+battle_ready_data: dict[str, dict[str, Any]] = {}
+
 
 def register_socket_handlers(sio: socketio.AsyncServer):
     """Register all Socket.io event handlers."""
@@ -72,43 +75,83 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     @sio.on("match:join_queue")
     async def join_queue(sid, data):
         """Join matchmaking queue."""
-        logger.info(f"User {sid} joined matchmaking queue")
+        logger.info(f"[Matchmaking] User {sid} requesting to join queue")
+        logger.info(f"[Matchmaking] Current queue: {waiting_queue}")
         
         if sid in waiting_queue:
+            logger.info(f"[Matchmaking] User {sid} already in queue, ignoring")
             return
             
         # Check if anyone is waiting
         if waiting_queue:
             opponent_sid = waiting_queue.pop(0)
+            logger.info(f"[Matchmaking] Found opponent {opponent_sid} in queue")
+            
+            # Verify opponent is still connected
+            if opponent_sid not in connected_users:
+                logger.warning(f"[Matchmaking] Opponent {opponent_sid} disconnected, adding {sid} to queue")
+                waiting_queue.append(sid)
+                await sio.emit("match:searching", {}, room=sid)
+                return
             
             # Create a match
-            battle_id = f"battle_{datetime.utcnow().timestamp()}"
+            battle_id = f"battle_{int(datetime.utcnow().timestamp() * 1000)}"
             
             p1_info = connected_users.get(sid, {})
             p2_info = connected_users.get(opponent_sid, {})
+            
+            # Add both players to the battle room for real-time communication
+            await sio.enter_room(sid, battle_id)
+            await sio.enter_room(opponent_sid, battle_id)
+            logger.info(f"[Matchmaking] Both players joined battle room: {battle_id}")
+            
+            # Track room members (same as CREATE ROOM flow)
+            room_members[battle_id] = [sid, opponent_sid]
+            
+            # Store battle data for battle:ready handler (same as CREATE ROOM flow)
+            player_ids = [str(p1_info.get("user_id", sid)), str(p2_info.get("user_id", opponent_sid))]
+            players = [
+                {"user_id": p1_info.get("user_id", sid), "nickname": p1_info.get("nickname", "Player 1")},
+                {"user_id": p2_info.get("user_id", opponent_sid), "nickname": p2_info.get("nickname", "Player 2")}
+            ]
+            
+            import random
+            first_player_index = random.randint(0, 1)
+            first_player_id = player_ids[first_player_index]
+            
+            battle_ready_data[battle_id] = {
+                "battle_id": battle_id,
+                "players": players,
+                "player_ids": player_ids,
+                "first_turn_player_id": first_player_id,
+                "members": [sid, opponent_sid],
+            }
+            logger.info(f"[Matchmaking] Stored battle_ready_data for {battle_id}")
             
             # Notify both players
             await sio.emit("match:found", {
                 "battle_id": battle_id,
                 "opponent": {
+                    "user_id": p2_info.get("user_id"),
                     "nickname": p2_info.get("nickname", "Unknown"),
                     "elo_rating": p2_info.get("elo_rating", 1200),
-                    # TODO: Pass character info if available
                 }
             }, room=sid)
             
             await sio.emit("match:found", {
                 "battle_id": battle_id,
                 "opponent": {
+                    "user_id": p1_info.get("user_id"),
                     "nickname": p1_info.get("nickname", "Unknown"),
                     "elo_rating": p1_info.get("elo_rating", 1200),
                 }
             }, room=opponent_sid)
             
-            logger.info(f"Match found: {sid} vs {opponent_sid}")
+            logger.info(f"[Matchmaking] ✅ Match found: {p1_info.get('nickname')} vs {p2_info.get('nickname')} (battle_id: {battle_id})")
             
         else:
             waiting_queue.append(sid)
+            logger.info(f"[Matchmaking] No opponent available, {sid} added to queue. Queue size: {len(waiting_queue)}")
             await sio.emit("match:searching", {}, room=sid)
 
     @sio.on("match:leave_queue")
@@ -290,12 +333,22 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         battle_id = data.get("battle_id")
         damage_data = data.get("damage_data", {})
         
+        logger.info(f"[{sid}] battle_attack received - battle_id: {battle_id}, damage: {damage_data.get('total_damage', 0)}")
+        
         if not battle_id:
+            logger.warning(f"[{sid}] battle_attack - no battle_id provided!")
             return
+        
+        # Check who is in the battle room
+        room_id = str(battle_id)
+        members_in_room = room_members.get(room_id, [])
+        logger.info(f"[{sid}] Members in room '{room_id}': {members_in_room}")
         
         user_info = connected_users.get(sid, {})
         user_id = user_info.get("user_id", sid)
         damage = damage_data.get("total_damage", 0)
+        
+        logger.info(f"[{sid}] Attacker user_id: {user_id}")
         
         # Redis에서 HP 업데이트 및 동기화
         hp_update = None
@@ -322,7 +375,8 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             emit_data["game_status"] = hp_update["status"]
             emit_data["winner_id"] = hp_update.get("winner_id")
         
-        await sio.emit("battle:damage_received", emit_data, room=battle_id)
+        logger.info(f"[{sid}] Emitting battle:damage_received to room '{room_id}' with data: {emit_data}")
+        await sio.emit("battle:damage_received", emit_data, room=room_id)
     
     @sio.event
     async def battle_result(sid, data):
@@ -391,9 +445,60 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             except Exception as e:
                 logger.warning(f"[{sid}] Redis battle creation failed: {e}")
         
+        # Randomly assign first turn (50/50)
+        import random
+        first_player_index = random.randint(0, 1)
+        first_player_id = player_ids[first_player_index] if len(player_ids) >= 2 else player_ids[0] if player_ids else None
+        
+        logger.info(f"[{sid}] First turn goes to player index {first_player_index}: {first_player_id}")
+        
+        # Store battle data for when players signal ready from BattleScreen
+        battle_ready_data[str(room_id)] = {
+            "battle_id": battle_id,
+            "players": players,
+            "player_ids": player_ids,
+            "first_turn_player_id": first_player_id,
+            "members": list(members),  # Copy current member sids
+        }
+        
         logger.info(f"[{sid}] Emitting room:game_start to {room_id} with players: {players}")
         await sio.emit("room:game_start", {
             "battle_id": battle_id,
             "players": players
         }, room=room_id)
+    
+    @sio.on("battle:ready")
+    async def battle_ready(sid, data):
+        """Handle player ready signal from BattleScreen and send battle:init."""
+        room_id = data.get("room_id")
+        if not room_id:
+            logger.warning(f"[{sid}] battle:ready without room_id")
+            return
+        
+        room_id = str(room_id)
+        logger.info(f"[{sid}] battle:ready received for room: {room_id}")
+        
+        # Get battle data stored during game_start
+        battle_data = battle_ready_data.get(room_id)
+        if not battle_data:
+            logger.warning(f"[{sid}] No battle data found for room {room_id}")
+            return
+        
+        user_info = connected_users.get(sid, {})
+        player_id = user_info.get("user_id", sid)
+        first_turn_player_id = battle_data.get("first_turn_player_id")
+        goes_first = (str(player_id) == str(first_turn_player_id))
+        
+        # Determine if this player is host (first in player_ids)
+        player_ids = battle_data.get("player_ids", [])
+        is_host = (str(player_id) == str(player_ids[0])) if player_ids else False
+        
+        logger.info(f"[{sid}] Sending battle:init - player_id={player_id}, goes_first={goes_first}, is_host={is_host}")
+        
+        await sio.emit("battle:init", {
+            "battle_id": battle_data.get("battle_id"),
+            "players": battle_data.get("players"),
+            "goes_first": goes_first,
+            "is_host": is_host
+        }, room=sid)
 

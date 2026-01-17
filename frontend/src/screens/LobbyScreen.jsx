@@ -101,6 +101,7 @@ export default function LobbyScreen() {
   const [searchTerm, setSearchTerm] = useState("");
   const [rankings, setRankings] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isHost, setIsHost] = useState(false); // Track if current user is the room creator
 
   // Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -113,6 +114,7 @@ export default function LobbyScreen() {
   const [matchState, setMatchState] = useState('IDLE');
   const [opponent, setOpponent] = useState(null);
   const [countdown, setCountdown] = useState(null);
+  const [battleId, setBattleId] = useState(null);  // Store matched battle ID
 
   const chatEndRef = useRef(null);
   const mainCharacter = selectedCharacter || characters[0];
@@ -214,7 +216,9 @@ export default function LobbyScreen() {
 
     // Matchmaking
     const handleMatchFound = (data) => {
+      console.log('[Matchmaking] match:found received:', data);
       setOpponent(data.opponent);
+      setBattleId(data.battle_id);  // Save battle ID
       setMatchState('FOUND');
       setTimeout(() => setCountdown(3), 1000);
     };
@@ -266,7 +270,7 @@ export default function LobbyScreen() {
 
     const handleGameStart = (data) => {
       console.log('socket: [room:game_start]', data);
-      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id } });
+      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id, is_host: isHost } });
     };
 
     // Handle existing players when joining a room
@@ -318,12 +322,14 @@ export default function LobbyScreen() {
   useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {
-      navigate('/battle');
+      // Navigate to character select (same as CREATE ROOM flow)
+      // Use battle_id as room_id since they serve the same purpose
+      navigate('/multi-select', { state: { room_id: battleId, is_host: true } });
       return;
     }
     const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(timer);
-  }, [countdown, navigate]);
+  }, [countdown, navigate, battleId]);
 
   // --- Handlers ---
   const handleSendChat = (e) => {
@@ -391,6 +397,7 @@ export default function LobbyScreen() {
 
       setRooms(prev => [newRoom, ...prev]);
       setSelectedRoom(newRoom);
+        setIsHost(true); // Creator is the host
       setOpponent(null);
       setChatMessages([]); // Clear chat for new room
       setShowCreateModal(false);
@@ -426,6 +433,7 @@ export default function LobbyScreen() {
       const data = await res.json();
       const joinedRoom = { ...room, player_count: room.player_count + 1 };
       setSelectedRoom(joinedRoom);
+        setIsHost(false); // Joiner is NOT the host
       setChatMessages([]);
 
       // Set opponent if host already exists (we're joining as 2nd player)

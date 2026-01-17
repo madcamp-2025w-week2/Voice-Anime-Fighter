@@ -9,6 +9,12 @@ class Settings(BaseSettings):
     
     # Database
     database_url: str = "postgresql+asyncpg://vaf_user:vaf_password_2026@127.0.0.1:5435/voice_anime_fighter"
+
+    def model_post_init(self, __context):
+        # Force port 5435 if it mistakenly defaulted to 5432 for localhost/127.0.0.1
+        if ("@localhost:5432" in self.database_url or "@127.0.0.1:5432" in self.database_url):
+            print(f"⚠️ Correcting Database Port from 5432 to 5435 (Docker Mapping)")
+            self.database_url = self.database_url.replace(":5432", ":5435")
     
     # Redis
     redis_url: str = "redis://localhost:6379/0"
