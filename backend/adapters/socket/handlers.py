@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Any
 import socketio
+import logging
 
+# Logger Setup
+logger = logging.getLogger(__name__)
 
 # Connected users mapping: sid -> user_info
 connected_users: dict[str, dict[str, Any]] = {}
@@ -19,7 +22,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     @sio.event
     async def connect(sid, environ, auth):
         """Handle client connection."""
-        print(f"Client connected: {sid}")
+        logger.info(f"Client connected: {sid}")
         
         # Store user info (in production, verify JWT from auth)
         user_id = auth.get("user_id", sid) if auth else sid
@@ -41,7 +44,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     @sio.event
     async def disconnect(sid):
         """Handle client disconnection."""
-        print(f"Client disconnected: {sid}")
+        logger.info(f"Client disconnected: {sid}")
         
         # Remove from matchmaking queue
         if sid in waiting_queue:
@@ -66,7 +69,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     @sio.on("match:join_queue")
     async def join_queue(sid, data):
         """Join matchmaking queue."""
-        print(f"User {sid} joined matchmaking queue")
+        logger.info(f"User {sid} joined matchmaking queue")
         
         if sid in waiting_queue:
             return
@@ -99,7 +102,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                 }
             }, room=opponent_sid)
             
-            print(f"Match found: {sid} vs {opponent_sid}")
+            logger.info(f"Match found: {sid} vs {opponent_sid}")
             
         else:
             waiting_queue.append(sid)
@@ -110,7 +113,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         """Leave matchmaking queue."""
         if sid in waiting_queue:
             waiting_queue.remove(sid)
-            print(f"User {sid} left matchmaking queue")
+            logger.info(f"User {sid} left matchmaking queue")
             await sio.emit("match:cancelled", {}, room=sid)
     
     @sio.event
@@ -118,16 +121,16 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         """Join a room."""
         room_id = data.get("room_id")
         if not room_id:
-            print(f"[{sid}] room_join failed: No room_id provided")
+            logger.warning(f"[{sid}] room_join failed: No room_id provided")
             return
         
         # Ensure room_id is string
         room_id = str(room_id)
         
-        print(f"[{sid}] Attempting to join room: {room_id}")
+        logger.info(f"[{sid}] Attempting to join room: {room_id}")
         
         await sio.enter_room(sid, room_id)
-        print(f"[{sid}] Entered socket room: {room_id}")
+        logger.info(f"[{sid}] Entered socket room: {room_id}")
         
         if room_id not in room_members:
             room_members[room_id] = []
@@ -148,22 +151,22 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         if sid not in room_members[room_id]:
             room_members[room_id].append(sid)
-            print(f"[{sid}] Added to room_members[{room_id}]. Current members: {room_members[room_id]}")
+            logger.info(f"[{sid}] Added to room_members[{room_id}]. Current members: {room_members[room_id]}")
         else:
-            print(f"[{sid}] Already in room_members[{room_id}]")
+            logger.info(f"[{sid}] Already in room_members[{room_id}]")
         
         user_info = connected_users.get(sid, {})
-        print(f"[{sid}] User Info: {user_info}")
+        logger.info(f"[{sid}] User Info: {user_info}")
         
         # Send existing members to the newly joined player
         if existing_members:
-            print(f"[{sid}] Sending existing players to {sid}: {len(existing_members)} players")
+            logger.info(f"[{sid}] Sending existing players to {sid}: {len(existing_members)} players")
             await sio.emit("room:existing_players", {
                 "players": existing_members
             }, room=sid)
         
         # Notify room members (including new player)
-        print(f"[{sid}] Broadcasting room:player_joined to room {room_id}")
+        logger.info(f"[{sid}] Broadcasting room:player_joined to room {room_id}")
         await sio.emit("room:player_joined", {
             "user_id": user_info.get("user_id", sid),
             "nickname": user_info.get("nickname", "Unknown"),
@@ -214,10 +217,14 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             return
         
         user_info = connected_users.get(sid, {})
+        nickname = user_info.get("nickname", "Unknown")
+        
+        # LOGGING CHAT MESSAGE HERE
+        logger.info(f"[Chat] Room {room_id} | {nickname}: {message}")
         
         await sio.emit("chat:new_message", {
             "user_id": user_info.get("user_id", sid),
-            "nickname": user_info.get("nickname", "Unknown"),
+            "nickname": nickname,
             "message": message,
             "timestamp": datetime.utcnow().isoformat()
         }, room=room_id)

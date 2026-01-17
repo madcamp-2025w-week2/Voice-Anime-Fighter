@@ -7,6 +7,31 @@ import sys
 import sys
 import asyncio
 import uvicorn
+import logging
+from datetime import datetime, timezone, timedelta
+from uvicorn.logging import ColourizedFormatter
+
+# KST Timezone Configuration
+KST = timezone(timedelta(hours=9))
+
+class KSTUvicornFormatter(ColourizedFormatter):
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.fromtimestamp(record.created, tz=KST)
+        return dt.strftime("%H:%M:%S")
+
+def configure_ks_logging():
+    # Format: [Time](Blue) Level - Message
+    # \033[34m is Blue, \033[0m is Reset
+    fmt = '\033[34m[%(asctime)s]\033[0m %(levelprefix)s %(message)s'
+    formatter = KSTUvicornFormatter(fmt=fmt, use_colors=True)
+    
+    # Apply to uvicorn loggers
+    for logger_name in ["uvicorn", "uvicorn.access", "uvicorn.error"]:
+        logger = logging.getLogger(logger_name)
+        for handler in logger.handlers:
+            handler.setFormatter(formatter)
+
+configure_ks_logging()
 
 # Fix for Windows asyncpg ConnectionResetError
 if sys.platform == 'win32':
