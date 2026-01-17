@@ -19,7 +19,7 @@ export default function LobbyScreen() {
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
   // State
-  const [rankingTab, setRankingTab] = useState('GLOBAL');
+  const [rankingTab, setRankingTab] = useState('RANKING');
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
 
@@ -645,37 +645,102 @@ export default function LobbyScreen() {
             <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
               {rankingTab === 'MY' ? (
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 p-2 bg-black/40 rounded-lg border border-zinc-800">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded flex items-center justify-center text-2xl shadow-inner">🌟</div>
-                    <div>
+                  {/* 메인 정보 (Rating, Tier) */}
+                  <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10">🌟</div>
+                    <div className="z-10">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-black italic text-white">{user?.nickname || 'Guest'}</span>
-                        <Crown size={14} className="text-yellow-400" />
+                        <span className="text-xl font-black italic text-white">{user?.nickname || 'Guest'}</span>
+                        <Crown size={16} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
                       </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">RANK: MASTER</p>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">RANK: MASTER</p>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center bg-zinc-800/50 p-2 rounded">
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase">Rating</span>
-                      <span className="text-sm font-black text-yellow-400">{user?.elo_rating || 1200}</span>
+
+                  {/* Rating & Stats Grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Rating Box */}
+                    <div className="col-span-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rating (MMR)</span>
+                      <span className="text-2xl font-black text-yellow-400 tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]">
+                        {user?.elo_rating || 1200}
+                      </span>
                     </div>
+
+                    {/* Stats Calculation */}
+                    {(() => {
+                      const wins = user?.wins || 0;
+                      const losses = user?.losses || 0;
+                      const totalGames = wins + losses;
+                      const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : '0.0';
+                      
+                      return (
+                        <>
+                          {/* Win Rate */}
+                          <div className="col-span-2 flex gap-2">
+                            <div className="flex-1 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 flex flex-col items-center justify-center gap-1">
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase">Win Rate</span>
+                              <span className={`text-lg font-black ${Number(winRate) >= 50 ? 'text-red-400' : 'text-zinc-400'}`}>
+                                {winRate}%
+                              </span>
+                            </div>
+                            <div className="flex-1 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 flex flex-col items-center justify-center gap-1">
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase">Total Matches</span>
+                              <span className="text-lg font-black text-white">{totalGames}</span>
+                            </div>
+                          </div>
+
+                          {/* Wins / Losses */}
+                          <div className="bg-zinc-900/40 p-2 rounded-lg border border-zinc-800 flex flex-col items-center">
+                            <span className="text-[9px] font-bold text-zinc-500 uppercase">Wins</span>
+                            <span className="text-base font-black text-cyan-400">{wins}</span>
+                          </div>
+                          <div className="bg-zinc-900/40 p-2 rounded-lg border border-zinc-800 flex flex-col items-center">
+                            <span className="text-[9px] font-bold text-zinc-500 uppercase">Losses</span>
+                            <span className="text-base font-black text-pink-500">{losses}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {rankings.map((rank, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 hover:bg-white/5 rounded transition-colors cursor-pointer group">
-                      <div className="flex items-center gap-3">
-                        <span className={`font-black italic w-4 text-center ${idx < 3 ? 'text-yellow-400' : 'text-zinc-600'}`}>{idx + 1}</span>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-zinc-300">{rank.nickname}</span>
-                          <span className="text-[9px] text-zinc-500">ELO {rank.elo_rating}</span>
+                  {Array(10).fill(null).map((_, idx) => {
+                    const rank = rankings[idx];
+                    const isTop3 = idx < 3;
+                    // 1,2,3등은 메달 이모티콘, 나머지는 숫자
+                    const rankDisplay = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all group ${
+                          rank ? 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' : 'opacity-20 pointer-events-none'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          {/* 1. 순위 */}
+                          <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${
+                            isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
+                          }`}>
+                            {rankDisplay}
+                          </div>
+                          
+                          {/* 2. 이름 */}
+                          <div className={`font-bold text-sm truncate max-w-[120px] ${rank ? 'text-white' : 'text-zinc-700'}`}>
+                            {rank ? rank.nickname : '-'}
+                          </div>
                         </div>
+
+                        {/* 3. Rating */}
+                        {rank && <div className="font-mono font-black text-yellow-400 text-sm tracking-wider">
+                          {rank.elo_rating} <span className="text-[10px] text-zinc-500 font-bold">MMR</span>
+                        </div>}
                       </div>
-                      <span className="text-xs font-bold text-zinc-500">{rank.wins} Wins</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
