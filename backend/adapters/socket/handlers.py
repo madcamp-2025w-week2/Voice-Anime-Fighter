@@ -3,9 +3,14 @@ from typing import Any
 import socketio
 import logging
 import asyncio
+from jose import jwt, JWTError
 
 # Logger Setup
 logger = logging.getLogger(__name__)
+
+# Config for JWT verification
+from config import get_settings
+settings = get_settings()
 
 # Redis Battle State Manager
 from adapters.redis.battle_state import battle_state_manager
@@ -38,13 +43,36 @@ def register_socket_handlers(sio: socketio.AsyncServer):
     
     @sio.event
     async def connect(sid, environ, auth):
-        """Handle client connection."""
-        logger.info(f"Client connected: {sid}")
+        """Handle client connection with JWT verification."""
+        logger.info(f"Client attempting to connect: {sid}")
         
-        # Store user info (in production, verify JWT from auth)
-        user_id = auth.get("user_id", sid) if auth else sid
-        nickname = auth.get("nickname") if auth else None
-        elo_rating = auth.get("elo_rating") if auth else 1200
+        # ===== JWT Token Verification =====
+        if not auth or not auth.get("token"):
+            logger.warning(f"[{sid}] Connection rejected: No token provided")
+            return False  # Reject connection
+        
+        token = auth.get("token")
+        try:
+            # Decode and verify JWT token
+            payload = jwt.decode(
+                token,
+                settings.jwt_secret_key,
+                algorithms=[settings.jwt_algorithm]
+            )
+            user_id = payload.get("sub")
+            if not user_id:
+                logger.warning(f"[{sid}] Connection rejected: Invalid token payload (no sub)")
+                return False
+            
+            logger.info(f"[{sid}] JWT verified for user_id: {user_id}")
+            
+        except JWTError as e:
+            logger.warning(f"[{sid}] Connection rejected: JWT verification failed - {e}")
+            return False  # Reject connection
+        
+        # ===== Extract user info from auth (client-provided, but user_id from token) =====
+        nickname = auth.get("nickname") or f"Player_{sid[:6]}"
+        elo_rating = auth.get("elo_rating") or 1200
         
         # Check if this user has a pending disconnect (reconnecting)
         str_user_id = str(user_id)
@@ -78,10 +106,12 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         connected_users[sid] = {
             "user_id": user_id,
-            "nickname": nickname or f"Player_{sid[:6]}",
-            "elo_rating": elo_rating or 1200,
+            "nickname": nickname,
+            "elo_rating": elo_rating,
             "connected_at": datetime.utcnow().isoformat()
         }
+        
+        logger.info(f"[{sid}] Client connected successfully: user_id={user_id}, nickname={nickname}")
         
         # Broadcast user count
         await sio.emit("user:count", {"count": len(connected_users)})

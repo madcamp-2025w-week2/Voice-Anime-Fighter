@@ -9,19 +9,25 @@ import ResultScreen from './screens/ResultScreen'
 import SocialScreen from './screens/SocialScreen'
 import ErrorModal from './components/ErrorModal'
 
+import ProtectedRoute from './components/ProtectedRoute'
+
 function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen stars-bg">
         <Routes>
           <Route path="/" element={<TitleScreen />} />
-          <Route path="/lobby" element={<LobbyScreen />} />
-          <Route path="/select" element={<CharacterSelectScreen />} />
-          <Route path="/multi-select" element={<MultiCharacterSelect />} />
-          <Route path="/matchmaking" element={<MatchmakingScreen />} />
-          <Route path="/battle" element={<BattleScreen />} />
-          <Route path="/result" element={<ResultScreen />} />
-          <Route path="/social" element={<SocialScreen />} />
+          
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/lobby" element={<LobbyScreen />} />
+            <Route path="/select" element={<CharacterSelectScreen />} />
+            <Route path="/multi-select" element={<MultiCharacterSelect />} />
+            <Route path="/matchmaking" element={<MatchmakingScreen />} />
+            <Route path="/battle" element={<BattleScreen />} />
+            <Route path="/result" element={<ResultScreen />} />
+            <Route path="/social" element={<SocialScreen />} />
+          </Route>
         </Routes>
         {/* Global Error Modal */}
         <ErrorModal />
