@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useUserStore } from '../stores/userStore'
+import { useErrorStore } from '../stores/errorStore'
 
 // 빈 문자열이면 현재 origin 사용 (nginx를 통해 프록시됨)
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined
@@ -9,7 +10,6 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined
 // SINGLETON SOCKET INSTANCE (module level)
 // ============================================
 let socketInstance = null
-let isInitialized = false
 
 function getSocket(auth) {
   if (!socketInstance) {
@@ -19,6 +19,7 @@ function getSocket(auth) {
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     })
 
     // 디버깅용: 전역으로 소켓 노출
@@ -39,8 +40,6 @@ function getSocket(auth) {
     socketInstance.on('connected', (data) => {
       console.log('✨', data.message)
     })
-
-    isInitialized = true
   }
   return socketInstance
 }
@@ -56,7 +55,9 @@ function updateSocketAuth(auth) {
 
 export function useSocket() {
   const { token, user } = useUserStore()
+  
   const [isConnected, setIsConnected] = useState(false)
+  const [onlineUsers, setOnlineUsers] = useState(0)
 
   useEffect(() => {
     const auth = {
@@ -72,9 +73,14 @@ export function useSocket() {
     // Update connection state
     const handleConnect = () => setIsConnected(true)
     const handleDisconnect = () => setIsConnected(false)
+    const handleUserCount = (data) => {
+      console.log('👥 Online users:', data.count)
+      setOnlineUsers(data.count)
+    }
 
     socket.on('connect', handleConnect)
     socket.on('disconnect', handleDisconnect)
+    socket.on('user:count', handleUserCount)
 
     // Set initial state
     setIsConnected(socket.connected)
@@ -86,9 +92,11 @@ export function useSocket() {
     }
 
     // DON'T disconnect on unmount - socket persists across screens
+    
     return () => {
       socket.off('connect', handleConnect)
       socket.off('disconnect', handleDisconnect)
+      socket.off('user:count', handleUserCount)
     }
   }, [token, user?.id, user?.nickname, user?.elo_rating])
 
@@ -156,5 +164,6 @@ export function useSocket() {
     sendMessage,
     sendAttack,
     startGame,
+    onlineUsers,
   }
 }

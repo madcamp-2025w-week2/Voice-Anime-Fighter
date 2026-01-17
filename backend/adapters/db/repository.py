@@ -26,6 +26,26 @@ class UserRepository:
         await self.db.refresh(user)
         return user
     
-    async def update_elo(self, user_id, new_elo, win: bool):
-        # This needs user_id uuid handling
-        pass 
+    async def get_by_id(self, user_id):
+        result = await self.db.execute(select(UserModel).filter(UserModel.id == user_id))
+        return result.scalars().first()
+
+    async def update_main_character(self, user_id, character_id: str):
+        # user_id can be UUID or str
+        user = await self.get_by_id(user_id)
+        if user:
+            user.main_character_id = character_id
+            await self.db.commit()
+            await self.db.refresh(user)
+        return user
+    
+    async def update_profile(self, user_id, nickname: str = None, avatar_url: str = None):
+        user = await self.get_by_id(user_id)
+        if user:
+            if nickname:
+                user.nickname = nickname
+            if avatar_url:
+                user.avatar_url = avatar_url
+            await self.db.commit()
+            await self.db.refresh(user)
+        return user

@@ -2,22 +2,176 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Users, Sword,
-  PlusCircle, Search, Menu, Lock, Crown, Loader2, ArrowLeft, Send
+  PlusCircle, Search, Menu, Lock, Crown, Loader2, ArrowLeft, Send, LogOut, Volume2, Mic, Video, Settings, MapPin, Smile, X, Pencil, Camera
 } from 'lucide-react';
 import { useUserStore } from '../stores/userStore';
 import { useGameStore } from '../stores/gameStore';
 import { useSocket } from '../hooks/useSocket';
+import { handleApiError } from '../utils/errorHandler';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
+
 export default function LobbyScreen() {
   const navigate = useNavigate();
-  const { user, token } = useUserStore();
-  const { characters, selectedCharacter } = useGameStore();
+  const { user, token, disconnectSocket, updateUser } = useUserStore();
+  const { characters, setCharacters, selectedCharacter, selectCharacter } = useGameStore();
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
+  const [onlineCount, setOnlineCount] = useState(1);
+
+  // Profile Edit States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editNickname, setEditNickname] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      setEditNickname(user.nickname || '');
+      setEditAvatar(user.avatar_url || '🌟');
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nickname: editNickname,
+          avatar_url: editAvatar
+        })
+      });
+      
+      if (res.ok) {
+        const updatedUser = await res.json();
+        updateUser(updatedUser);
+        setIsEditModalOpen(false);
+      } else {
+        await handleApiError(res);
+      }
+    } catch (err) {
+      handleApiError(err);
+    }
+  };
+
+  // Image compression to WebP
+  const compressImageToWebP = (file, maxSize = 256) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Resize if larger than maxSize
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => resolve(new File([blob], 'avatar.webp', { type: 'image/webp' })),
+          'image/webp',
+          0.8 // 80% quality
+        );
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file.');
+        return;
+    }
+
+    setIsUploading(true);
+
+    try {
+        // Compress to WebP
+        const compressedFile = await compressImageToWebP(file);
+        console.log(`📸 Compressed: ${file.size} → ${compressedFile.size} bytes`);
+
+        const formData = new FormData();
+        formData.append('file', compressedFile);
+
+        const res = await fetch(`${API_URL}/users/me/avatar`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+
+        if (res.ok) {
+            const updatedUser = await res.json();
+            updateUser(updatedUser);
+            setEditAvatar(updatedUser.avatar_url);
+        } else {
+            await handleApiError(res);
+        }
+    } catch (err) {
+        handleApiError(err);
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
+  // Sync selected character with user's saved choice
+  useEffect(() => {
+    if (user?.main_character_id) {
+      const isPlaceholder = selectedCharacter?.name === 'Main Character';
+      const isMismatch = !selectedCharacter || selectedCharacter.id !== user.main_character_id;
+      
+      if (isMismatch || isPlaceholder) {
+        const fullChar = characters.find(c => c.id === user.main_character_id);
+        
+        if (fullChar) {
+          // 캐릭터 정보가 로드되었으면 교체
+          selectCharacter(fullChar);
+        } else if (isMismatch) {
+          // 로드 전이고 ID가 다르면 임시 객체 설정 (이미지는 뜸)
+          selectCharacter({ id: user.main_character_id, name: 'Main Character' });
+        }
+      }
+    }
+  }, [user?.main_character_id, characters, selectedCharacter, selectCharacter]);
+
+  // Online Count Listener
+  useEffect(() => {
+    if (socket) {
+      socket.on('user:count', (data) => {
+        setOnlineCount(data.count);
+      });
+      return () => {
+        socket.off('user:count');
+      };
+    }
+  }, [socket]);
+
   // State
-  const [rankingTab, setRankingTab] = useState('GLOBAL');
+  const [rankingTab, setRankingTab] = useState('RANKING');
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
 
@@ -52,12 +206,14 @@ export default function LobbyScreen() {
     const fetchRankings = async () => {
       try {
         const res = await fetch(`${API_URL}/users/ranking?limit=10`);
-        if (res.ok) {
-          const data = await res.json();
-          setRankings(data.rankings);
+        if (!res.ok) {
+          await handleApiError(res);
+          return;
         }
+        const data = await res.json();
+        setRankings(data.rankings);
       } catch (err) {
-        console.error("Failed to fetch rankings", err);
+        handleApiError(err);
       }
     };
 
@@ -66,21 +222,60 @@ export default function LobbyScreen() {
         const res = await fetch(`${API_URL}/rooms`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        
+        if (!res.ok) {
+          await handleApiError(res);
+          return;
+        }
+        
+        const data = await res.json();
+        setRooms(data.rooms);
+      } catch (err) {
+        handleApiError(err);
+      }
+    };
+
+    const fetchUserInfo = async () => {
+      try {
+        const res = await fetch(`${API_URL}/users/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (res.ok) {
-          const data = await res.json();
-          setRooms(data.rooms);
+          const userData = await res.json();
+          // userStore 업데이트 (최신 main_character_id 반영)
+          useUserStore.getState().updateUser(userData);
         }
       } catch (err) {
-        console.error("Failed to fetch rooms", err);
+        console.error("Failed to fetch user info:", err);
+      }
+    };
+
+    const fetchCharacters = async () => {
+      if (characters.length > 0) return; // 이미 있으면 스킵
+      try {
+        const res = await fetch(`${API_URL}/characters`);
+        if (res.ok) {
+          const data = await res.json();
+          const charsWithImages = data.characters.map(c => ({
+            ...c,
+            image: c.sprite_url || c.thumbnail_url
+          }));
+          useGameStore.getState().setCharacters(charsWithImages);
+        }
+      } catch (err) {
+        console.error("Failed to fetch characters:", err);
       }
     };
 
     fetchRankings();
     fetchRooms();
+    fetchUserInfo();
+    fetchCharacters();
     const interval = setInterval(fetchRooms, 3000);
 
     return () => clearInterval(interval);
   }, [token]);
+
 
   // Search Filter
   useEffect(() => {
@@ -263,33 +458,38 @@ export default function LobbyScreen() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        const newRoom = {
-          room_id: data.room_id,
-          name: finalName,
-          host_nickname: user?.nickname || 'Host',
-          player_count: 1,
-          max_players: 2,
-          status: 'waiting',
-          is_private: newRoomIsPrivate
-        };
-
-        setRooms(prev => [newRoom, ...prev]);
-        setSelectedRoom(newRoom);
-        setIsHost(true); // Creator is the host
-        setOpponent(null);
-        setChatMessages([]); // Clear chat for new room
-        setShowCreateModal(false);
-        setNewRoomName("");
-        setNewRoomIsPrivate(false);
-        setNewRoomPassword("");
-
-        console.log('Creating room and joining:', data.room_id);
-        joinRoom(data.room_id); // Join socket room
+      if (!res.ok) {
+        await handleApiError(res);
+        return;
       }
+
+      const data = await res.json();
+      const newRoom = {
+        room_id: data.room_id,
+        name: finalName,
+        host_nickname: user?.nickname || 'Host',
+        host_id: user?.id, // 추가: 방장 ID 명시
+        player_count: 1,
+        max_players: 2,
+        status: 'waiting',
+        is_private: newRoomIsPrivate
+      };
+
+      setRooms(prev => [newRoom, ...prev]);
+      setSelectedRoom(newRoom);
+        setIsHost(true); // Creator is the host
+      setOpponent(null);
+      setChatMessages([]); // Clear chat for new room
+      setShowCreateModal(false);
+      setNewRoomName("");
+      setNewRoomIsPrivate(false);
+      setNewRoomPassword("");
+
+      console.log('Creating room and joining:', data.room_id);
+      joinRoom(data.room_id); // Join socket room
+
     } catch (err) {
-      console.error("Create room failed", err);
+      handleApiError(err);
     }
   };
 
@@ -304,28 +504,33 @@ export default function LobbyScreen() {
         },
         body: JSON.stringify({}),
       });
-      if (res.ok) {
-        const data = await res.json();
-        const joinedRoom = { ...room, player_count: room.player_count + 1 };
-        setSelectedRoom(joinedRoom);
-        setIsHost(false); // Joiner is NOT the host
-        setChatMessages([]);
 
-        // Set opponent if host already exists (we're joining as 2nd player)
-        if (room.player_count >= 1 && room.host_nickname) {
-          setOpponent({
-            id: room.host_id,
-            nickname: room.host_nickname,
-            elo_rating: room.host_elo || 1200
-          });
-        } else {
-          setOpponent(null);
-        }
-
-        joinRoom(room.room_id);
+      if (!res.ok) {
+        await handleApiError(res);
+        return;
       }
+
+      const data = await res.json();
+      const joinedRoom = { ...room, player_count: room.player_count + 1 };
+      setSelectedRoom(joinedRoom);
+        setIsHost(false); // Joiner is NOT the host
+      setChatMessages([]);
+
+      // Set opponent if host already exists (we're joining as 2nd player)
+      if (room.player_count >= 1 && room.host_nickname) {
+        setOpponent({
+          id: room.host_id,
+          nickname: room.host_nickname,
+          elo_rating: room.host_elo || 1200
+        });
+      } else {
+        setOpponent(null);
+      }
+
+      joinRoom(room.room_id);
+
     } catch (err) {
-      console.error("Join room failed", err);
+      handleApiError(err);
     }
   };
 
@@ -338,19 +543,30 @@ export default function LobbyScreen() {
     if (!selectedRoom) return;
 
     try {
-      // Call backend API to leave room (this will delete room if last player)
-      await fetch(`${API_URL}/rooms/${selectedRoom.room_id}/leave`, {
-        method: 'POST',
+      // Logic: If I am the only one (or last one), DELETE room. Else, just LEAVE.
+      const isLastMember = selectedRoom.player_count <= 1;
+      
+      const method = isLastMember ? 'DELETE' : 'POST';
+      const endpoint = isLastMember 
+        ? `${API_URL}/rooms/${selectedRoom.room_id}` 
+        : `${API_URL}/rooms/${selectedRoom.room_id}/leave`;
+
+      const res = await fetch(endpoint, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      // Notify via socket
-      socketLeaveRoom(selectedRoom.room_id);
+      if (!res.ok) {
+        await handleApiError(res);
+      } else {
+        // Notify via socket
+        socketLeaveRoom(selectedRoom.room_id);
+      }
     } catch (err) {
-      console.error("Leave room failed", err);
+      handleApiError(err);
     }
 
     // Clear local state regardless
@@ -396,13 +612,19 @@ export default function LobbyScreen() {
       <header className="px-8 py-4 flex items-center justify-between border-b border-purple-500/30 bg-black/60 backdrop-blur-sm z-30 shrink-0 h-[80px] shadow-[0_4px_20px_-10px_rgba(168,85,247,0.5)]">
         {/* Same Header */}
         <div className="flex items-center gap-3 min-w-0">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] whitespace-nowrap">
-            오타쿠 대변신 대작전 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse">Lobby</span>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] whitespace-nowrap pr-2">
+            오타쿠 대변신 대작전 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse inline-block pr-2">Lobby</span>
           </h1>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Online Status */}
             <div className="flex items-center gap-2 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-700">
               <div className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_currentColor] ${isConnected ? 'bg-green-500 text-green-500' : 'bg-red-500 text-red-500'}`}></div>
               <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">{isConnected ? 'ONLINE' : 'OFFLINE'}</span>
+            </div>
+            {/* Online User Count */}
+            <div className="flex items-center gap-1.5 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-700 text-zinc-400">
+              <Users size={12} />
+              <span className="text-[10px] font-bold">{onlineCount}</span>
             </div>
           </div>
         </div>
@@ -623,83 +845,150 @@ export default function LobbyScreen() {
             <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
               {rankingTab === 'MY' ? (
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4 p-2 bg-black/40 rounded-lg border border-zinc-800">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded flex items-center justify-center text-2xl shadow-inner">🌟</div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-black italic text-white">{user?.nickname || 'Guest'}</span>
-                        <Crown size={14} className="text-yellow-400" />
-                      </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">RANK: MASTER</p>
+                  {/* MAIN Character Display - Moved to top of MyStats */}
+                  <div
+                    onClick={() => navigate('/select')}
+                    className="h-[200px] flex items-center justify-center relative cursor-pointer group shrink-0 bg-black/40 rounded-xl border border-zinc-800 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl group-hover:from-pink-900/50 transition-colors"></div>
+
+                    {/* Character Emoji/Image */}
+                    <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
+                      {(() => {
+                        const imgSrc = mainCharacter?.image
+                          || mainCharacter?.sprite_url
+                          || mainCharacter?.thumbnail_url
+                          || '/images/otacu.webp';
+
+                        return (
+                          <img
+                            src={imgSrc}
+                            alt={mainCharacter?.name || 'Character'}
+                            className="h-full object-contain filter drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        );
+                      })()}
+                    </div>
+
+                    <div className="absolute bottom-2 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center group-hover:bg-pink-900/80 transition-colors">
+                      <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest group-hover:text-white">MAIN CHARACTER</p>
+                      <p className="text-xs font-black text-white italic truncate">{mainCharacter?.name || 'Lulu Ping'}</p>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center bg-zinc-800/50 p-2 rounded">
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase">Rating</span>
-                      <span className="text-sm font-black text-yellow-400">{user?.elo_rating || 1200}</span>
+
+                  {/* 메인 정보 (Rating, Tier) with Edit Hover */}
+                  <div 
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden group cursor-pointer hover:border-pink-500/50 transition-colors"
+                  >
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-sm">
+                      <p className="text-white font-bold tracking-widest flex items-center gap-2">EDIT PROFILE <Pencil size={14}/></p>
                     </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
+                      {(user?.avatar_url && (user.avatar_url.startsWith('/') || user.avatar_url.startsWith('http'))) ? (
+                        <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        user?.avatar_url || '🌟'
+                      )}
+                    </div>
+                    <div className="z-10">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-black italic text-white">{user?.nickname || 'Guest'}</span>
+                        <Crown size={16} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
+                      </div>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">RANK: MASTER</p>
+                    </div>
+                  </div>
+
+                  {/* Rating & Stats Grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Rating Box */}
+                    <div className="col-span-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rating (MMR)</span>
+                      <span className="text-2xl font-black text-yellow-400 tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]">
+                        {user?.elo_rating || 1200}
+                      </span>
+                    </div>
+
+                    {/* Stats Calculation */}
+                    {(() => {
+                      const wins = user?.wins || 0;
+                      const losses = user?.losses || 0;
+                      const totalGames = wins + losses;
+                      const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : '0.0';
+                      
+                      return (
+                        <>
+                          {/* Win Rate */}
+                          <div className="col-span-2 flex gap-2">
+                            <div className="flex-1 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 flex flex-col items-center justify-center gap-1">
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase">Win Rate</span>
+                              <span className={`text-lg font-black ${Number(winRate) >= 50 ? 'text-red-400' : 'text-zinc-400'}`}>
+                                {winRate}%
+                              </span>
+                            </div>
+                            <div className="flex-1 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 flex flex-col items-center justify-center gap-1">
+                              <span className="text-[9px] font-bold text-zinc-500 uppercase">Total Matches</span>
+                              <span className="text-lg font-black text-white">{totalGames}</span>
+                            </div>
+                          </div>
+
+                          {/* Wins / Losses */}
+                          <div className="bg-zinc-900/40 p-2 rounded-lg border border-zinc-800 flex flex-col items-center">
+                            <span className="text-[9px] font-bold text-zinc-500 uppercase">Wins</span>
+                            <span className="text-base font-black text-cyan-400">{wins}</span>
+                          </div>
+                          <div className="bg-zinc-900/40 p-2 rounded-lg border border-zinc-800 flex flex-col items-center">
+                            <span className="text-[9px] font-bold text-zinc-500 uppercase">Losses</span>
+                            <span className="text-base font-black text-pink-500">{losses}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {rankings.map((rank, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 hover:bg-white/5 rounded transition-colors cursor-pointer group">
-                      <div className="flex items-center gap-3">
-                        <span className={`font-black italic w-4 text-center ${idx < 3 ? 'text-yellow-400' : 'text-zinc-600'}`}>{idx + 1}</span>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-zinc-300">{rank.nickname}</span>
-                          <span className="text-[9px] text-zinc-500">ELO {rank.elo_rating}</span>
+                  {Array(10).fill(null).map((_, idx) => {
+                    const rank = rankings[idx];
+                    const isTop3 = idx < 3;
+                    // 1,2,3등은 메달 이모티콘, 나머지는 숫자
+                    const rankDisplay = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all group ${
+                          rank ? 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' : 'opacity-20 pointer-events-none'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          {/* 1. 순위 */}
+                          <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${
+                            isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
+                          }`}>
+                            {rankDisplay}
+                          </div>
+                          
+                          {/* 2. 이름 */}
+                          <div className={`font-bold text-sm truncate max-w-[120px] ${rank ? 'text-white' : 'text-zinc-700'}`}>
+                            {rank ? rank.nickname : '-'}
+                          </div>
                         </div>
+
+                        {/* 3. Rating */}
+                        {rank && <div className="font-mono font-black text-yellow-400 text-sm tracking-wider">
+                          {rank.elo_rating} <span className="text-[10px] text-zinc-500 font-bold">MMR</span>
+                        </div>}
                       </div>
-                      <span className="text-xs font-bold text-zinc-500">{rank.wins} Wins</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Character Display (Fixed Height, Smaller) */}
-          <div
-            onClick={() => navigate('/select')}
-            className="h-[200px] flex items-center justify-center relative corsor-pointer group shrink-0"
-          >
-            {/* ... Same inner content but scaled down logic if needed ... */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl group-hover:from-pink-900/50 transition-colors"></div>
-
-            {/* Character Emoji/Image */}
-            <div className="relative z-0 transition-transform hover:scale-105 duration-500 origin-center h-[180px] flex items-center justify-center">
-              {(() => {
-                const CHARACTER_IMAGES = {
-                  'char_000': '/images/otacu.webp',
-                  'char_001': '/images/satoru.webp',
-                  'char_002': '/images/lupy.webp',
-                  'char_003': '/images/tan.webp',
-                  'char_004': '/images/rika.webp',
-                  'char_005': '/images/nyang.webp',
-                  'char_006': '/images/ogeul.webp',
-                  'char_007': '/images/livi.webp',
-                  'default': '/images/otacu.webp'
-                };
-
-                const imgSrc = mainCharacter?.image
-                  || CHARACTER_IMAGES[mainCharacter?.id]
-                  || CHARACTER_IMAGES['default'];
-
-                return (
-                  <img
-                    src={imgSrc}
-                    alt={mainCharacter?.name || 'Character'}
-                    className="h-full object-contain filter drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                );
-              })()}
-            </div>
-
-            <div className="absolute bottom-2 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center group-hover:bg-pink-900/80 transition-colors">
-              <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest group-hover:text-white">MAIN CHARACTER</p>
-              <p className="text-xs font-black text-white italic truncate">{mainCharacter?.name || 'Lulu Ping'}</p>
             </div>
           </div>
         </section>
@@ -797,6 +1086,70 @@ export default function LobbyScreen() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
       `}</style>
+      
+      {/* Edit Profile Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"><X size={20}/></button>
+            
+            <h2 className="text-2xl font-black italic text-white mb-6 uppercase tracking-wider flex items-center gap-2">
+              <Pencil className="text-pink-500" /> Edit Profile
+            </h2>
+            
+            {/* Avatar Selection */}
+            <div className="mb-6">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Avatar Image</label>
+              
+              {/* Upload Button */}
+              <div className="flex gap-2 mb-4">
+                  <button 
+                      onClick={() => fileInputRef.current.click()}
+                      className="flex-1 py-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition font-bold text-xs uppercase flex items-center justify-center gap-2 text-zinc-300 border border-zinc-700 hover:border-zinc-500"
+                      disabled={isUploading}
+                  >
+                      {isUploading ? <Loader2 className="animate-spin text-pink-500" size={16}/> : <><Camera size={16} className="text-pink-500"/> Upload Photo</>}
+                  </button>
+                  <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      hidden 
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                  />
+              </div>
+
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Or Select Icon</label>
+              <div className="grid grid-cols-5 gap-2">
+                {['🌟', '💀', '🤖', '👾', '👽', '🎃', '👻', '🤡', '👹', '👺'].map(emoji => (
+                  <button 
+                    key={emoji}
+                    onClick={() => setEditAvatar(emoji)}
+                    className={`text-2xl p-2 rounded-lg border transition-all hover:scale-110 ${editAvatar === emoji ? 'border-pink-500 bg-pink-900/20 scale-110 shadow-[0_0_10px_rgba(236,72,153,0.3)]' : 'border-zinc-800 bg-zinc-950 hover:bg-zinc-800'}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nickname Input */}
+            <div className="mb-6">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Nickname</label>
+              <input 
+                value={editNickname}
+                onChange={(e) => setEditNickname(e.target.value)}
+                className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-white focus:border-pink-500 outline-none font-bold transition-colors"
+                placeholder="Enter nickname..."
+              />
+            </div>
+
+            <button onClick={handleSaveProfile} className="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

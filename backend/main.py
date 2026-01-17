@@ -69,15 +69,16 @@ app.add_middleware(
 
 # Mount static files for assets
 assets_dir = os.path.join(os.path.dirname(__file__), "assets")
-if os.path.exists(assets_dir):
-    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+avatars_dir = os.path.join(assets_dir, "avatars")
+
+# Ensure avatars directory exists
+os.makedirs(avatars_dir, exist_ok=True)
 
 # Socket.io setup - allow all origins for development
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins="*"  # 개발용: 모든 origin 허용
 )
-socket_app = socketio.ASGIApp(sio, app)
 
 # Register socket handlers
 register_socket_handlers(sio)
@@ -88,6 +89,15 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(characters.router, prefix="/api/v1/characters", tags=["Characters"])
 app.include_router(rooms.router, prefix="/api/v1/rooms", tags=["Rooms"])
 app.include_router(battle.router, prefix="/api/v1/battle", tags=["Battle"])
+
+# Mount static files AFTER routers (more specific paths first)
+if os.path.exists(avatars_dir):
+    app.mount("/assets/avatars", StaticFiles(directory=avatars_dir), name="avatars")
+if os.path.exists(assets_dir):
+    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+# Create socket app wrapper
+socket_app = socketio.ASGIApp(sio, app)
 
 
 @app.get("/")

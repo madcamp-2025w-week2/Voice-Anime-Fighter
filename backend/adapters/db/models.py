@@ -14,5 +14,6 @@ class UserModel(Base):
     elo_rating = Column(Integer, default=1200)
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
+    main_character_id = Column(String, default="char_000")
     avatar_url = Column(String, default="/assets/avatars/default.png")
     created_at = Column(DateTime, default=datetime.utcnow)
