@@ -366,7 +366,8 @@ export default function LobbyScreen() {
         id: Date.now(),
         user: data.nickname,
         text: data.message,
-        type: data.user_id === user?.id ? 'self' : 'normal'
+        type: data.user_id === user?.id ? 'self' : 'normal',
+        timestamp: data.timestamp
       }]);
     };
 
@@ -839,10 +840,15 @@ export default function LobbyScreen() {
                   {msg.type === 'system' ? (
                     <span className="text-yellow-500/70">{msg.text}</span>
                   ) : (
-                    <>
-                      <span className={`font-bold mr-2 ${msg.type === 'self' ? 'text-cyan-400' : 'text-pink-400'}`}>{msg.user}:</span>
+                    <div className="flex items-baseline">
+                      {msg.timestamp && (
+                        <span className="text-[10px] text-emerald-500/70 font-mono mr-2 font-bold">
+                          [{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}]
+                        </span>
+                      )}
+                      <span className={`font-black mr-2 ${msg.type === 'self' ? 'text-cyan-400' : 'text-pink-400'}`}>{msg.user}:</span>
                       <span className="text-zinc-300">{msg.text}</span>
-                    </>
+                    </div>
                   )}
                 </div>
               ))}

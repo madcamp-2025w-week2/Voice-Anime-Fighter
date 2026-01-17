@@ -129,6 +129,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         # Broadcast user count
         await sio.emit("user:count", {"count": len(connected_users)})
         
+        # Default: Join "lobby" room for global chat
+        await sio.enter_room(sid, "lobby")
+        
         await sio.emit("connected", {"message": "Connected to Voice-Anime-Fighter!"}, room=sid)
     
     async def delayed_disconnect(user_id: str, sid: str, user_info: dict, rooms: list):
@@ -326,6 +329,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         logger.info(f"[{sid}] Attempting to join room: {room_id}")
         
+        await sio.leave_room(sid, "lobby") # Leave global chat
         await sio.enter_room(sid, room_id)
         logger.info(f"[{sid}] Entered socket room: {room_id}")
         
@@ -395,6 +399,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         await sio.emit("room:player_left", {
             "user_id": user_info.get("user_id", sid)
         }, room=room_id)
+        
+        # Rejoin global chat
+        await sio.enter_room(sid, "lobby")
     
     @sio.event
     async def room_ready(sid, data):
@@ -440,9 +447,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             logger.info(f"[Chat] Room {room_id} | {nickname}: {message}")
             await sio.emit("chat:new_message", chat_data, room=room_id)
         else:
-            # Global broadcast to ALL connected sockets
+            # Global broadcast to LOBBY ONLY
             logger.info(f"[Global Chat] {nickname}: {message}")
-            await sio.emit("chat:new_message", chat_data)
+            await sio.emit("chat:new_message", chat_data, room="lobby")
 
     # --- Character Selection Handlers ---
     @sio.on("character:select")

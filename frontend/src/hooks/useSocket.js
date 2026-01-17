@@ -86,9 +86,18 @@ export function useSocket() {
     // Set initial state
     setIsConnected(socket.connected)
 
-    // If socket exists but not connected, connect it
-    if (!socket.connected) {
-      updateSocketAuth(auth)
+    // Always update auth for next reconnection
+    socket.auth = auth
+
+    // Check if we need to reconnect (User loaded or changed)
+    if (user?.id && socket.connected && socket._userId !== user.id) {
+      console.log('♻️ User identity changed, reconnecting socket...')
+      socket.disconnect()
+      socket.connect()
+      socket._userId = user.id
+    } else if (!socket.connected) {
+      // Initial connection
+      socket._userId = user?.id
       socket.connect()
     }
 
