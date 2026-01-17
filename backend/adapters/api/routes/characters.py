@@ -109,6 +109,16 @@ CHARACTERS = [
         sprite_url="/images/livi.webp",
         is_unlocked=True
     ),
+    Character(
+        id="char_008",
+        name="흑염룡 카이토",
+        description="오른손에 흑염룡을 봉인한 중2병 소드마스터. 시공의 폭풍을 부른다.",
+        stats=CharacterStats(cringe_level=100, volume_req=80, precision=70),
+        spell_text="눈을 떠라... 내 안의 흑염룡! 다크니스 디멘션 슬래시!",
+        thumbnail_url="/images/dark_sword.webp",
+        sprite_url="/images/dark_sword.webp",
+        is_unlocked=True
+    ),
 ]
 
 
