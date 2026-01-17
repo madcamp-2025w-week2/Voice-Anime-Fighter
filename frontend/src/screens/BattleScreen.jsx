@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Mic, MicOff, Sparkles, Zap } from 'lucide-react'
 import { useBattleStore } from '../stores/battleStore'
 import { useGameStore } from '../stores/gameStore'
@@ -29,6 +30,10 @@ export default function BattleScreen() {
   } = useSpeechRecognition()
   const { analyzerData, start: startVisualizer, stop: stopVisualizer } = useAudioVisualizer()
   const { playOtakuSound, playCriticalHitSound, cleanup: cleanupAudio } = useOtakuAudio()
+
+  // Get battle info from navigation state (Fast Matching)
+  const matchedBattleId = location.state?.battle_id
+  const matchedOpponent = location.state?.opponent
 
   const [showDamage, setShowDamage] = useState(null)
   const [timer, setTimer] = useState(30)
@@ -104,6 +109,7 @@ export default function BattleScreen() {
   useEffect(() => {
     if (!gameStarted || !battle.isActive) return
 
+
     const interval = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
@@ -158,6 +164,7 @@ export default function BattleScreen() {
         await playOtakuSound(data.audio_url)
       }
 
+
       // Critical hit effect
       if (data.is_critical) {
         playCriticalHitSound()
@@ -181,10 +188,12 @@ export default function BattleScreen() {
   const handleRecordToggle = useCallback(async () => {
     if (!gameStarted) return
 
+
     if (isRecording) {
       stopRecording()
       stopVisualizer()
       setIsAttacking(true)
+
 
       setTimeout(async () => {
         // Use roomId as battleId (they're the same, and roomId is always available)
@@ -195,9 +204,11 @@ export default function BattleScreen() {
           selectedCharacter?.id
         )
 
+
         if (analysisResult && analysisResult.success) {
           const damage = analysisResult.damage.total_damage
           const isCritical = analysisResult.is_critical || analysisResult.damage.is_critical
+
 
           battle.dealDamage(damage, analysisResult)
           setShowDamage({ value: damage, isPlayer: false, grade: analysisResult.grade, isCritical })
@@ -217,6 +228,7 @@ export default function BattleScreen() {
           // Even on miss, end turn
           battle.setTurn(false)
         }
+
 
         setIsAttacking(false)
         reset()
@@ -247,6 +259,7 @@ export default function BattleScreen() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Battle Arena Background */}
+      <div
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/battle_bg.png')" }}
@@ -283,6 +296,7 @@ export default function BattleScreen() {
             </div>
             <div className="h-8 bg-gray-900/80 rounded-r-lg overflow-hidden border-2 border-gray-700">
               <div
+              <div
                 className="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-300"
                 style={{ width: `${(leftHP.hp / leftHP.maxHp) * 100}%` }}
               />
@@ -307,6 +321,7 @@ export default function BattleScreen() {
               <span className="font-bold text-white">{rightLabel}</span>
             </div>
             <div className="h-8 bg-gray-900/80 rounded-l-lg overflow-hidden border-2 border-gray-700">
+              <div
               <div
                 className="h-full bg-gradient-to-l from-red-600 to-red-500 transition-all duration-300 ml-auto"
                 style={{ width: `${(rightHP.hp / rightHP.maxHp) * 100}%` }}
@@ -350,72 +365,77 @@ export default function BattleScreen() {
             </div>
             <div className={`text-center text-3xl font-bold mt-2 ${showDamage.grade === 'SSS' ? 'text-yellow-300' : 'text-white'
               }`}>
-              {showDamage.grade}
+              <div className={`text-center text-3xl font-bold mt-2 ${showDamage.grade === 'SSS' ? 'text-yellow-300' : 'text-white'
+                }`}>
+                {showDamage.grade}
+              </div>
             </div>
-          </div>
         )}
 
-        {/* Right Character */}
-        <div className={`w-1/3 flex flex-col items-center ${isAttacking || showCritical ? 'animate-shake' : ''}`}>
-          <img
-            src={rightCharImage}
-            alt={rightLabel}
-            className="h-48 md:h-64 object-contain transform scale-x-[-1]"
-            style={{ filter: `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})` }}
-          />
-        </div>
-      </div>
+            {/* Right Character */}
+            <div className={`w-1/3 flex flex-col items-center ${isAttacking || showCritical ? 'animate-shake' : ''}`}>
+              <img
+                src={rightCharImage}
+                alt={rightLabel}
+                className="h-48 md:h-64 object-contain transform scale-x-[-1]"
+                style={{ filter: `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})` }}
+              />
+            </div>
+          </div>
 
       {/* Bottom - Spell Subtitle */}
-      <div className="relative z-10 p-4">
-        {/* 주문 자막 */}
-        <div className="bg-pink-500/90 rounded-2xl p-4 shadow-lg mb-4">
-          <div className="text-white text-lg md:text-xl font-bold leading-relaxed">
-            {currentSpell}
+        <div className="relative z-10 p-4">
+          {/* 주문 자막 */}
+          <div className="bg-pink-500/90 rounded-2xl p-4 shadow-lg mb-4">
+            <div className="text-white text-lg md:text-xl font-bold leading-relaxed">
+              {currentSpell}
+            </div>
+
+
+            {/* Real-time Live Transcript (Fast Track) */}
+            {isRecording && liveTranscript && (
+              <div className="mt-2 p-2 bg-white/20 rounded-lg">
+                <p className="text-sm text-pink-100 mb-1">🎤 실시간 인식 중...</p>
+                <p className="text-white font-medium">{liveTranscript}</p>
+              </div>
+            )}
+
+
+            {/* Final Transcription Result */}
+            {result?.transcription && !isRecording && (
+              <div className="mt-2 text-pink-100 text-sm">
+                인식됨: "{result.transcription}"
+              </div>
+            )}
           </div>
 
-          {/* Real-time Live Transcript (Fast Track) */}
-          {isRecording && liveTranscript && (
-            <div className="mt-2 p-2 bg-white/20 rounded-lg">
-              <p className="text-sm text-pink-100 mb-1">🎤 실시간 인식 중...</p>
-              <p className="text-white font-medium">{liveTranscript}</p>
+          {/* Voice Visualizer */}
+          {isRecording && (
+            <div className="h-12 bg-black/50 rounded-xl flex items-center justify-center px-4 mb-4">
+              <div className="voice-wave h-full flex items-center gap-1">
+                {analyzerData.slice(0, 32).map((value, i) => (
+                  <div
+                    key={i}
+                    className="voice-wave-bar bg-pink-400"
+                    style={{ height: `${Math.max(4, value * 0.4)}px` }}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Final Transcription Result */}
-          {result?.transcription && !isRecording && (
-            <div className="mt-2 text-pink-100 text-sm">
-              인식됨: "{result.transcription}"
-            </div>
-          )}
-        </div>
-
-        {/* Voice Visualizer */}
-        {isRecording && (
-          <div className="h-12 bg-black/50 rounded-xl flex items-center justify-center px-4 mb-4">
-            <div className="voice-wave h-full flex items-center gap-1">
-              {analyzerData.slice(0, 32).map((value, i) => (
-                <div
-                  key={i}
-                  className="voice-wave-bar bg-pink-400"
-                  style={{ height: `${Math.max(4, value * 0.4)}px` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Record Button */}
-        <button
-          onClick={handleRecordToggle}
-          disabled={isAnalyzing || !gameStarted || !battle.isMyTurn}
-          className={`w-full py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-3 ${!gameStarted
-            ? 'bg-gray-600 text-gray-400'
-            : !battle.isMyTurn
-              ? 'bg-gray-700 text-gray-400'
-              : isRecording
-                ? 'bg-red-500 animate-pulse'
-                : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-105'
+          {/* Record Button */}
+          <button
+            onClick={handleRecordToggle}
+            disabled={isAnalyzing || !gameStarted || !battle.isMyTurn}
+            className={`w-full py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-3 ${!gameStarted
+              ? 'bg-gray-600 text-gray-400'
+              : !battle.isMyTurn
+                ? 'bg-gray-700 text-gray-400'
+                : isRecording
+                  ? 'bg-red-500 animate-pulse'
+                  : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:scale-105'
+              } disabled:opacity-50`}
             } disabled:opacity-50`}
         >
           {!gameStarted ? (
