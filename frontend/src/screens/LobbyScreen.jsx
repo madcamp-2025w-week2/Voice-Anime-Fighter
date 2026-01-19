@@ -455,13 +455,49 @@ export default function LobbyScreen() {
     }
   }, []); // Only on mount
 
-  // Re-join room on connection restore
+  // Re-join room on connection restore - with validation
   useEffect(() => {
     if (isConnected && selectedRoom) {
-      console.log('Socket Connected/Room Selected - Ensuring Room Join:', selectedRoom.room_id);
-      joinRoom(selectedRoom.room_id, selectedRoom.clientPassword);
+      console.log('Socket Connected/Room Selected - Validating and rejoining:', selectedRoom.room_id);
+      
+      // Validate that the room still exists before rejoining
+      const validateAndJoin = async () => {
+        try {
+          const res = await fetch(`${API_URL}/rooms/${selectedRoom.room_id}/join`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ password: selectedRoom.clientPassword || null }),
+          });
+
+          if (res.ok) {
+            // Room exists and we can join
+            joinRoom(selectedRoom.room_id, selectedRoom.clientPassword);
+          } else {
+            // Room doesn't exist or we can't join - clear state
+            console.log('Room no longer available, clearing saved state');
+            sessionStorage.removeItem('voiceAnime_currentRoom');
+            setSelectedRoom(null);
+            setOpponent(null);
+            setIsHost(false);
+            setChatMessages([]);
+          }
+        } catch (err) {
+          console.error('Failed to validate room:', err);
+          // On error, clear state to be safe
+          sessionStorage.removeItem('voiceAnime_currentRoom');
+          setSelectedRoom(null);
+          setOpponent(null);
+          setIsHost(false);
+          setChatMessages([]);
+        }
+      };
+
+      validateAndJoin();
     }
-  }, [isConnected, selectedRoom?.room_id, joinRoom]);
+  }, [isConnected, selectedRoom?.room_id, joinRoom, token]);
 
   useEffect(() => {
     if (countdown === null) return;

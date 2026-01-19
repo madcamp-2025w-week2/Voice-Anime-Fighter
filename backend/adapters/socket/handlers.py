@@ -336,6 +336,20 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         if room_id not in room_members:
             room_members[room_id] = []
         
+        # Clean up stale SIDs for this user (same user_id with different SID)
+        user_id = user_info.get("user_id")
+        if user_id:
+            stale_sids = []
+            for existing_sid in room_members[room_id]:
+                if existing_sid != sid:
+                    existing_user_info = connected_users.get(existing_sid, {})
+                    if str(existing_user_info.get("user_id")) == str(user_id):
+                        stale_sids.append(existing_sid)
+            
+            for stale_sid in stale_sids:
+                room_members[room_id].remove(stale_sid)
+                logger.info(f"[{sid}] Removed stale SID {stale_sid} for same user {user_id} from room {room_id}")
+        
         # Check if this is a new join or a rejoin (e.g., after page refresh)
         is_new_player = sid not in room_members[room_id]
         
@@ -347,6 +361,10 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                 continue
                 
             existing_info = connected_users.get(existing_sid, {})
+            # Skip if no user info (stale connection)
+            if not existing_info:
+                continue
+                
             existing_members.append({
                 "user_id": existing_info.get("user_id", existing_sid),
                 "nickname": existing_info.get("nickname", "Unknown"),
