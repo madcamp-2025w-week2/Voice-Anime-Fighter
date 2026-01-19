@@ -5,6 +5,7 @@ backend/**/__pycache__/
 backend/*.pyc
 backend/.pytest_cache/
 backend/venv/
+backend/assets/avatars/
 !backend/requirements.txt
 
 

@@ -11,6 +11,34 @@ import { handleApiError } from '../utils/errorHandler';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
+// Extract base URL from API_URL (remove /api/v1 suffix if present)
+const getBaseUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+  if (apiUrl.includes('/api')) {
+    return apiUrl.split('/api')[0];
+  }
+  return apiUrl;
+};
+
+// Helper to get full avatar URL
+const getAvatarUrl = (avatarUrl) => {
+  if (!avatarUrl) return null;
+  // If it's a full URL (http/https) or emoji, return as-is
+  if (avatarUrl.startsWith('http')) return avatarUrl;
+  // If it's a relative path starting with /, prepend base URL
+  if (avatarUrl.startsWith('/')) {
+    const baseUrl = getBaseUrl();
+    return baseUrl ? `${baseUrl}${avatarUrl}` : avatarUrl;
+  }
+  return avatarUrl;
+};
+
+// Check if avatarUrl is an image path (not emoji)
+const isImageUrl = (avatarUrl) => {
+  if (!avatarUrl) return false;
+  return avatarUrl.startsWith('/') || avatarUrl.startsWith('http');
+};
+
 
 export default function LobbyScreen() {
   const navigate = useNavigate();
@@ -774,8 +802,8 @@ export default function LobbyScreen() {
               {/* Avatar + Character Badge */}
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl shadow-lg border-3 border-cyan-400/50 overflow-hidden">
-                  {(user?.avatar_url && (user.avatar_url.startsWith('/') || user.avatar_url.startsWith('http'))) ? (
-                    <img src={user.avatar_url} alt="Me" className="w-full h-full object-cover" />
+                  {isImageUrl(user?.avatar_url) ? (
+                    <img src={getAvatarUrl(user.avatar_url)} alt="Me" className="w-full h-full object-cover" />
                   ) : (
                     user?.avatar_url || '🌟'
                   )}
@@ -822,8 +850,8 @@ export default function LobbyScreen() {
               {/* Avatar + Character Badge */}
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-4xl shadow-lg border-3 border-pink-400/50 overflow-hidden">
-                  {(opponent?.avatar_url && (opponent.avatar_url.startsWith('/') || opponent.avatar_url.startsWith('http'))) ? (
-                    <img src={opponent.avatar_url} alt="Opponent" className="w-full h-full object-cover" />
+                  {isImageUrl(opponent?.avatar_url) ? (
+                    <img src={getAvatarUrl(opponent.avatar_url)} alt="Opponent" className="w-full h-full object-cover" />
                   ) : (
                     opponent?.avatar_url || '😈'
                   )}
@@ -975,10 +1003,10 @@ export default function LobbyScreen() {
               <div className="flex gap-4 mb-4 shrink-0">
                 <div className="flex-1 glass p-4 rounded-xl flex items-center gap-4 border border-cyan-500/30">
                   <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center text-2xl border border-cyan-500 overflow-hidden">
-                    {user?.avatar_url ? (
-                      <img src={user.avatar_url} alt="Me" className="w-full h-full object-cover" />
+                    {isImageUrl(user?.avatar_url) ? (
+                      <img src={getAvatarUrl(user.avatar_url)} alt="Me" className="w-full h-full object-cover" />
                     ) : (
-                      '🌟'
+                      user?.avatar_url || '🌟'
                     )}
                   </div>
                   <div className="min-w-0">
@@ -989,10 +1017,10 @@ export default function LobbyScreen() {
                 <div className="flex items-center justify-center"><Sword size={32} className="text-zinc-600" /></div>
                 <div className="flex-1 glass p-4 rounded-xl flex items-center gap-4 border border-pink-500/30">
                   <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center text-2xl border border-pink-500 overflow-hidden">
-                    {opponent?.avatar_url ? (
-                      <img src={opponent.avatar_url} alt="Opponent" className="w-full h-full object-cover" />
+                    {isImageUrl(opponent?.avatar_url) ? (
+                      <img src={getAvatarUrl(opponent.avatar_url)} alt="Opponent" className="w-full h-full object-cover" />
                     ) : (
-                      opponent ? '😈' : '❓'
+                      opponent ? (opponent.avatar_url || '😈') : '❓'
                     )}
                   </div>
                   <div className="min-w-0">
@@ -1174,8 +1202,8 @@ export default function LobbyScreen() {
 
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
-                      {(user?.avatar_url && (user.avatar_url.startsWith('/') || user.avatar_url.startsWith('http'))) ? (
-                        <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      {isImageUrl(user?.avatar_url) ? (
+                        <img src={getAvatarUrl(user.avatar_url)} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
                         user?.avatar_url || '🌟'
                       )}
@@ -1285,8 +1313,8 @@ export default function LobbyScreen() {
                       <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20"></div>
                         <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
-                          {(selectedRankingUser?.avatar_url && (selectedRankingUser.avatar_url.startsWith('/') || selectedRankingUser.avatar_url.startsWith('http'))) ? (
-                            <img src={selectedRankingUser.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                          {isImageUrl(selectedRankingUser?.avatar_url) ? (
+                            <img src={getAvatarUrl(selectedRankingUser.avatar_url)} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
                             selectedRankingUser?.avatar_url || '🌟'
                           )}

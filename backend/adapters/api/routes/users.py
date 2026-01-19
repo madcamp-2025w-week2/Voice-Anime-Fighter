@@ -40,6 +40,7 @@ class RankingEntry(BaseModel):
     wins: int
     losses: int
     main_character_id: str
+    avatar_url: str | None = None
 
 
 class RankingResponse(BaseModel):
@@ -112,7 +113,8 @@ async def get_rankings(
             elo_rating=user.elo_rating,
             wins=user.wins,
             losses=user.losses,
-            main_character_id=user.main_character_id
+            main_character_id=user.main_character_id,
+            avatar_url=user.avatar_url
         )
         for i, user in enumerate(users)
     ]
