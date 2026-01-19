@@ -15,7 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 export default function LobbyScreen() {
   const navigate = useNavigate();
   const { user, token, disconnectSocket, updateUser } = useUserStore();
-  const { characters, setCharacters, selectedCharacter, selectCharacter, setOpponentNickname } = useGameStore();
+  const { characters, setCharacters, selectedCharacter, selectCharacter, setOpponentInfo } = useGameStore();
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
   const [onlineCount, setOnlineCount] = useState(1);
@@ -324,6 +324,12 @@ export default function LobbyScreen() {
       setOpponent(data.opponent);
       setBattleId(data.battle_id);  // Save battle ID
       setMatchState('FOUND');
+      // Also set opponent info in gameStore for MultiCharacterSelect and BattleScreen
+      setOpponentInfo({
+        nickname: data.opponent?.nickname || 'Opponent',
+        elo: data.opponent?.elo_rating || 1200,
+        avatarUrl: data.opponent?.avatar_url || null,
+      });
       setTimeout(() => setCountdown(3), 1000);
     };
 
@@ -337,8 +343,12 @@ export default function LobbyScreen() {
             nickname: data.nickname || 'Opponent',
             elo_rating: data.elo_rating || 1200
           });
-          // Also set in gameStore for BattleScreen
-          setOpponentNickname(data.nickname || 'Opponent');
+          // Also set in gameStore for BattleScreen (including ELO and avatar)
+          setOpponentInfo({
+            nickname: data.nickname || 'Opponent',
+            elo: data.elo_rating || 1200,
+            avatarUrl: data.avatar_url || null,
+          });
           setChatMessages(prev => [...prev, {
             id: Date.now(),
             user: 'System',
@@ -384,7 +394,7 @@ export default function LobbyScreen() {
         setOpponentReady(false);
         // Previous host left, so no opponent now
         setOpponent(null);
-        setOpponentNickname(null);
+        setOpponentInfo({ nickname: null, elo: null, avatarUrl: null });
         setChatMessages(prev => [...prev, {
           id: Date.now(),
           user: 'System',
@@ -403,7 +413,13 @@ export default function LobbyScreen() {
 
     const handleGameStart = (data) => {
       console.log('socket: [room:game_start]', data);
-      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id, is_host: isHost } });
+      // Pass players data for Room flow (like Fast Matching does)
+      const isRanking = selectedRoom?.name?.startsWith('[RANK]') || false;
+      const players = [
+        { user_id: user?.id, nickname: user?.nickname, elo_rating: user?.elo_rating || 1200, avatar_url: user?.avatar_url },
+        { user_id: opponent?.user_id || opponent?.id, nickname: opponent?.nickname, elo_rating: opponent?.elo_rating || 1200, avatar_url: opponent?.avatar_url }
+      ];
+      navigate('/multi-select', { state: { room_id: selectedRoom?.room_id, is_host: isHost, players, is_ranking: isRanking } });
     };
 
     // Handle existing players when joining a room
@@ -418,8 +434,12 @@ export default function LobbyScreen() {
             nickname: existingPlayer.nickname || 'Opponent',
             elo_rating: existingPlayer.elo_rating || 1200
           });
-          // Also set in gameStore for character select and battle screens
-          setOpponentNickname(existingPlayer.nickname || 'Opponent');
+          // Also set in gameStore for character select and battle screens (including ELO and avatar)
+          setOpponentInfo({
+            nickname: existingPlayer.nickname || 'Opponent',
+            elo: existingPlayer.elo_rating || 1200,
+            avatarUrl: existingPlayer.avatar_url || null,
+          });
         }
       }
     };
@@ -526,7 +546,12 @@ export default function LobbyScreen() {
     if (countdown === 0) {
       // Navigate to character select (same as CREATE ROOM flow)
       // Use battle_id as room_id since they serve the same purpose
-      navigate('/multi-select', { state: { room_id: battleId, is_host: true } });
+      // Also pass players data for Fast Matching (like room flow does)
+      const players = [
+        { user_id: user?.id, nickname: user?.nickname, elo_rating: user?.elo_rating || 1200, avatar_url: user?.avatar_url },
+        { user_id: opponent?.user_id, nickname: opponent?.nickname, elo_rating: opponent?.elo_rating || 1200, avatar_url: opponent?.avatar_url }
+      ];
+      navigate('/multi-select', { state: { room_id: battleId, is_host: true, players, is_ranking: true } });
       return;
     }
     const timer = setTimeout(() => setCountdown(c => c - 1), 1000);

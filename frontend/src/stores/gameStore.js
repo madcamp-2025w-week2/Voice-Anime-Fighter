@@ -13,6 +13,12 @@ export const useGameStore = create((set) => ({
   // Opponent's nickname
   opponentNickname: null,
 
+  // Opponent's ELO rating
+  opponentElo: null,
+
+  // Opponent's avatar URL
+  opponentAvatarUrl: null,
+
   // Am I the host (room creator)?
   isHost: false,
 
@@ -34,6 +40,13 @@ export const useGameStore = create((set) => ({
 
   setOpponentNickname: (nickname) => set({ opponentNickname: nickname }),
 
+  // Set all opponent info at once (nickname, elo, avatar)
+  setOpponentInfo: ({ nickname, elo, avatarUrl }) => set({
+    opponentNickname: nickname,
+    opponentElo: elo,
+    opponentAvatarUrl: avatarUrl,
+  }),
+
   setIsHost: (isHost) => set({ isHost }),
 
   setRoom: (room) => set({ currentRoom: room }),
@@ -53,6 +66,9 @@ export const useGameStore = create((set) => ({
   resetGame: () => set({
     selectedCharacter: null,
     opponentCharacter: null,
+    opponentNickname: null,
+    opponentElo: null,
+    opponentAvatarUrl: null,
     isHost: false,
     currentRoom: null,
     currentBattle: null,

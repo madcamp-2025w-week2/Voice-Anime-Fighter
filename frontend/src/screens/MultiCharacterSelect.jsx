@@ -12,8 +12,10 @@ export default function MultiCharacterSelect() {
   const location = useLocation()
   const roomId = location.state?.room_id
   const isHostFromState = location.state?.is_host ?? false
+  const playersFromState = location.state?.players || []
+  const isRanking = location.state?.is_ranking ?? false
   const { user } = useUserStore()
-  const { selectCharacter, setOpponentCharacter, setIsHost, opponentNickname } = useGameStore()
+  const { selectCharacter, setOpponentCharacter, setIsHost, opponentNickname, opponentElo, opponentAvatarUrl } = useGameStore()
   const { on, off, emit, joinRoom } = useSocket()
 
   // 캐릭터 데이터 (API에서 로드)
