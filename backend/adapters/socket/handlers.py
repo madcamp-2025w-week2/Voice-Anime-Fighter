@@ -656,7 +656,15 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     # Update ELO in database
                     winner_change, loser_change = await update_player_elo(str(winner_id), str(loser_id))
                     
-                    # Emit battle:result with ELO changes
+                    # 1. FIRST: Emit damage_received so audio plays
+                    logger.info(f"[{sid}] Emitting battle:damage_received to room '{room_id}' with data: {emit_data}")
+                    await sio.emit("battle:damage_received", emit_data, room=room_id)
+                    
+                    # 2. THEN: Wait for audio to play (approx 3 seconds) before emitting result
+                    import asyncio
+                    await asyncio.sleep(3.0)
+                    
+                    # 3. FINALLY: Emit battle:result with ELO changes
                     await sio.emit("battle:result", {
                         "winner_id": winner_id,
                         "loser_id": loser_id,
@@ -667,7 +675,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     }, room=room_id)
                     
                     logger.info(f"[{sid}] 🏆 Battle finished! Winner: {winner_id}, ELO changes: +{winner_change}/{loser_change}")
+                    return  # Early return since we already emitted damage_received
         
+        # Normal case (no winner yet) - just emit damage_received
         logger.info(f"[{sid}] Emitting battle:damage_received to room '{room_id}' with data: {emit_data}")
         await sio.emit("battle:damage_received", emit_data, room=room_id)
     

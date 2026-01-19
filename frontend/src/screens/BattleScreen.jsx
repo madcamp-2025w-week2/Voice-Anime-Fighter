@@ -79,7 +79,8 @@ export default function BattleScreen() {
   }, [roomId, joinRoom, emit])
 
   useEffect(() => {
-    if (gameStarted && !battle.isActive) {
+    // Only init if game started, battle not active, and game hasn't ended (no winner yet)
+    if (gameStarted && !battle.isActive && !battle.winnerId) {
       battle.initBattle({
         battleId: roomId || `battle_${Date.now()}`,
         playerCharacterId: selectedCharacter?.id || 'char_000',
@@ -147,12 +148,22 @@ export default function BattleScreen() {
         playCriticalHitSound()
         setTimeout(() => setShowCritical(false), 1000)
       }
+
+      // 4. If game is finished (winner exists), wait for HP animation then navigate
+      if (data.winner_id) {
+        // Wait for HP bar animation to complete, then navigate
+        // endBattle is called by battle:result handler which sets ELO changes etc.
+        setTimeout(() => {
+          navigate('/result')
+        }, 1500) // 1.5 second delay for HP animation
+      }
     })
 
     on('battle:result', (data) => {
+      // Store result data for result screen (ELO changes etc)
+      // Navigation is handled by damage_received handler after audio completes
       const currentUserId = useUserStore.getState().user?.id
       battle.endBattle(data.winner_id, data.loser_id, data.stats, currentUserId)
-      navigate('/result')
     })
 
     return () => {

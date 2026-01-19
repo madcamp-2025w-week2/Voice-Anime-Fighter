@@ -418,6 +418,8 @@ export default function LobbyScreen() {
             nickname: existingPlayer.nickname || 'Opponent',
             elo_rating: existingPlayer.elo_rating || 1200
           });
+          // Also set in gameStore for character select and battle screens
+          setOpponentNickname(existingPlayer.nickname || 'Opponent');
         }
       }
     };
