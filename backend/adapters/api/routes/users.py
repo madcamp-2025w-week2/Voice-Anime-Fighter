@@ -28,6 +28,7 @@ class UserDetailResponse(BaseModel):
     losses: int
     main_character_id: str
     avatar_url: str | None = None
+    rank: int | None = None
     created_at: str
 
 
@@ -84,6 +85,7 @@ async def get_current_user(
         losses=user.losses,
         main_character_id=user.main_character_id,
         avatar_url=user.avatar_url,
+        rank=await repo.get_user_rank(user.id),
         created_at=user.created_at.isoformat()
     )
 
