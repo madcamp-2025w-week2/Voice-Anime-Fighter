@@ -202,6 +202,7 @@ export default function LobbyScreen() {
   const [filteredRooms, setFilteredRooms] = useState([]); // For search
   const [searchTerm, setSearchTerm] = useState("");
   const [rankings, setRankings] = useState([]);
+  const [selectedRankingUser, setSelectedRankingUser] = useState(null); // Selected user from ranking list to view profile
   const [selectedRoom, setSelectedRoom] = useState(savedRoomState?.room || null);
   const [isHost, setIsHost] = useState(savedRoomState?.isHost || false); // Track if current user is the room creator
 
@@ -1033,7 +1034,7 @@ export default function LobbyScreen() {
             {/* ... Stats/Ranking Title ... */}
             <div className="flex border-b border-zinc-700 shrink-0">
               <button
-                onClick={() => setRankingTab('RANKING')}
+                onClick={() => { setRankingTab('RANKING'); setSelectedRankingUser(null); }}
                 className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-colors ${rankingTab === 'RANKING' ? 'bg-zinc-800 text-white border-b-2 border-cyan-500' : 'text-zinc-500 hover:bg-zinc-800/50'
                   }`}
               >
@@ -1158,38 +1159,158 @@ export default function LobbyScreen() {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {Array(10).fill(null).map((_, idx) => {
-                    const rank = rankings[idx];
-                    const isTop3 = idx < 3;
-                    // 1,2,3등은 메달 이모티콘, 나머지는 숫자
-                    const rankDisplay = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
-
-                    return (
-                      <div
-                        key={idx}
-                        className={`flex items-center justify-between p-3 rounded-lg transition-all group ${rank ? 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' : 'opacity-20 pointer-events-none'
-                          }`}
+                  {/* Show User Profile if selected, otherwise show ranking list */}
+                  {selectedRankingUser ? (
+                    <div className="flex flex-col gap-4">
+                      {/* Back Button */}
+                      <button
+                        onClick={() => setSelectedRankingUser(null)}
+                        className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-wider"
                       >
-                        <div className="flex items-center gap-4">
-                          {/* 1. 순위 */}
-                          <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
-                            }`}>
-                            {rankDisplay}
-                          </div>
+                        <ArrowLeft size={16} /> Back to Ranking
+                      </button>
 
-                          {/* 2. 이름 */}
-                          <div className={`font-bold text-sm truncate max-w-[120px] ${rank ? 'text-white' : 'text-zinc-700'}`}>
-                            {rank ? rank.nickname : '-'}
+                      {/* Main Character Display (Read-Only) */}
+                      {(() => {
+                        const userMainChar = characters.find(c => c.id === selectedRankingUser?.main_character_id) || characters[0];
+                        const imgSrc = userMainChar?.image
+                          || userMainChar?.sprite_url
+                          || userMainChar?.thumbnail_url
+                          || '/images/otacu.webp';
+
+                        return (
+                          <div className="h-[200px] flex items-center justify-center relative shrink-0 bg-black/40 rounded-xl border border-zinc-800 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl"></div>
+                            
+                            {/* Character Emoji/Image */}
+                            <div className="relative z-0 h-[180px] flex items-center justify-center">
+                              <img
+                                src={imgSrc}
+                                alt={userMainChar?.name || 'Character'}
+                                className="h-full object-contain filter drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            </div>
+
+                            <div className="absolute bottom-2 z-20 bg-black/80 backdrop-blur px-4 py-1 border-l-2 border-pink-500 w-full text-center">
+                              <p className="text-[10px] font-black text-pink-500 uppercase tracking-widest">MAIN CHARACTER</p>
+                              <p className="text-xs font-black text-white italic truncate">{userMainChar?.name || 'Unknown'}</p>
+                            </div>
                           </div>
+                        );
+                      })()}
+
+                      {/* User Profile Header */}
+                      <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20"></div>
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
+                          {(selectedRankingUser?.avatar_url && (selectedRankingUser.avatar_url.startsWith('/') || selectedRankingUser.avatar_url.startsWith('http'))) ? (
+                            <img src={selectedRankingUser.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            selectedRankingUser?.avatar_url || '🌟'
+                          )}
+                        </div>
+                        <div className="z-10">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl font-black italic text-white">{selectedRankingUser?.nickname || 'Unknown'}</span>
+                          </div>
+                          <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">PLAYER PROFILE</p>
+                        </div>
+                      </div>
+
+                      {/* User Stats Grid */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Rating Box */}
+                        <div className="col-span-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rating (MMR)</span>
+                          <span className="text-2xl font-black text-yellow-400 tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]">
+                            {selectedRankingUser?.elo_rating || 1200}
+                          </span>
                         </div>
 
-                        {/* 3. Rating */}
-                        {rank && <div className="font-mono font-black text-yellow-400 text-sm tracking-wider">
-                          {rank.elo_rating} <span className="text-[10px] text-zinc-500 font-bold">MMR</span>
-                        </div>}
+                        {/* Stats Calculation */}
+                        {(() => {
+                          const wins = selectedRankingUser?.wins || 0;
+                          const losses = selectedRankingUser?.losses || 0;
+                          const totalGames = wins + losses;
+                          const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : '0.0';
+
+                          return (
+                            <>
+                              {/* Win Rate */}
+                              <div className="col-span-2 flex gap-2">
+                                <div className="flex-1 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 flex flex-col items-center justify-center gap-1">
+                                  <span className="text-[9px] font-bold text-zinc-500 uppercase">Win Rate</span>
+                                  <span className={`text-lg font-black ${Number(winRate) >= 50 ? 'text-red-400' : 'text-zinc-400'}`}>
+                                    {winRate}%
+                                  </span>
+                                </div>
+                                <div className="flex-1 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 flex flex-col items-center justify-center gap-1">
+                                  <span className="text-[9px] font-bold text-zinc-500 uppercase">Total Matches</span>
+                                  <span className="text-lg font-black text-white">{totalGames}</span>
+                                </div>
+                              </div>
+
+                              {/* Wins / Losses */}
+                              <div className="bg-zinc-900/40 p-2 rounded-lg border border-zinc-800 flex flex-col items-center">
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase">Wins</span>
+                                <span className="text-base font-black text-cyan-400">{wins}</span>
+                              </div>
+                              <div className="bg-zinc-900/40 p-2 rounded-lg border border-zinc-800 flex flex-col items-center">
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase">Losses</span>
+                                <span className="text-base font-black text-pink-500">{losses}</span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
-                    );
-                  })}
+                    </div>
+                  ) : (
+                    /* Ranking List */
+                    Array(10).fill(null).map((_, idx) => {
+                      const rank = rankings[idx];
+                      const isTop3 = idx < 3;
+                      const isMe = rank && user && rank.user_id === user.id;
+                      
+                      // 1,2,3등은 메달 이모티콘, 나머지는 숫자
+                      const rankDisplay = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => rank && setSelectedRankingUser(rank)}
+                          className={`flex items-center justify-between p-3 rounded-lg transition-all group ${
+                            rank 
+                              ? isMe 
+                                ? 'bg-pink-900/30 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.15)] cursor-pointer hover:bg-pink-900/50' 
+                                : 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' 
+                              : 'opacity-20 pointer-events-none'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            {/* 1. 순위 */}
+                            <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${
+                              isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
+                            } ${isMe ? 'text-pink-400' : ''}`}>
+                              {rankDisplay}
+                            </div>
+
+                            {/* 2. 이름 */}
+                            <div className={`font-bold text-sm truncate max-w-[120px] ${
+                              rank ? (isMe ? 'text-pink-100' : 'text-white') : 'text-zinc-700'
+                            }`}>
+                              {rank ? (isMe ? `${rank.nickname} (ME)` : rank.nickname) : '-'}
+                            </div>
+                          </div>
+
+                          {/* 3. Rating */}
+                          {rank && <div className={`font-mono font-black text-sm tracking-wider ${isMe ? 'text-pink-400 drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]' : 'text-yellow-400'}`}>
+                            {rank.elo_rating} <span className={`text-[10px] font-bold ${isMe ? 'text-pink-500/70' : 'text-zinc-500'}`}>MMR</span>
+                          </div>}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>
