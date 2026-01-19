@@ -75,32 +75,7 @@ export default function ResultScreen() {
         </div>
       </div>
 
-      {/* Detailed Stats */}
-      <div className="glass rounded-2xl p-6 w-full max-w-md mb-8">
-        <h3 className="font-bold text-lg mb-4 text-center">📊 대결 통계</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <StatItem
-            icon={<Volume2 className="w-5 h-5 text-magical-pink-400" />}
-            label="최대 성량"
-            value={`${stats.peakDb.toFixed(1)} dB`}
-          />
-          <StatItem
-            icon={<Target className="w-5 h-5 text-magical-purple-400" />}
-            label="평균 정확도"
-            value={`${(stats.avgAccuracy * 100).toFixed(0)}%`}
-          />
-          <StatItem
-            icon={<span className="text-cringe-red">💥</span>}
-            label="총 데미지"
-            value={stats.totalDamage}
-          />
-          <StatItem
-            icon={<span className="text-star-gold">⭐</span>}
-            label="주문 횟수"
-            value={`${stats.spellsUsed}회`}
-          />
-        </div>
-      </div>
+
 
       {/* Final HP Display */}
       <div className="flex gap-8 mb-8 w-full max-w-md">
@@ -128,7 +103,7 @@ export default function ResultScreen() {
       <div className="flex justify-center w-full max-w-md">
         <button
           onClick={handleLobby}
-          className="px-12 py-4 bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 rounded-xl font-bold hover:scale-105 transition flex items-center justify-center gap-2"
+          className="w-full py-4 bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 rounded-xl font-bold hover:scale-105 transition flex items-center justify-center gap-2"
         >
           <Home className="w-5 h-5" />
           로비로
