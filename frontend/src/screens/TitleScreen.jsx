@@ -90,7 +90,7 @@ export default function TitleScreen() {
   // 로그인 버튼 핸들러
   const handleTransform = () => {
     setIsLoading(true)
-    
+
     if (DEMO_MODE) {
       handleTransformDemo()
     } else {

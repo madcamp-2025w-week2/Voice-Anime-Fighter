@@ -502,9 +502,10 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         # Rejoin global chat
         await sio.enter_room(sid, "lobby")
     
-    @sio.event
+    @sio.on("room:ready")
     async def room_ready(sid, data):
         """Toggle ready state."""
+        logger.info(f"[{sid}] room:ready received - {data}")
         room_id = data.get("room_id")
         is_ready = data.get("is_ready", False)
         
@@ -513,7 +514,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         
         user_info = connected_users.get(sid, {})
         
-        await sio.emit("room:player_ready", {
+        await sio.emit("room:ready_status", {
             "user_id": user_info.get("user_id", sid),
             "is_ready": is_ready
         }, room=room_id)
