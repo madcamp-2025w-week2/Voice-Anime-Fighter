@@ -13,7 +13,7 @@ export default function MultiCharacterSelect() {
   const roomId = location.state?.room_id
   const isHostFromState = location.state?.is_host ?? false
   const { user } = useUserStore()
-  const { selectCharacter, setOpponentCharacter, setIsHost } = useGameStore()
+  const { selectCharacter, setOpponentCharacter, setIsHost, opponentNickname } = useGameStore()
   const { on, off, emit, joinRoom } = useSocket()
 
   // 캐릭터 데이터 (API에서 로드)
@@ -231,8 +231,8 @@ export default function MultiCharacterSelect() {
                   onClick={() => handleSelect(char)}
                   disabled={myConfirmed}
                   className={`relative w-24 h-28 rounded-xl overflow-hidden border-2 transition-all duration-200 group ${mySelected?.id === char.id
-                      ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-105'
-                      : 'border-gray-700 hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                    ? 'border-purple-400 ring-2 ring-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] scale-105'
+                    : 'border-gray-700 hover:border-purple-500/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
                     } ${myConfirmed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {char.image ? (
@@ -260,10 +260,10 @@ export default function MultiCharacterSelect() {
             onClick={handleConfirm}
             disabled={!mySelected || myConfirmed}
             className={`mt-6 px-12 py-4 rounded-xl font-black text-xl uppercase tracking-wider transition-all ${myConfirmed
-                ? 'bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.5)]'
-                : mySelected
-                  ? 'bg-gradient-to-r from-purple-600 to-red-600 text-white hover:scale-105 shadow-[0_4px_0_rgba(88,28,135,1)] active:translate-y-[4px] active:shadow-none'
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+              ? 'bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.5)]'
+              : mySelected
+                ? 'bg-gradient-to-r from-purple-600 to-red-600 text-white hover:scale-105 shadow-[0_4px_0_rgba(88,28,135,1)] active:translate-y-[4px] active:shadow-none'
+                : 'bg-gray-800 text-gray-500 cursor-not-allowed'
               }`}
           >
             {myConfirmed ? '✓ 선택 완료!' : mySelected ? '선택 확정' : '캐릭터를 선택하세요'}
@@ -272,7 +272,7 @@ export default function MultiCharacterSelect() {
 
         {/* 우측 - Player 2 (상대의 선택) */}
         <div className="w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-red-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-          <div className="text-red-400 font-black text-lg mb-3 uppercase tracking-wider">Opponent</div>
+          <div className="text-red-400 font-black text-lg mb-3 uppercase tracking-wider">{opponentNickname || 'Opponent'}</div>
 
           <div className="relative h-48 w-36 mb-3">
             {opponentSelected ? (

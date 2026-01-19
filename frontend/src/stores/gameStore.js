@@ -10,6 +10,9 @@ export const useGameStore = create((set) => ({
   // Opponent's selected character
   opponentCharacter: null,
 
+  // Opponent's nickname
+  opponentNickname: null,
+
   // Am I the host (room creator)?
   isHost: false,
 
@@ -28,6 +31,8 @@ export const useGameStore = create((set) => ({
   selectCharacter: (character) => set({ selectedCharacter: character }),
 
   setOpponentCharacter: (character) => set({ opponentCharacter: character }),
+
+  setOpponentNickname: (nickname) => set({ opponentNickname: nickname }),
 
   setIsHost: (isHost) => set({ isHost }),
 

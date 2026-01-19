@@ -15,7 +15,7 @@ export default function BattleScreen() {
   const roomId = location.state?.room_id
 
   const battle = useBattleStore()
-  const { selectedCharacter, opponentCharacter, isHost } = useGameStore()
+  const { selectedCharacter, opponentCharacter, opponentNickname, isHost } = useGameStore()
   const { sendAttack, on, off, joinRoom, emit } = useSocket()
   const {
     isRecording,
@@ -38,13 +38,17 @@ export default function BattleScreen() {
   const [countdown, setCountdown] = useState(3)
   const [showCritical, setShowCritical] = useState(false)
 
+  const user = useUserStore((s) => s.user)
+  const myNickname = user?.nickname || 'Me'
+  const opponentDisplayName = opponentNickname || 'Opponent'
+
   const myCharImage = selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/otacu.webp'
   const opponentCharImage = opponentCharacter?.image || opponentCharacter?.sprite_url || '/images/satoru.webp'
 
   const leftCharImage = isHost ? myCharImage : opponentCharImage
   const rightCharImage = isHost ? opponentCharImage : myCharImage
-  const leftLabel = isHost ? 'Me' : 'Opponent'
-  const rightLabel = isHost ? 'Opponent' : 'Me'
+  const leftLabel = isHost ? myNickname : opponentDisplayName
+  const rightLabel = isHost ? opponentDisplayName : myNickname
   const leftHP = isHost ? battle.player : battle.opponent
   const rightHP = isHost ? battle.opponent : battle.player
 

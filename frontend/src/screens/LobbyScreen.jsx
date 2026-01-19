@@ -15,7 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 export default function LobbyScreen() {
   const navigate = useNavigate();
   const { user, token, disconnectSocket, updateUser } = useUserStore();
-  const { characters, setCharacters, selectedCharacter, selectCharacter } = useGameStore();
+  const { characters, setCharacters, selectedCharacter, selectCharacter, setOpponentNickname } = useGameStore();
   const { socket, emit, joinRoom, leaveRoom: socketLeaveRoom, sendMessage, startGame, isConnected } = useSocket();
 
   const [onlineCount, setOnlineCount] = useState(1);
@@ -337,6 +337,8 @@ export default function LobbyScreen() {
             nickname: data.nickname || 'Opponent',
             elo_rating: data.elo_rating || 1200
           });
+          // Also set in gameStore for BattleScreen
+          setOpponentNickname(data.nickname || 'Opponent');
           setChatMessages(prev => [...prev, {
             id: Date.now(),
             user: 'System',
@@ -377,12 +379,19 @@ export default function LobbyScreen() {
       console.log('socket: [room:host_changed]', data);
       if (data.new_host_id === user?.id) {
         setIsHost(true);
+        // Reset ready states when becoming host
+        setIsReady(false);
+        setOpponentReady(false);
+        // Previous host left, so no opponent now
+        setOpponent(null);
+        setOpponentNickname(null);
         setChatMessages(prev => [...prev, {
           id: Date.now(),
           user: 'System',
-          text: '방장이 되었습니다!',
+          text: '방장이 되었습니다! 상대를 기다려 주세요.',
           type: 'system'
         }]);
+        setSelectedRoom(prev => prev ? { ...prev, player_count: 1 } : null);
       }
 
       setSelectedRoom(prev => prev ? {
@@ -674,28 +683,25 @@ export default function LobbyScreen() {
     if (!selectedRoom) return;
 
     try {
-      // Logic: If I am the only one (or last one), DELETE room. Else, just LEAVE.
       const isLastMember = selectedRoom.player_count <= 1;
 
-      const method = isLastMember ? 'DELETE' : 'POST';
-      const endpoint = isLastMember
-        ? `${API_URL}/rooms/${selectedRoom.room_id}`
-        : `${API_URL}/rooms/${selectedRoom.room_id}/leave`;
+      if (isLastMember) {
+        // Only me in room - DELETE the room via API
+        const res = await fetch(`${API_URL}/rooms/${selectedRoom.room_id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-      const res = await fetch(endpoint, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        await handleApiError(res);
-      } else {
-        // Notify via socket
-        socketLeaveRoom(selectedRoom.room_id);
+        if (!res.ok) {
+          await handleApiError(res);
+        }
       }
+
+      // Always emit socket leave event (backend handles room_service.leave_room and host transfer)
+      socketLeaveRoom(selectedRoom.room_id);
     } catch (err) {
       handleApiError(err);
     }
