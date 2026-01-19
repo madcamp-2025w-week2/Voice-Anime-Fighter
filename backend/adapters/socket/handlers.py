@@ -294,6 +294,18 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             first_player_index = random.randint(0, 1)
             first_player_id = player_ids[first_player_index]
             
+            # Create Redis battle session for Fast Matching (Ranked)
+            try:
+                await battle_state_manager.create_battle(
+                    battle_id=battle_id,
+                    player1_id=str(player_ids[0]),
+                    player2_id=str(player_ids[1]),
+                    is_ranked=True  # Fast Matching is Ranked
+                )
+                logger.info(f"[Matchmaking] Redis battle session created: {battle_id} (Ranked)")
+            except Exception as e:
+                logger.warning(f"[Matchmaking] Redis battle creation failed: {e}")
+
             battle_ready_data[battle_id] = {
                 "battle_id": battle_id,
                 "players": players,
@@ -653,8 +665,15 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     else:
                         loser_id = battle_state.player1_id
                     
-                    # Update ELO in database
-                    winner_change, loser_change = await update_player_elo(str(winner_id), str(loser_id))
+                    # Update ELO in database ONLY if it's a Ranked Match
+                    winner_change = 0
+                    loser_change = 0
+                    
+                    if battle_state.is_ranked:
+                        winner_change, loser_change = await update_player_elo(str(winner_id), str(loser_id))
+                        logger.info(f"[{sid}] Ranked Match Finished: ELO updated (+{winner_change} / {loser_change})")
+                    else:
+                        logger.info(f"[{sid}] Friendly Match Finished: No ELO update")
                     
                     # 1. FIRST: Emit damage_received so audio plays
                     logger.info(f"[{sid}] Emitting battle:damage_received to room '{room_id}' with data: {emit_data}")
@@ -767,7 +786,8 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                 await battle_state_manager.create_battle(
                     battle_id=str(battle_id),
                     player1_id=str(player_ids[0]),
-                    player2_id=str(player_ids[1])
+                    player2_id=str(player_ids[1]),
+                    is_ranked=False  # Custom Room is Unranked (Friendly)
                 )
                 logger.info(f"[{sid}] Redis battle session created: {battle_id}")
             except Exception as e:

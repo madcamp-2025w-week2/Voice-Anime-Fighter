@@ -21,6 +21,7 @@ class BattleState:
     current_turn: int = 1  # 1 = player1, 2 = player2
     round_number: int = 1
     status: str = "waiting"  # waiting, character_select, battle, finished
+    is_ranked: bool = False  # ELO 반영 여부
     
 
 class BattleStateManager:
@@ -36,7 +37,7 @@ class BattleStateManager:
             self.redis_client = redis.from_url(settings.redis_url)
         return self.redis_client
     
-    async def create_battle(self, battle_id: str, player1_id: str, player2_id: str) -> BattleState:
+    async def create_battle(self, battle_id: str, player1_id: str, player2_id: str, is_ranked: bool = False) -> BattleState:
         """새 배틀 세션 생성"""
         await self.connect()
         
@@ -44,7 +45,8 @@ class BattleStateManager:
             battle_id=battle_id,
             player1_id=player1_id,
             player2_id=player2_id,
-            status="character_select"
+            status="character_select",
+            is_ranked=is_ranked
         )
         
         await self.redis_client.set(
