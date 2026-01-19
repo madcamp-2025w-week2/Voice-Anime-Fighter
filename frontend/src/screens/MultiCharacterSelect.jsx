@@ -64,7 +64,6 @@ export default function MultiCharacterSelect() {
   const [opponentSelected, setOpponentSelected] = useState(null)
   const [myConfirmed, setMyConfirmed] = useState(false)
   const [opponentConfirmed, setOpponentConfirmed] = useState(false)
-  const [countdown, setCountdown] = useState(null)
 
   // Socket events
   useEffect(() => {
@@ -84,9 +83,6 @@ export default function MultiCharacterSelect() {
       }
     })
 
-    on('battle:countdown', (data) => {
-      setCountdown(data.count)
-    })
 
     on('battle:start', () => {
       navigate('/battle', { state: { room_id: roomId } })
@@ -95,30 +91,18 @@ export default function MultiCharacterSelect() {
     return () => {
       off('character:selected')
       off('character:confirmed')
-      off('battle:countdown')
       off('battle:start')
     }
   }, [on, off, user?.id, navigate, roomId, characters])
 
-  // 둘 다 확정하면 카운트다운 시작
+  // 둘 다 확정하면 바로 배틀로 이동
   useEffect(() => {
     if (myConfirmed && opponentConfirmed) {
-      let count = 3
-      setCountdown(count)
-      const interval = setInterval(() => {
-        count--
-        if (count >= 0) {
-          setCountdown(count)
-        } else {
-          clearInterval(interval)
-          // Save selections to global store before navigating
-          selectCharacter(mySelected)
-          setOpponentCharacter(opponentSelected)
-          setIsHost(isHostFromState)
-          navigate('/battle', { state: { room_id: roomId } })
-        }
-      }, 1000)
-      return () => clearInterval(interval)
+      // Save selections to global store before navigating
+      selectCharacter(mySelected)
+      setOpponentCharacter(opponentSelected)
+      setIsHost(isHostFromState)
+      navigate('/battle', { state: { room_id: roomId } })
     }
   }, [myConfirmed, opponentConfirmed, mySelected, opponentSelected, isHostFromState, navigate, selectCharacter, setOpponentCharacter, setIsHost, roomId])
 
@@ -151,21 +135,6 @@ export default function MultiCharacterSelect() {
       <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-black to-red-900/20" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(88,28,135,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(88,28,135,0.2)_1px,transparent_1px)] bg-[size:30px_30px] opacity-30" />
 
-      {/* 카운트다운 오버레이 */}
-      {countdown !== null && countdown > 0 && (
-        <div className="absolute inset-0 bg-black/90 z-50 flex items-center justify-center">
-          <div className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-500 animate-pulse">
-            {countdown}
-          </div>
-        </div>
-      )}
-      {countdown === 0 && (
-        <div className="absolute inset-0 bg-black/90 z-50 flex items-center justify-center">
-          <div className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 animate-bounce">
-            FIGHT!
-          </div>
-        </div>
-      )}
 
       {/* 상단 */}
       <div className="relative z-10 p-4 flex items-center justify-between border-b border-purple-500/30 bg-black/60 backdrop-blur-sm">

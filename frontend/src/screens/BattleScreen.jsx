@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Mic, MicOff, Sparkles, Zap } from 'lucide-react'
 import { useBattleStore } from '../stores/battleStore'
@@ -32,11 +32,17 @@ export default function BattleScreen() {
 
   const matchedBattleId = location.state?.battle_id
   const [showDamage, setShowDamage] = useState(null)
-  const [timer, setTimer] = useState(30)
   const [isAttacking, setIsAttacking] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
-  const [countdown, setCountdown] = useState(3)
+  const [showGameStart, setShowGameStart] = useState(true) // 게임 시작 애니메이션
+  const [turnCountdown, setTurnCountdown] = useState(-1) // 턴 시작 시 카운트다운 (-1: 비활성)
   const [showCritical, setShowCritical] = useState(false)
+
+  // 음성 입력 관련 상태
+  const [isVoiceInputPhase, setIsVoiceInputPhase] = useState(false)
+  const [voiceInputProgress, setVoiceInputProgress] = useState(5) // 5초에서 시작
+  const voiceInputIntervalRef = useRef(null)
+  const previousIsMyTurn = useRef(null)
 
   const user = useUserStore((s) => s.user)
   const myNickname = user?.nickname || 'Me'
@@ -58,17 +64,111 @@ export default function BattleScreen() {
     return () => cleanupAudio()
   }, [cleanupAudio])
 
+  // 게임 시작 애니메이션 (최초 1회)
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (countdown === 0) {
-      setTimeout(() => {
+    if (showGameStart) {
+      const timer = setTimeout(() => {
+        setShowGameStart(false)
         setGameStarted(true)
-        setCountdown(-1)
-      }, 1000)
+      }, 2500)
+      return () => clearTimeout(timer)
     }
-  }, [countdown])
+  }, [showGameStart])
+
+  // 턴 시작 카운트다운 처리
+  useEffect(() => {
+    if (turnCountdown > 0) {
+      const timer = setTimeout(() => setTurnCountdown(turnCountdown - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (turnCountdown === 0) {
+      // 카운트다운 완료 후 음성 입력 시작
+      setTimeout(async () => {
+        setTurnCountdown(-1)
+        setIsVoiceInputPhase(true)
+        setVoiceInputProgress(5)
+
+        // 자동으로 녹음 시작
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          startVisualizer(stream)
+          startRecording()
+        } catch (err) {
+          console.error('Failed to start recording:', err)
+          setIsVoiceInputPhase(false)
+        }
+      }, 500)
+    }
+  }, [turnCountdown, startRecording, startVisualizer])
+
+  // 음성 입력 5초 타이머 처리
+  useEffect(() => {
+    if (isVoiceInputPhase && isRecording) {
+      voiceInputIntervalRef.current = setInterval(() => {
+        setVoiceInputProgress((prev) => {
+          const newValue = prev - 0.1
+          if (newValue <= 0) {
+            // 5초 끝남 - 녹음 종료 및 공격 처리
+            clearInterval(voiceInputIntervalRef.current)
+            return 0
+          }
+          return newValue
+        })
+      }, 100)
+
+      return () => {
+        if (voiceInputIntervalRef.current) {
+          clearInterval(voiceInputIntervalRef.current)
+        }
+      }
+    }
+  }, [isVoiceInputPhase, isRecording])
+
+  // 음성 입력 시간이 0이 되면 자동으로 녹음 종료
+  useEffect(() => {
+    if (voiceInputProgress <= 0 && isRecording && isVoiceInputPhase) {
+      handleAutoRecordEnd()
+    }
+  }, [voiceInputProgress, isRecording, isVoiceInputPhase])
+
+  // 자동 녹음 종료 및 공격 처리
+  const handleAutoRecordEnd = useCallback(async () => {
+    if (!isRecording) return
+
+    stopRecording()
+    stopVisualizer()
+    setIsVoiceInputPhase(false)
+    setIsAttacking(true)
+
+    setTimeout(async () => {
+      const battleId = roomId || battle.battleId || 'demo'
+      const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id)
+      if (analysisResult && analysisResult.success) {
+        sendAttack(battleId, { ...analysisResult.damage, audio_url: analysisResult.audio_url })
+        battle.setTurn(false)
+      } else {
+        setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
+        battle.setTurn(false)
+      }
+      setIsAttacking(false)
+      reset()
+    }, 500)
+  }, [isRecording, stopRecording, stopVisualizer, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, reset, roomId])
+
+  // 턴 변경 감지 - 내 턴이 되면 카운트다운 시작
+  useEffect(() => {
+    if (gameStarted && battle.isActive && !isAnalyzing && !isAttacking) {
+      // 이전에 내 턴이 아니었다가 내 턴이 되었을 때만 카운트다운 시작
+      if (previousIsMyTurn.current === false && battle.isMyTurn === true) {
+        setTurnCountdown(3)
+      }
+      // 첫 번째 턴 (게임 시작 직후)
+      if (previousIsMyTurn.current === null && battle.isMyTurn === true) {
+        // 게임 시작 카운트다운이 끝난 후 바로 시작
+        setTurnCountdown(3)
+      }
+      previousIsMyTurn.current = battle.isMyTurn
+    }
+  }, [gameStarted, battle.isActive, battle.isMyTurn, isAnalyzing, isAttacking])
 
   useEffect(() => {
     if (roomId) {
@@ -90,20 +190,6 @@ export default function BattleScreen() {
       })
     }
   }, [gameStarted, battle, roomId, selectedCharacter, opponentCharacter, isHost])
-
-  useEffect(() => {
-    if (!gameStarted || !battle.isActive) return
-    const interval = setInterval(() => {
-      setTimer((t) => {
-        if (t <= 1) {
-          if (isRecording) stopRecording()
-          return 30
-        }
-        return t - 1
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [gameStarted, battle.isActive, isRecording, stopRecording])
 
   useEffect(() => {
     on('battle:init', (data) => {
@@ -174,37 +260,6 @@ export default function BattleScreen() {
     }
   }, [on, off, battle, navigate, playOtakuSound, playCriticalHitSound, selectedCharacter, opponentCharacter])
 
-  const handleRecordToggle = useCallback(async () => {
-    if (!gameStarted) return
-    if (isRecording) {
-      stopRecording()
-      stopVisualizer()
-      setIsAttacking(true)
-      setTimeout(async () => {
-        const battleId = roomId || battle.battleId || 'demo'
-        const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id)
-        if (analysisResult && analysisResult.success) {
-          // Just send attack to server - both attacker and defender will receive battle:damage_received
-          // and process at the same time (synchronized)
-          sendAttack(battleId, { ...analysisResult.damage, audio_url: analysisResult.audio_url })
-
-          // End my turn immediately after sending
-          battle.setTurn(false)
-        } else {
-          setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
-          battle.setTurn(false)
-        }
-        setIsAttacking(false)
-        reset()
-        setTimer(30)
-      }, 500)
-    } else {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      startVisualizer(stream)
-      startRecording()
-    }
-  }, [gameStarted, isRecording, startRecording, stopRecording, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, startVisualizer, stopVisualizer, reset, playCriticalHitSound, roomId])
-
   useEffect(() => {
     if (battle.player.hp <= 0 || battle.opponent.hp <= 0) {
       setTimeout(() => navigate('/result'), 2000)
@@ -230,15 +285,51 @@ export default function BattleScreen() {
         <div className="absolute inset-0 bg-yellow-500/30 z-40 animate-pulse" />
       )}
 
-      {countdown >= 0 && (
+      {/* 게임 시작 애니메이션 */}
+      {showGameStart && (
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-pink-800/90 to-orange-700/90 z-50 flex items-center justify-center overflow-hidden">
+          {/* 배경 효과 */}
+          <div className="absolute inset-0">
+            <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-yellow-400 rounded-full blur-3xl opacity-50 animate-ping" />
+            <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-pink-500 rounded-full blur-3xl opacity-40 animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-cyan-400 rounded-full blur-2xl opacity-60 animate-bounce" />
+          </div>
+          {/* 메인 텍스트 */}
+          <div className="relative flex flex-col items-center">
+            <div
+              className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-cyan-300 animate-pulse"
+              style={{
+                textShadow: '0 0 40px rgba(255,200,100,0.8), 0 0 80px rgba(255,100,200,0.6)',
+                animation: 'pulse 0.5s ease-in-out infinite alternate'
+              }}
+            >
+              ✨ GAME START ✨
+            </div>
+            <div
+              className="mt-4 text-2xl md:text-3xl font-bold text-white/80 animate-bounce"
+              style={{ textShadow: '0 0 20px rgba(255,255,255,0.5)' }}
+            >
+              ♪ 오타쿠 배틀 개막! ♪
+            </div>
+            {/* 스파클 효과 */}
+            <div className="absolute -top-8 -left-8 text-4xl animate-spin" style={{ animationDuration: '2s' }}>⭐</div>
+            <div className="absolute -top-4 right-0 text-3xl animate-bounce">💫</div>
+            <div className="absolute -bottom-8 -right-8 text-4xl animate-ping">🌟</div>
+            <div className="absolute -bottom-4 left-0 text-3xl animate-pulse">✧</div>
+          </div>
+        </div>
+      )}
+
+      {/* 턴 시작 카운트다운 */}
+      {turnCountdown >= 0 && !showGameStart && (
         <div className="absolute inset-0 bg-black/70 z-50 flex items-center justify-center">
-          {countdown > 0 ? (
+          {turnCountdown > 0 ? (
             <div className="text-9xl font-bold text-white animate-pulse" style={{ textShadow: '0 0 30px rgba(255,255,255,0.5)' }}>
-              {countdown}
+              {turnCountdown}
             </div>
           ) : (
-            <div className="text-7xl font-bold text-yellow-400 animate-bounce" style={{ textShadow: '0 0 30px rgba(255,200,0,0.5)' }}>
-              FIGHT!
+            <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-cyan-400 to-green-300 animate-bounce" style={{ textShadow: '0 0 40px rgba(0,255,150,0.8)' }}>
+              YOUR TURN !!
             </div>
           )}
         </div>
@@ -259,11 +350,9 @@ export default function BattleScreen() {
             <div className="text-white font-bold mt-1 text-2xl">{leftHP.hp}</div>
           </div>
 
+          {/* 턴 표시 (타이머 제거) */}
           <div className="flex flex-col items-center px-4">
-            <div className="w-16 h-16 rounded-full bg-cyan-400 flex items-center justify-center border-4 border-white shadow-lg">
-              <span className="font-bold text-3xl text-white">{timer}</span>
-            </div>
-            <div className={`mt-2 px-3 py-1 rounded-full text-xs font-bold ${battle.isMyTurn ? 'bg-green-500 text-white' : 'bg-gray-600 text-gray-300'}`}>
+            <div className={`px-4 py-2 rounded-full text-sm font-bold ${battle.isMyTurn ? 'bg-green-500 text-white' : 'bg-gray-600 text-gray-300'}`}>
               {battle.isMyTurn ? 'YOUR TURN' : 'WAIT'}
             </div>
           </div>
@@ -333,6 +422,18 @@ export default function BattleScreen() {
           )}
         </div>
 
+        {/* 음성 입력 진행 바 (5초) */}
+        {isVoiceInputPhase && (
+          <div className="mb-4">
+            <div className="h-3 bg-gray-700/80 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white transition-all duration-100 ease-linear"
+                style={{ width: `${(voiceInputProgress / 5) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {isRecording && (
           <div className="h-12 bg-black/50 rounded-xl flex items-center justify-center px-4 mb-4">
             <div className="voice-wave h-full flex items-center gap-1">
@@ -343,20 +444,33 @@ export default function BattleScreen() {
           </div>
         )}
 
-        <button
-          onClick={handleRecordToggle}
-          disabled={isAnalyzing || !gameStarted || !battle.isMyTurn}
-          className={`w-full py-5 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-3 ${!gameStarted || !battle.isMyTurn ? 'bg-gray-700 text-gray-400' : isRecording ? 'bg-red-500 animate-pulse text-white' : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:scale-105'
-            } disabled:opacity-50`}
+        {/* 상태 표시 (버튼 제거, 상태 표시만) */}
+        <div
+          className={`w-full py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-3 ${!gameStarted || turnCountdown >= 0
+            ? 'bg-gray-700 text-gray-400'
+            : !battle.isMyTurn
+              ? 'bg-gray-700 text-gray-400'
+              : isRecording
+                ? 'bg-red-500 animate-pulse text-white'
+                : isAnalyzing
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-400'
+            }`}
         >
-          {!gameStarted ? '게임 시작 대기 중...' : !battle.isMyTurn ? '상대 턴입니다...' : isAnalyzing ? (
+          {!gameStarted ? (
+            '게임 시작 대기 중...'
+          ) : turnCountdown >= 0 ? (
+            '준비...'
+          ) : !battle.isMyTurn ? (
+            '상대 턴입니다...'
+          ) : isAnalyzing ? (
             <><Sparkles className="w-7 h-7 animate-spin" /> 분석 중...</>
           ) : isRecording ? (
-            <><MicOff className="w-7 h-7" /> 터치하여 공격!</>
+            <><Mic className="w-7 h-7 animate-pulse" /> 녹음 중...</>
           ) : (
-            <><Mic className="w-7 h-7" /> 주문 외치기</>
+            '대기 중...'
           )}
-        </button>
+        </div>
       </div>
     </div>
   )
