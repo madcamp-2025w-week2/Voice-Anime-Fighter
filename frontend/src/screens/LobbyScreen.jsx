@@ -1024,7 +1024,7 @@ export default function LobbyScreen() {
                   </div>
                   <div className="min-w-0">
                     <div className={`font-black italic text-lg truncate ${opponent ? 'text-white' : 'text-zinc-500'}`}>{opponent ? opponent.nickname : 'Waiting...'}</div>
-                    <div className="text-xs text-pink-400 font-bold">{opponent ? `ELO ${opponent.elo_rating}` : 'WAITING'}</div>
+                    <div className="text-xs text-pink-400 font-bold">{opponent ? `MMR ${opponent.elo_rating}` : 'WAITING'}</div>
                   </div>
                 </div>
               </div>
@@ -1222,7 +1222,7 @@ export default function LobbyScreen() {
                   <div className="grid grid-cols-2 gap-2">
                     {/* Rating Box */}
                     <div className="col-span-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rating (MMR)</span>
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">MMR</span>
                       <span className="text-2xl font-black text-yellow-400 tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]">
                         {user?.elo_rating || 1200}
                       </span>
@@ -1330,7 +1330,7 @@ export default function LobbyScreen() {
                       <div className="grid grid-cols-2 gap-2">
                         {/* Rating Box */}
                         <div className="col-span-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800 flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Rating (MMR)</span>
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">MMR</span>
                           <span className="text-2xl font-black text-yellow-400 tracking-tighter drop-shadow-[0_0_10px_rgba(250,204,21,0.3)]">
                             {selectedRankingUser?.elo_rating || 1200}
                           </span>

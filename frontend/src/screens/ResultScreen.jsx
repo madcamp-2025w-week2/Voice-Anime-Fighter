@@ -86,7 +86,7 @@ export default function ResultScreen() {
             /* Ranked Match - Show ELO Change */
             <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col justify-center items-center gap-4 group hover:border-white/20 transition-colors shadow-2xl">
               <span className="text-sm font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
-                <Trophy size={16} /> Rating Update
+                <Trophy size={16} /> MMR Update
               </span>
               
               <div className="flex flex-col items-center overflow-visible">
