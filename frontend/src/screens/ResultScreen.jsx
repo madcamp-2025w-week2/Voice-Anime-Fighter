@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trophy, RefreshCw, Home, TrendingUp, TrendingDown, Volume2, Target } from 'lucide-react'
+import { Trophy, Home, TrendingUp, TrendingDown, Volume2, Target } from 'lucide-react'
 import { useBattleStore } from '../stores/battleStore'
 import { useUserStore } from '../stores/userStore'
 import { useGameStore } from '../stores/gameStore'
@@ -28,10 +28,6 @@ export default function ResultScreen() {
     spellsUsed: 5,
   }
 
-  const handleRematch = () => {
-    battle.reset()
-    navigate('/matchmaking')
-  }
 
   const handleLobby = () => {
     battle.reset()
@@ -128,18 +124,11 @@ export default function ResultScreen() {
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4 w-full max-w-md">
-        <button
-          onClick={handleRematch}
-          className="flex-1 py-4 bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 rounded-xl font-bold hover:scale-105 transition flex items-center justify-center gap-2"
-        >
-          <RefreshCw className="w-5 h-5" />
-          다시 하기
-        </button>
+      {/* Action Button */}
+      <div className="flex justify-center w-full max-w-md">
         <button
           onClick={handleLobby}
-          className="flex-1 py-4 glass rounded-xl font-bold hover:bg-white/20 transition flex items-center justify-center gap-2"
+          className="px-12 py-4 bg-gradient-to-r from-magical-pink-500 to-magical-purple-500 rounded-xl font-bold hover:scale-105 transition flex items-center justify-center gap-2"
         >
           <Home className="w-5 h-5" />
           로비로
