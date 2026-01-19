@@ -138,7 +138,9 @@ export function useOtakuAudio() {
    */
   const cleanup = useCallback(() => {
     if (audioContextRef.current) {
-      audioContextRef.current.close()
+      if (audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(err => console.log('AudioContext close ignored:', err))
+      }
       audioContextRef.current = null
     }
   }, [])
