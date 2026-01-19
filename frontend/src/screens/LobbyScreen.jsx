@@ -756,26 +756,103 @@ export default function LobbyScreen() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(88,28,135,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(88,28,135,0.3)_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-purple-900/30 pointer-events-none"></div>
 
-      {/* VS Overlay */}
+      {/* VS Overlay - Enhanced with Profile Info */}
       {matchState === 'FOUND' && (
         <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300">
-          {/* ... VS Content ... */}
-          <div className="flex items-center justify-center gap-8 mb-12 scale-150">
-            <div className="glass rounded-2xl p-6 w-48 text-center border border-cyan-500/30 bg-cyan-900/20">
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-500/30 flex items-center justify-center mb-4 border-2 border-cyan-500">
-                <span className="text-4xl">🌟</span>
+          {/* Title */}
+          <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 mb-8 drop-shadow-lg animate-pulse">
+            MATCH FOUND!
+          </h1>
+
+          {/* VS Cards */}
+          <div className="flex items-stretch justify-center gap-8 md:gap-16 mb-8">
+            
+            {/* Player Card (Me) */}
+            <div className="w-64 bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-3xl p-6 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
+              {/* Avatar + Character Badge */}
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl shadow-lg border-3 border-cyan-400/50 overflow-hidden">
+                  {(user?.avatar_url && (user.avatar_url.startsWith('/') || user.avatar_url.startsWith('http'))) ? (
+                    <img src={user.avatar_url} alt="Me" className="w-full h-full object-cover" />
+                  ) : (
+                    user?.avatar_url || '🌟'
+                  )}
+                </div>
+                {mainCharacter?.image && (
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-2 border-cyan-400 overflow-hidden bg-black shadow-lg">
+                    <img src={mainCharacter.image} alt="Character" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
-              <h3 className="font-black text-lg italic">{user?.nickname || 'ME'}</h3>
-            </div>
-            <div className="relative mx-8">
-              <div className="text-8xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 animate-pulse tracking-tighter drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">VS</div>
-              {countdown !== null && <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-5xl font-black text-white">{countdown}</div>}
-            </div>
-            <div className="glass rounded-2xl p-6 w-48 text-center border border-pink-500/30 bg-pink-900/20">
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center mb-4 border-2 border-pink-500">
-                <span className="text-4xl">😈</span>
+
+              {/* Nickname */}
+              <h3 className="font-black italic text-xl text-white">{user?.nickname || 'ME'}</h3>
+
+              {/* Stats */}
+              <div className="w-full grid grid-cols-2 gap-2">
+                <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                  <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">MMR</p>
+                  <p className="text-lg font-black text-yellow-400">{user?.elo_rating || 1200}</p>
+                </div>
+                <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                  <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Win Rate</p>
+                  <p className={`text-lg font-black ${((user?.wins || 0) / ((user?.wins || 0) + (user?.losses || 0) || 1) * 100) >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                    {(user?.wins && user?.losses !== undefined) ? (((user.wins) / ((user.wins) + (user.losses) || 1)) * 100).toFixed(0) : '0'}%
+                  </p>
+                </div>
               </div>
-              <h3 className="font-black text-lg italic">{opponent?.nickname || 'Unknown'}</h3>
+            </div>
+
+            {/* VS Logo & Countdown */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="text-8xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-red-500 drop-shadow-[0_0_30px_rgba(234,179,8,0.5)] animate-pulse tracking-tighter">
+                VS
+              </div>
+              {countdown !== null && (
+                <div className="mt-6 text-7xl font-black text-white animate-bounce drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]">
+                  {countdown}
+                </div>
+              )}
+            </div>
+
+            {/* Opponent Card */}
+            <div className="w-64 bg-black/60 backdrop-blur-xl border border-pink-500/30 rounded-3xl p-6 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(236,72,153,0.2)]">
+              {/* Avatar + Character Badge */}
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-4xl shadow-lg border-3 border-pink-400/50 overflow-hidden">
+                  {(opponent?.avatar_url && (opponent.avatar_url.startsWith('/') || opponent.avatar_url.startsWith('http'))) ? (
+                    <img src={opponent.avatar_url} alt="Opponent" className="w-full h-full object-cover" />
+                  ) : (
+                    opponent?.avatar_url || '😈'
+                  )}
+                </div>
+                {opponent?.main_character_id && (
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-2 border-pink-400 overflow-hidden bg-black shadow-lg">
+                    <img 
+                      src={characters?.find(c => c.id === opponent.main_character_id)?.image || '/images/otacu.webp'} 
+                      alt="Opponent Character" 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Nickname */}
+              <h3 className="font-black italic text-xl text-white">{opponent?.nickname || 'Unknown'}</h3>
+
+              {/* Stats */}
+              <div className="w-full grid grid-cols-2 gap-2">
+                <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                  <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">MMR</p>
+                  <p className="text-lg font-black text-yellow-400">{opponent?.elo_rating || '???'}</p>
+                </div>
+                <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                  <p className="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Win Rate</p>
+                  <p className={`text-lg font-black ${opponent?.wins !== undefined ? (((opponent.wins || 0) / ((opponent.wins || 0) + (opponent.losses || 0) || 1)) * 100 >= 50 ? 'text-green-400' : 'text-red-400') : 'text-zinc-500'}`}>
+                    {opponent?.wins !== undefined ? (((opponent.wins || 0) / ((opponent.wins || 0) + (opponent.losses || 0) || 1)) * 100).toFixed(0) : '?'}%
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

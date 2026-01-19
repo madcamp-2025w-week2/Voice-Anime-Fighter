@@ -275,6 +275,42 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             p1_info = connected_users.get(sid, {})
             p2_info = connected_users.get(opponent_sid, {})
             
+            # Fetch full user info from DB for both players
+            p1_db_info = {}
+            p2_db_info = {}
+            try:
+                from adapters.db.database import AsyncSessionLocal
+                from adapters.db.repository import UserRepository
+                from uuid import UUID
+                
+                async with AsyncSessionLocal() as db:
+                    repo = UserRepository(db)
+                    
+                    p1_user_id = p1_info.get("user_id")
+                    p2_user_id = p2_info.get("user_id")
+                    
+                    if p1_user_id:
+                        p1_user = await repo.get_by_id(UUID(str(p1_user_id)))
+                        if p1_user:
+                            p1_db_info = {
+                                "wins": p1_user.wins,
+                                "losses": p1_user.losses,
+                                "main_character_id": p1_user.main_character_id
+                            }
+                    
+                    if p2_user_id:
+                        p2_user = await repo.get_by_id(UUID(str(p2_user_id)))
+                        if p2_user:
+                            p2_db_info = {
+                                "wins": p2_user.wins,
+                                "losses": p2_user.losses,
+                                "main_character_id": p2_user.main_character_id
+                            }
+                            
+                logger.info(f"[Matchmaking] DB info fetched: P1={p1_db_info}, P2={p2_db_info}")
+            except Exception as e:
+                logger.warning(f"[Matchmaking] Failed to fetch DB info: {e}")
+            
             # Add both players to the battle room for real-time communication
             await sio.enter_room(sid, battle_id)
             await sio.enter_room(opponent_sid, battle_id)
@@ -315,7 +351,7 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             }
             logger.info(f"[Matchmaking] Stored battle_ready_data for {battle_id}")
             
-            # Notify both players
+            # Notify both players with full opponent info
             await sio.emit("match:found", {
                 "battle_id": battle_id,
                 "opponent": {
@@ -323,6 +359,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     "nickname": p2_info.get("nickname", "Unknown"),
                     "elo_rating": p2_info.get("elo_rating", 1200),
                     "avatar_url": p2_info.get("avatar_url"),
+                    "wins": p2_db_info.get("wins", 0),
+                    "losses": p2_db_info.get("losses", 0),
+                    "main_character_id": p2_db_info.get("main_character_id"),
                 }
             }, room=sid)
             
@@ -333,6 +372,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
                     "nickname": p1_info.get("nickname", "Unknown"),
                     "elo_rating": p1_info.get("elo_rating", 1200),
                     "avatar_url": p1_info.get("avatar_url"),
+                    "wins": p1_db_info.get("wins", 0),
+                    "losses": p1_db_info.get("losses", 0),
+                    "main_character_id": p1_db_info.get("main_character_id"),
                 }
             }, room=opponent_sid)
             
