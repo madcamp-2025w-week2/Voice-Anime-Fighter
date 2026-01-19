@@ -78,3 +78,17 @@ class UserRepository:
             await self.db.commit()
             await self.db.refresh(user)
         return user
+
+    async def get_user_rank(self, user_id) -> int:
+        """Get user's rank based on ELO rating."""
+        # elo_rating이 현재 유저보다 높은 유저의 수를 셈
+        user = await self.get_by_id(user_id)
+        if not user:
+            return 0
+        
+        result = await self.db.execute(
+            select(func.count(UserModel.id))
+            .filter(UserModel.elo_rating > user.elo_rating)
+        )
+        higher_rank_count = result.scalar() or 0
+        return higher_rank_count + 1

@@ -1106,7 +1106,9 @@ export default function LobbyScreen() {
                         <span className="text-xl font-black italic text-white">{user?.nickname || 'Guest'}</span>
                         <Crown size={16} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
                       </div>
-                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">RANK: MASTER</p>
+                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">
+                        {user?.rank ? `GLOBAL RANK #${user.rank}` : 'UNRANKED'}
+                      </p>
                     </div>
                   </div>
 
@@ -1267,29 +1269,49 @@ export default function LobbyScreen() {
                     </div>
                   ) : (
                     /* Ranking List */
+                    /* Ranking List */
                     Array(10).fill(null).map((_, idx) => {
-                      const rank = rankings[idx];
-                      const isTop3 = idx < 3;
-                      const isMe = rank && user && rank.user_id === user.id;
+                      let rank = rankings[idx];
+                      let currentRank = idx + 1;
+                      
+                      // 내가 10위권 밖이라면, 마지막 10번째 칸(index 9)에 내 정보를 보여줌
+                      const showMyRankAtBottom = user?.rank > 10 && idx === 9;
+                      
+                      if (showMyRankAtBottom) {
+                        rank = user ? { ...user, user_id: user.id } : null; // user 정보를 rank 포맷으로 매핑
+                        currentRank = user.rank;
+                      }
+
+                      const isTop3 = currentRank <= 3;
+                      const isMe = rank && user && (rank.user_id === user.id || rank.id === user.id);
                       
                       // 1,2,3등은 메달 이모티콘, 나머지는 숫자
-                      const rankDisplay = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
+                      const rankDisplay = currentRank === 1 ? '🥇' : currentRank === 2 ? '🥈' : currentRank === 3 ? '🥉' : currentRank;
 
                       return (
                         <div
                           key={idx}
                           onClick={() => rank && setSelectedRankingUser(rank)}
-                          className={`flex items-center justify-between p-3 rounded-lg transition-all group ${
+                          className={`flex items-center justify-between p-3 rounded-lg transition-all group relative ${
                             rank 
                               ? isMe 
-                                ? 'bg-pink-900/30 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.15)] cursor-pointer hover:bg-pink-900/50' 
+                                ? 'bg-pink-900/40 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.2)] cursor-pointer hover:bg-pink-900/60' 
                                 : 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' 
                               : 'opacity-20 pointer-events-none'
-                          }`}
+                          } ${showMyRankAtBottom ? 'mt-4 scale-105 z-10' : ''}`}
                         >
+                          {/* 10위권 밖 내 순위 표시일 때 구분선 효과 */}
+                          {showMyRankAtBottom && (
+                            <div className="absolute -top-4 left-0 w-full flex justify-center items-center h-4">
+                              <div className="w-1 bg-zinc-700/50 h-2 rounded-full mx-1"></div>
+                              <div className="w-1 bg-zinc-700/50 h-2 rounded-full mx-1"></div>
+                              <div className="w-1 bg-zinc-700/50 h-2 rounded-full mx-1"></div>
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-4">
                             {/* 1. 순위 */}
-                            <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${
+                            <div className={`font-black italic w-10 text-center text-xl flex items-center justify-center ${
                               isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
                             } ${isMe ? 'text-pink-400' : ''}`}>
                               {rankDisplay}
