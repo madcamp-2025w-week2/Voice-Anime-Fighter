@@ -239,7 +239,6 @@ export default function LobbyScreen() {
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomIsPrivate, setNewRoomIsPrivate] = useState(false);
   const [newRoomPassword, setNewRoomPassword] = useState("");
-  const [newRoomType, setNewRoomType] = useState("FRIENDLY"); // FRIENDLY | RANKING
 
   // ... (Matchmaking State) ...
   const [matchState, setMatchState] = useState('IDLE');
@@ -620,7 +619,7 @@ export default function LobbyScreen() {
       return;
     }
 
-    const finalName = newRoomType === 'RANKING' ? `[RANK] ${newRoomName}` : newRoomName;
+    const finalName = newRoomName;
 
     try {
       const res = await fetch(`${API_URL}/rooms`, {
@@ -1465,24 +1464,7 @@ export default function LobbyScreen() {
                 />
               </div>
 
-              {/* Game Mode */}
-              <div>
-                <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">Game Mode</label>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setNewRoomType('FRIENDLY')}
-                    className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${newRoomType === 'FRIENDLY' ? 'bg-cyan-600 text-white shadow-[0_2px_0_rgba(8,145,178,1)]' : 'bg-zinc-800 text-zinc-500'}`}
-                  >
-                    Friendly
-                  </button>
-                  <button
-                    onClick={() => setNewRoomType('RANKING')}
-                    className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase transition-all ${newRoomType === 'RANKING' ? 'bg-amber-600 text-white shadow-[0_2px_0_rgba(217,119,6,1)]' : 'bg-zinc-800 text-zinc-500 '}`}
-                  >
-                    Ranking
-                  </button>
-                </div>
-              </div>
+
 
               {/* Private Toggle */}
               <div className="flex items-center justify-between bg-zinc-900/50 p-3 rounded-lg border border-zinc-800 cursor-pointer" onClick={() => setNewRoomIsPrivate(!newRoomIsPrivate)}>
