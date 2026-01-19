@@ -38,6 +38,55 @@ pending_disconnects: dict[str, dict[str, Any]] = {}
 DISCONNECT_GRACE_PERIOD = 10
 
 
+async def update_player_elo(winner_id: str, loser_id: str) -> tuple[int, int]:
+    """
+    Calculate and update ELO ratings for both players in the database.
+    Returns (winner_change, loser_change).
+    """
+    from adapters.db.database import AsyncSessionLocal
+    from adapters.db.repository import UserRepository
+    from uuid import UUID
+    
+    try:
+        async with AsyncSessionLocal() as db:
+            repo = UserRepository(db)
+            
+            # Convert string IDs to UUID if needed
+            winner_uuid = UUID(winner_id) if isinstance(winner_id, str) else winner_id
+            loser_uuid = UUID(loser_id) if isinstance(loser_id, str) else loser_id
+            
+            winner = await repo.get_by_id(winner_uuid)
+            loser = await repo.get_by_id(loser_uuid)
+            
+            if not winner or not loser:
+                logger.warning(f"ELO update failed: winner={winner_id} or loser={loser_id} not found")
+                return 0, 0
+            
+            # ELO calculation (K-factor: 32)
+            k = 32
+            winner_elo = winner.elo_rating
+            loser_elo = loser.elo_rating
+            
+            winner_expected = 1 / (1 + 10 ** ((loser_elo - winner_elo) / 400))
+            loser_expected = 1 / (1 + 10 ** ((winner_elo - loser_elo) / 400))
+            
+            winner_change = int(k * (1 - winner_expected))
+            loser_change = int(k * (0 - loser_expected))
+            
+            # Update database
+            await repo.update_elo_rating(winner_uuid, winner_elo + winner_change, wins_delta=1)
+            await repo.update_elo_rating(loser_uuid, loser_elo + loser_change, losses_delta=1)
+            
+            logger.info(f"✅ ELO updated: winner {winner.nickname} +{winner_change} ({winner_elo} -> {winner_elo + winner_change}), "
+                       f"loser {loser.nickname} {loser_change} ({loser_elo} -> {loser_elo + loser_change})")
+            
+            return winner_change, loser_change
+            
+    except Exception as e:
+        logger.error(f"ELO update error: {e}")
+        return 0, 0
+
+
 def register_socket_handlers(sio: socketio.AsyncServer):
     """Register all Socket.io event handlers."""
     
@@ -591,6 +640,33 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             emit_data["current_turn"] = hp_update["current_turn"]
             emit_data["game_status"] = hp_update["status"]
             emit_data["winner_id"] = hp_update.get("winner_id")
+            
+            # If game is finished, update ELO ratings
+            winner_id = hp_update.get("winner_id")
+            if winner_id and hp_update["status"] == "finished":
+                # Get battle state to find loser
+                battle_state = await battle_state_manager.get_battle(battle_id)
+                if battle_state:
+                    # Determine loser (the other player)
+                    if str(winner_id) == str(battle_state.player1_id):
+                        loser_id = battle_state.player2_id
+                    else:
+                        loser_id = battle_state.player1_id
+                    
+                    # Update ELO in database
+                    winner_change, loser_change = await update_player_elo(str(winner_id), str(loser_id))
+                    
+                    # Emit battle:result with ELO changes
+                    await sio.emit("battle:result", {
+                        "winner_id": winner_id,
+                        "loser_id": loser_id,
+                        "stats": {
+                            "winner_elo_change": winner_change,
+                            "loser_elo_change": loser_change
+                        }
+                    }, room=room_id)
+                    
+                    logger.info(f"[{sid}] 🏆 Battle finished! Winner: {winner_id}, ELO changes: +{winner_change}/{loser_change}")
         
         logger.info(f"[{sid}] Emitting battle:damage_received to room '{room_id}' with data: {emit_data}")
         await sio.emit("battle:damage_received", emit_data, room=room_id)

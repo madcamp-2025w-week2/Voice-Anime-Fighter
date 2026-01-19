@@ -150,7 +150,8 @@ export default function BattleScreen() {
     })
 
     on('battle:result', (data) => {
-      battle.endBattle(data.winner_id)
+      const currentUserId = useUserStore.getState().user?.id
+      battle.endBattle(data.winner_id, data.loser_id, data.stats, currentUserId)
       navigate('/result')
     })
 
