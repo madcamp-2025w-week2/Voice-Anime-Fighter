@@ -45,16 +45,16 @@ CHARACTERS = [
         description="오글거림의 여왕. 오타쿠 세계를 지배하는 언더독 마법소녀.",
         stats=CharacterStats(cringe_level=95, volume_req=70, precision=80),
         spell_text="마법소녀 카와이 러블리 루루핑!",
-        thumbnail_url="/images/satoru.webp",
-        sprite_url="/images/satoru.webp",
+        thumbnail_url="/images/satoru_v2.webp",
+        sprite_url="/images/satoru_v2.webp",
         is_unlocked=True
     ),
     Character(
         id="char_002",
-        name="마법소녀 루피",
-        description="마음을 읽는 초능력 소녀. 와쿠와쿠 에너지로 공격.",
-        stats=CharacterStats(cringe_level=75, volume_req=60, precision=90),
-        spell_text="와쿠와쿠! 피넛츠가 좋아!",
+        name="몽키 D: 드라이브",
+        description="해적왕 대신 배달왕을 꿈꾸는 루키. 드라이브 스루의 속도로 적을 제압한다.",
+        stats=CharacterStats(cringe_level=75, volume_req=85, precision=65),
+        spell_text="고무고무~! 총알 배송! 배달비는 너의 패배다!",
         thumbnail_url="/images/lupy.webp",
         sprite_url="/images/lupy.webp",
         is_unlocked=True
@@ -71,12 +71,12 @@ CHARACTERS = [
     ),
     Character(
         id="char_004",
-        name="중2병 리카",
-        description="사역눈을 가진 진정한 중2병 환자. 다크플레임 마스터.",
-        stats=CharacterStats(cringe_level=100, volume_req=65, precision=75),
-        spell_text="폭렬하라! 다크 플레임 마스터!",
-        thumbnail_url="/images/rika.webp",
-        sprite_url="/images/rika.webp",
+        name="아가미 라이츄",
+        description="노트 한 권으로 신세계를 꿈꾸는 위험한 천재. 하지만 글씨체가 너무 악필이다.",
+        stats=CharacterStats(cringe_level=100, volume_req=60, precision=90),
+        spell_text="계획대로다... 삭제! 삭제! 삭제! 너의 패배는 이미 결정되었다!",
+        thumbnail_url="/images/agami_raichu_v2.webp",
+        sprite_url="/images/agami_raichu_v2.webp",
         is_unlocked=True
     ),
     Character(
@@ -101,10 +101,10 @@ CHARACTERS = [
     ),
     Character(
         id="char_007",
-        name="마법의검 리비",
-        description="신비로운 마법의 검을 사용하는 소녀. 빛의 힘을 다룬다.",
-        stats=CharacterStats(cringe_level=88, volume_req=50, precision=92),
-        spell_text="빛이여! 나의 검에 깃들어라!",
+        name="딸바이",
+        description="전설의 폭주족 출신 배달부. 신속 정확하게 적의 멘탈을 배달 사고 낸다.",
+        stats=CharacterStats(cringe_level=88, volume_req=90, precision=50),
+        spell_text="부릉부릉~! 주문하신 팩트 폭력 배달 왔습니다! 수령 거부는 안돼!",
         thumbnail_url="/images/livi.webp",
         sprite_url="/images/livi.webp",
         is_unlocked=True
@@ -117,6 +117,26 @@ CHARACTERS = [
         spell_text="눈을 떠라... 내 안의 흑염룡! 다크니스 디멘션 슬래시!",
         thumbnail_url="/images/dark_sword.webp",
         sprite_url="/images/dark_sword.webp",
+        is_unlocked=True
+    ),
+    Character(
+        id="char_009",
+        name="바겐세일러문",
+        description="이마트 마감 시간의 지배자. 할인 스티커로 적을 봉인한다.",
+        stats=CharacterStats(cringe_level=95, volume_req=90, precision=60),
+        spell_text="오늘의 특가! 마감 세일! 당신의 영혼도 50% 할인해드리죠!",
+        thumbnail_url="/images/bargain_moon.webp",
+        sprite_url="/images/bargain_moon.webp",
+        is_unlocked=True
+    ),
+    Character(
+        id="char_010",
+        name="손오공주님",
+        description="서유기 세계관에서 이세계 전생한 마법소녀. 핑크빛 여의봉을 휘두른다.",
+        stats=CharacterStats(cringe_level=88, volume_req=75, precision=85),
+        spell_text="치키치키 차카차카 초코초코 쵸! 호잇! 너의 소원을 들어주지 않겠다!",
+        thumbnail_url="/images/goku_princess.webp",
+        sprite_url="/images/goku_princess.webp",
         is_unlocked=True
     ),
 ]

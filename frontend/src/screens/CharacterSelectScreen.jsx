@@ -13,12 +13,12 @@ export default function CharacterSelectScreen() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // 이미 캐릭터가 로드되어 있으면 스킵
-    if (characters.length > 0) {
+    // 기존 데이터가 있으면 프리뷰 먼저 설정 (깜빡임 방지)
+    if (characters.length > 0 && !previewChar) {
       setPreviewChar(characters[0])
-      return
     }
 
+    // 항상 최신 데이터 Fetch
     const fetchCharacters = async () => {
       setIsLoading(true)
       try {
@@ -31,7 +31,11 @@ export default function CharacterSelectScreen() {
             image: c.sprite_url || c.thumbnail_url
           }))
           setCharacters(charsWithImages)
-          setPreviewChar(charsWithImages[0])
+          
+          // 프리뷰가 없으면 첫번째로 설정
+          if (!previewChar) {
+            setPreviewChar(charsWithImages[0])
+          }
         }
       } catch (err) {
         console.error('Failed to fetch characters:', err)
@@ -118,7 +122,7 @@ export default function CharacterSelectScreen() {
                     className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                   />
                 </div>
-                <h2 className="font-title text-3xl font-black italic text-magical-pink-300 mb-2">{previewChar.name}</h2>
+                <h2 className="font-title text-3xl font-bold italic tracking-widest text-magical-pink-300 mb-2">{previewChar.name}</h2>
                 <p className="text-gray-400 text-sm mb-4 text-center px-4">{previewChar.description}</p>
 
                 {/* Stats */}
