@@ -628,7 +628,13 @@ export default function LobbyScreen() {
       });
 
       if (!res.ok) {
-        await handleApiError(res);
+        const errorData = await res.json();
+        if (res.status === 400 && (errorData.detail?.includes('password') || errorData.detail?.includes('비밀번호'))) {
+          await handleApiError(res, '비밀번호가 일치하지 않습니다. 다시 시도해 주세요.');
+        } else {
+          // Fallback for other errors
+          await handleApiError(res, errorData.detail || '방 입장에 실패했습니다.');
+        }
         return;
       }
 
