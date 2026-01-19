@@ -342,7 +342,8 @@ export default function LobbyScreen() {
           setOpponent({
             id: data.user_id,
             nickname: data.nickname || 'Opponent',
-            elo_rating: data.elo_rating || 1200
+            elo_rating: data.elo_rating || 1200,
+            avatar_url: data.avatar_url || null
           });
           // Also set in gameStore for BattleScreen (including ELO and avatar)
           setOpponentInfo({
@@ -433,7 +434,8 @@ export default function LobbyScreen() {
           setOpponent({
             id: existingPlayer.user_id,
             nickname: existingPlayer.nickname || 'Opponent',
-            elo_rating: existingPlayer.elo_rating || 1200
+            elo_rating: existingPlayer.elo_rating || 1200,
+            avatar_url: existingPlayer.avatar_url || null
           });
           // Also set in gameStore for character select and battle screens (including ELO and avatar)
           setOpponentInfo({
@@ -1183,7 +1185,7 @@ export default function LobbyScreen() {
                         return (
                           <div className="h-[200px] flex items-center justify-center relative shrink-0 bg-black/40 rounded-xl border border-zinc-800 overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 rounded-xl"></div>
-                            
+
                             {/* Character Emoji/Image */}
                             <div className="relative z-0 h-[180px] flex items-center justify-center">
                               <img
@@ -1273,10 +1275,10 @@ export default function LobbyScreen() {
                     Array(10).fill(null).map((_, idx) => {
                       let rank = rankings[idx];
                       let currentRank = idx + 1;
-                      
+
                       // 내가 10위권 밖이라면, 마지막 10번째 칸(index 9)에 내 정보를 보여줌
                       const showMyRankAtBottom = user?.rank > 10 && idx === 9;
-                      
+
                       if (showMyRankAtBottom) {
                         rank = user ? { ...user, user_id: user.id } : null; // user 정보를 rank 포맷으로 매핑
                         currentRank = user.rank;
@@ -1284,7 +1286,7 @@ export default function LobbyScreen() {
 
                       const isTop3 = currentRank <= 3;
                       const isMe = rank && user && (rank.user_id === user.id || rank.id === user.id);
-                      
+
                       // 1,2,3등은 메달 이모티콘, 나머지는 숫자
                       const rankDisplay = currentRank === 1 ? '🥇' : currentRank === 2 ? '🥈' : currentRank === 3 ? '🥉' : currentRank;
 
@@ -1292,13 +1294,12 @@ export default function LobbyScreen() {
                         <div
                           key={idx}
                           onClick={() => rank && setSelectedRankingUser(rank)}
-                          className={`flex items-center justify-between p-3 rounded-lg transition-all group relative ${
-                            rank 
-                              ? isMe 
-                                ? 'bg-pink-900/40 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.2)] cursor-pointer hover:bg-pink-900/60' 
-                                : 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' 
+                          className={`flex items-center justify-between p-3 rounded-lg transition-all group relative ${rank
+                              ? isMe
+                                ? 'bg-pink-900/40 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.2)] cursor-pointer hover:bg-pink-900/60'
+                                : 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10'
                               : 'opacity-20 pointer-events-none'
-                          } ${showMyRankAtBottom ? 'mt-4 scale-105 z-10' : ''}`}
+                            } ${showMyRankAtBottom ? 'mt-4 scale-105 z-10' : ''}`}
                         >
                           {/* 10위권 밖 내 순위 표시일 때 구분선 효과 */}
                           {showMyRankAtBottom && (
@@ -1311,16 +1312,14 @@ export default function LobbyScreen() {
 
                           <div className="flex items-center gap-4">
                             {/* 1. 순위 */}
-                            <div className={`font-black italic w-10 text-center text-xl flex items-center justify-center ${
-                              isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
-                            } ${isMe ? 'text-pink-400' : ''}`}>
+                            <div className={`font-black italic w-10 text-center text-xl flex items-center justify-center ${isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
+                              } ${isMe ? 'text-pink-400' : ''}`}>
                               {rankDisplay}
                             </div>
 
                             {/* 2. 이름 */}
-                            <div className={`font-bold text-sm truncate max-w-[120px] ${
-                              rank ? (isMe ? 'text-pink-100' : 'text-white') : 'text-zinc-700'
-                            }`}>
+                            <div className={`font-bold text-sm truncate max-w-[120px] ${rank ? (isMe ? 'text-pink-100' : 'text-white') : 'text-zinc-700'
+                              }`}>
                               {rank ? (isMe ? `${rank.nickname} (ME)` : rank.nickname) : '-'}
                             </div>
                           </div>
