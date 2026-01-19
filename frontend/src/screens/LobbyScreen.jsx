@@ -52,7 +52,7 @@ export default function LobbyScreen() {
           avatar_url: editAvatar
         })
       });
-      
+
       if (res.ok) {
         const updatedUser = await res.json();
         updateUser(updatedUser);
@@ -108,40 +108,40 @@ export default function LobbyScreen() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file.');
-        return;
+      alert('Please upload an image file.');
+      return;
     }
 
     setIsUploading(true);
 
     try {
-        // Compress to WebP
-        const compressedFile = await compressImageToWebP(file);
-        console.log(`📸 Compressed: ${file.size} → ${compressedFile.size} bytes`);
+      // Compress to WebP
+      const compressedFile = await compressImageToWebP(file);
+      console.log(`📸 Compressed: ${file.size} → ${compressedFile.size} bytes`);
 
-        const formData = new FormData();
-        formData.append('file', compressedFile);
+      const formData = new FormData();
+      formData.append('file', compressedFile);
 
-        const res = await fetch(`${API_URL}/users/me/avatar`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
+      const res = await fetch(`${API_URL}/users/me/avatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
 
-        if (res.ok) {
-            const updatedUser = await res.json();
-            updateUser(updatedUser);
-            setEditAvatar(updatedUser.avatar_url);
-            alert("Profile image uploaded successfully! 📸");
-        } else {
-            await handleApiError(res);
-        }
+      if (res.ok) {
+        const updatedUser = await res.json();
+        updateUser(updatedUser);
+        setEditAvatar(updatedUser.avatar_url);
+        alert("Profile image uploaded successfully! 📸");
+      } else {
+        await handleApiError(res);
+      }
     } catch (err) {
-        handleApiError(err);
+      handleApiError(err);
     } finally {
-        setIsUploading(false);
+      setIsUploading(false);
     }
   };
 
@@ -150,10 +150,10 @@ export default function LobbyScreen() {
     if (user?.main_character_id) {
       const isPlaceholder = selectedCharacter?.name === 'Main Character';
       const isMismatch = !selectedCharacter || selectedCharacter.id !== user.main_character_id;
-      
+
       if (isMismatch || isPlaceholder) {
         const fullChar = characters.find(c => c.id === user.main_character_id);
-        
+
         if (fullChar) {
           // 캐릭터 정보가 로드되었으면 교체
           selectCharacter(fullChar);
@@ -217,6 +217,8 @@ export default function LobbyScreen() {
   const [opponent, setOpponent] = useState(savedRoomState?.opponent || null);
   const [countdown, setCountdown] = useState(null);
   const [battleId, setBattleId] = useState(null);  // Store matched battle ID
+  const [isReady, setIsReady] = useState(false);  // Guest ready state (my status)
+  const [opponentReady, setOpponentReady] = useState(false);  // Opponent's ready state
 
   const chatEndRef = useRef(null);
   const mainCharacter = selectedCharacter || characters[0];
@@ -244,12 +246,12 @@ export default function LobbyScreen() {
         const res = await fetch(`${API_URL}/rooms`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!res.ok) {
           await handleApiError(res);
           return;
         }
-        
+
         const data = await res.json();
         setRooms(data.rooms);
       } catch (err) {
@@ -382,7 +384,7 @@ export default function LobbyScreen() {
           type: 'system'
         }]);
       }
-      
+
       setSelectedRoom(prev => prev ? {
         ...prev,
         host_id: data.new_host_id,
@@ -422,6 +424,14 @@ export default function LobbyScreen() {
     socket.on('chat:new_message', handleNewMessage);
     socket.on('room:game_start', handleGameStart);
 
+    // Ready system events
+    socket.on('room:ready_status', (data) => {
+      console.log('socket: [room:ready_status]', data);
+      if (data.user_id !== user?.id) {
+        setOpponentReady(data.is_ready);
+      }
+    });
+
     return () => {
       socket.off('match:found');
       socket.off('match:searching');
@@ -430,6 +440,7 @@ export default function LobbyScreen() {
       socket.off('room:player_left');
       socket.off('room:host_changed');
       socket.off('room:existing_players');
+      socket.off('room:ready_status');
       socket.off('chat:new_message');
       socket.off('room:game_start');
     };
@@ -459,7 +470,7 @@ export default function LobbyScreen() {
   useEffect(() => {
     if (isConnected && selectedRoom) {
       console.log('Socket Connected/Room Selected - Validating and rejoining:', selectedRoom.room_id);
-      
+
       // Validate that the room still exists before rejoining
       const validateAndJoin = async () => {
         try {
@@ -577,7 +588,7 @@ export default function LobbyScreen() {
 
       setRooms(prev => [newRoom, ...prev]);
       setSelectedRoom(newRoom);
-        setIsHost(true); // Creator is the host
+      setIsHost(true); // Creator is the host
       setOpponent(null);
       setChatMessages([]); // Clear chat for new room
       setShowCreateModal(false);
@@ -614,7 +625,7 @@ export default function LobbyScreen() {
       // Save password for re-joining
       const roomWithData = { ...room, clientPassword: password };
       const joinedRoom = { ...roomWithData, player_count: room.player_count + 1 };
-      
+
       setSelectedRoom(joinedRoom);
       setIsHost(false); // Joiner is NOT the host
       setChatMessages([]);
@@ -633,7 +644,7 @@ export default function LobbyScreen() {
 
       // Join socket room
       joinRoom(room.room_id, password);
-      
+
       // Close modal if open
       setPasswordModalOpen(false);
       setPasswordInput('');
@@ -646,11 +657,11 @@ export default function LobbyScreen() {
 
   const handleJoinRoom = (room) => {
     if (room.is_private) {
-        setPendingRoom(room);
-        setPasswordInput('');
-        setPasswordModalOpen(true);
+      setPendingRoom(room);
+      setPasswordInput('');
+      setPasswordModalOpen(true);
     } else {
-        processJoinRoom(room);
+      processJoinRoom(room);
     }
   };
 
@@ -665,10 +676,10 @@ export default function LobbyScreen() {
     try {
       // Logic: If I am the only one (or last one), DELETE room. Else, just LEAVE.
       const isLastMember = selectedRoom.player_count <= 1;
-      
+
       const method = isLastMember ? 'DELETE' : 'POST';
-      const endpoint = isLastMember 
-        ? `${API_URL}/rooms/${selectedRoom.room_id}` 
+      const endpoint = isLastMember
+        ? `${API_URL}/rooms/${selectedRoom.room_id}`
         : `${API_URL}/rooms/${selectedRoom.room_id}/leave`;
 
       const res = await fetch(endpoint, {
@@ -693,6 +704,8 @@ export default function LobbyScreen() {
     setSelectedRoom(null);
     setOpponent(null);
     setChatMessages([]);
+    setIsReady(false);
+    setOpponentReady(false);
   };
 
   return (
@@ -871,13 +884,29 @@ export default function LobbyScreen() {
               </div>
 
               <div className="mt-auto mb-4 shrink-0">
-                <button
-                  onClick={handleStartGame}
-                  disabled={!opponent}
-                  className="w-full py-4 bg-gradient-to-r from-red-600 to-purple-600 rounded-xl font-black italic text-xl uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 disabled:grayscale shadow-[0_4px_0_rgba(185,28,28,0.5)] active:translate-y-[4px] active:shadow-none"
-                >
-                  {opponent ? 'START BATTLE !!!' : 'WAITING FOR PLAYER . . .'}
-                </button>
+                {isHost ? (
+                  /* Host sees Start button - enabled only when opponent is ready */
+                  <button
+                    onClick={handleStartGame}
+                    disabled={!opponent || !opponentReady}
+                    className="w-full py-4 bg-gradient-to-r from-red-600 to-purple-600 rounded-xl font-black italic text-xl uppercase tracking-widest hover:scale-[1.02] transition-all disabled:opacity-50 disabled:grayscale shadow-[0_4px_0_rgba(185,28,28,0.5)] active:translate-y-[4px] active:shadow-none"
+                  >
+                    {!opponent ? 'WAITING FOR PLAYER . . .' : !opponentReady ? 'WAITING FOR READY . . .' : 'START BATTLE !!!'}
+                  </button>
+                ) : (
+                  /* Guest sees Ready/Unready toggle button */
+                  <button
+                    onClick={() => {
+                      const newReadyState = !isReady;
+                      setIsReady(newReadyState);
+                      emit('room:ready', { room_id: selectedRoom?.room_id, is_ready: newReadyState });
+                    }}
+                    disabled={!opponent}
+                    className={`w-full py-4 rounded-xl font-black italic text-xl uppercase tracking-widest hover:scale-[1.02] transition-all shadow-[0_4px_0] active:translate-y-[4px] active:shadow-none ${isReady ? 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-yellow-600/50' : 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-600/50'}`}
+                  >
+                    {isReady ? 'CANCEL READY' : 'READY!'}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1015,15 +1044,15 @@ export default function LobbyScreen() {
                   </div>
 
                   {/* 메인 정보 (Rating, Tier) with Edit Hover */}
-                  <div 
+                  <div
                     onClick={() => setIsEditModalOpen(true)}
                     className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden group cursor-pointer hover:border-pink-500/50 transition-colors"
                   >
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-sm">
-                      <p className="text-white font-bold tracking-widest flex items-center gap-2">EDIT PROFILE <Pencil size={14}/></p>
+                      <p className="text-white font-bold tracking-widest flex items-center gap-2">EDIT PROFILE <Pencil size={14} /></p>
                     </div>
-                    
+
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
                       {(user?.avatar_url && (user.avatar_url.startsWith('/') || user.avatar_url.startsWith('http'))) ? (
@@ -1057,7 +1086,7 @@ export default function LobbyScreen() {
                       const losses = user?.losses || 0;
                       const totalGames = wins + losses;
                       const winRate = totalGames > 0 ? ((wins / totalGames) * 100).toFixed(1) : '0.0';
-                      
+
                       return (
                         <>
                           {/* Win Rate */}
@@ -1097,20 +1126,18 @@ export default function LobbyScreen() {
                     const rankDisplay = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
 
                     return (
-                      <div 
-                        key={idx} 
-                        className={`flex items-center justify-between p-3 rounded-lg transition-all group ${
-                          rank ? 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' : 'opacity-20 pointer-events-none'
-                        }`}
+                      <div
+                        key={idx}
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all group ${rank ? 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10' : 'opacity-20 pointer-events-none'
+                          }`}
                       >
                         <div className="flex items-center gap-4">
                           {/* 1. 순위 */}
-                          <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${
-                            isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
-                          }`}>
+                          <div className={`font-black italic w-8 text-center text-xl flex items-center justify-center ${isTop3 ? 'drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] scale-110' : 'text-zinc-600'
+                            }`}>
                             {rankDisplay}
                           </div>
-                          
+
                           {/* 2. 이름 */}
                           <div className={`font-bold text-sm truncate max-w-[120px] ${rank ? 'text-white' : 'text-zinc-700'}`}>
                             {rank ? rank.nickname : '-'}
@@ -1223,43 +1250,43 @@ export default function LobbyScreen() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
       `}</style>
-      
+
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
-            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"><X size={20}/></button>
-            
+            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"><X size={20} /></button>
+
             <h2 className="text-2xl font-black italic text-white mb-6 uppercase tracking-wider flex items-center gap-2">
               <Pencil className="text-pink-500" /> Edit Profile
             </h2>
-            
+
             {/* Avatar Selection */}
             <div className="mb-6">
               <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Avatar Image</label>
-              
+
               {/* Upload Button */}
               <div className="flex gap-2 mb-4">
-                  <button 
-                      onClick={() => fileInputRef.current.click()}
-                      className="flex-1 py-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition font-bold text-xs uppercase flex items-center justify-center gap-2 text-zinc-300 border border-zinc-700 hover:border-zinc-500"
-                      disabled={isUploading}
-                  >
-                      {isUploading ? <Loader2 className="animate-spin text-pink-500" size={16}/> : <><Camera size={16} className="text-pink-500"/> Upload Photo</>}
-                  </button>
-                  <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      hidden 
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                  />
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  className="flex-1 py-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition font-bold text-xs uppercase flex items-center justify-center gap-2 text-zinc-300 border border-zinc-700 hover:border-zinc-500"
+                  disabled={isUploading}
+                >
+                  {isUploading ? <Loader2 className="animate-spin text-pink-500" size={16} /> : <><Camera size={16} className="text-pink-500" /> Upload Photo</>}
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  hidden
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                />
               </div>
 
               <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Or Select Icon</label>
               <div className="grid grid-cols-5 gap-2">
                 {['🌟', '💀', '🤖', '👾', '👽', '🎃', '👻', '🤡', '👹', '👺'].map(emoji => (
-                  <button 
+                  <button
                     key={emoji}
                     onClick={() => setEditAvatar(emoji)}
                     className={`text-2xl p-2 rounded-lg border transition-all hover:scale-110 ${editAvatar === emoji ? 'border-pink-500 bg-pink-900/20 scale-110 shadow-[0_0_10px_rgba(236,72,153,0.3)]' : 'border-zinc-800 bg-zinc-950 hover:bg-zinc-800'}`}
@@ -1273,7 +1300,7 @@ export default function LobbyScreen() {
             {/* Nickname Input */}
             <div className="mb-6">
               <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Nickname</label>
-              <input 
+              <input
                 value={editNickname}
                 onChange={(e) => setEditNickname(e.target.value)}
                 className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-white focus:border-pink-500 outline-none font-bold transition-colors"
@@ -1295,7 +1322,7 @@ export default function LobbyScreen() {
               <Lock className="text-pink-500" /> Private Room
             </h3>
             <p className="text-zinc-400 mb-4 text-sm">Enter password to join <span className="text-white font-bold">{pendingRoom?.name}</span></p>
-            
+
             <input
               type="password"
               value={passwordInput}
@@ -1307,7 +1334,7 @@ export default function LobbyScreen() {
                 if (e.key === 'Enter') processJoinRoom(pendingRoom, passwordInput);
               }}
             />
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setPasswordModalOpen(false)}
