@@ -11,7 +11,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar (Global) */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -23,6 +23,19 @@ body {
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom, #ec4899, #8b5cf6);
   border-radius: 4px;
+}
+
+/* Custom Scrollbar Utility for Compact Lists (Thinner) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ec4899, #8b5cf6);
+    border-radius: 3px;
 }
 
 /* Glow effects */

@@ -319,11 +319,18 @@ export default function LobbyScreen() {
       }
     };
 
+    // Initial fetch
     fetchRankings();
     fetchRooms();
     fetchUserInfo();
     fetchCharacters();
-    const interval = setInterval(fetchRooms, 3000);
+
+    // Polling every 5 seconds to keep data fresh
+    const interval = setInterval(() => {
+      fetchRankings();
+      fetchRooms();
+      fetchUserInfo();
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [token]);
@@ -1522,63 +1529,151 @@ export default function LobbyScreen() {
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+          <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-full max-w-2xl shadow-2xl relative">
             <button onClick={() => setIsEditModalOpen(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"><X size={20} /></button>
 
             <h2 className="text-2xl font-black italic text-white mb-6 uppercase tracking-wider flex items-center gap-2">
               <Pencil className="text-pink-500" /> Edit Profile
             </h2>
 
-            {/* Avatar Selection */}
-            <div className="mb-6">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Avatar Image</label>
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              {/* Left Column: Live Preview */}
+              <div className="w-full md:w-1/3 flex flex-col items-center gap-3 shrink-0">
+                <div className="w-full aspect-square rounded-2xl bg-black border-2 border-zinc-800 overflow-hidden relative shadow-lg group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 z-0"></div>
+                  
+                  {/* Avatar Display */}
+                  <div className="relative z-10 w-full h-full flex items-center justify-center text-6xl">
+                    {isImageUrl(editAvatar) ? (
+                      <img src={getAvatarUrl(editAvatar)} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      editAvatar || '🌟'
+                    )}
+                  </div>
 
-              {/* Upload Button */}
-              <div className="flex gap-2 mb-4">
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  className="flex-1 py-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition font-bold text-xs uppercase flex items-center justify-center gap-2 text-zinc-300 border border-zinc-700 hover:border-zinc-500"
-                  disabled={isUploading}
-                >
-                  {isUploading ? <Loader2 className="animate-spin text-pink-500" size={16} /> : <><Camera size={16} className="text-pink-500" /> Upload Photo</>}
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  hidden
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                />
-              </div>
-
-              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Or Select Icon</label>
-              <div className="grid grid-cols-5 gap-2">
-                {['🌟', '💀', '🤖', '👾', '👽', '🎃', '👻', '🤡', '👹', '👺'].map(emoji => (
-                  <button
-                    key={emoji}
-                    onClick={() => setEditAvatar(emoji)}
-                    className={`text-2xl p-2 rounded-lg border transition-all hover:scale-110 ${editAvatar === emoji ? 'border-pink-500 bg-pink-900/20 scale-110 shadow-[0_0_10px_rgba(236,72,153,0.3)]' : 'border-zinc-800 bg-zinc-950 hover:bg-zinc-800'}`}
+                  {/* Overlay upload hint */}
+                  <div 
+                    onClick={() => fileInputRef.current.click()}
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer z-20 backdrop-blur-sm"
                   >
-                    {emoji}
-                  </button>
-                ))}
+                    <Camera className="w-8 h-8 text-pink-500 mb-2" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">Change Photo</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider text-center mb-2">
+                  Live Preview
+                </p>
+
+                {/* Title Prefix Selection */}
+                <div className="w-full border-t border-zinc-800 pt-3 mt-2">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block text-center flex items-center justify-center gap-1">
+                     Select Title <span className="text-zinc-600 text-[9px]">(Append Prefix)</span>
+                  </label>
+                  
+                  <div className="relative">
+                    <select 
+                      onChange={(e) => {
+                        const title = e.target.value;
+                        if (!title) return;
+                        setEditNickname(prev => {
+                          const parts = prev.split('_');
+                          const coreName = parts.length > 1 ? parts.slice(1).join('_') : prev;
+                          return `${title}_${coreName}`;
+                        });
+                      }}
+                      className="w-full bg-zinc-900 text-white text-xs font-bold py-2.5 pl-3 pr-8 rounded-xl border border-zinc-700 hover:border-pink-500/50 focus:border-pink-500 outline-none appearance-none cursor-pointer transition-colors text-center"
+                    >
+                      <option value="">Choose a Title...</option>
+                      {[
+                        '어둠의 다크니스', '심연의 지배자', '봉인된 흑염룡', '전설의 마법기사',
+                        '이세계의 방랑자', '신이 버린 아이', '피의 계약자', '광기의 매드사이언티스트',
+                        '천재 미소녀 해커', '운명을 거스르는 자', '타락천사 루시퍼', '칠흑의 날개',
+                        '제3의 눈 개안자', '세계관 최강자', '먼치킨 주인공', '복수의 화신',
+                        '고독한 늑대', '마계의 프린스', '천상의 가희', '차원 여행자'
+                      ].map(title => (
+                        <option key={title} value={title}>{title}</option>
+                      ))}
+                    </select>
+                    {/* Dropdown Arrow Icon */}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Controls */}
+              <div className="w-full md:flex-1 min-w-0">
+                {/* Avatar Selection */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Avatar Settings</label>
+                  </div>
+
+                  {/* Upload Button */}
+                  <div className="mb-4">
+                    <button
+                      onClick={() => fileInputRef.current.click()}
+                      className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition font-bold text-xs uppercase flex items-center justify-center gap-2 text-zinc-300 border border-zinc-700 hover:border-zinc-500 group"
+                      disabled={isUploading}
+                    >
+                      {isUploading ? <Loader2 className="animate-spin text-pink-500" size={16} /> : <><Camera size={16} className="text-pink-500 group-hover:scale-110 transition-transform" /> Upload Photo</>}
+                    </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      hidden
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                    />
+                  </div>
+
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Or Select Icon</label>
+                  
+                  {/* Scrollable Icon Grid */}
+                  <div className="h-40 overflow-y-auto pr-2 custom-scrollbar bg-black/30 rounded-xl p-2 border border-white/5">
+                    <div className="grid grid-cols-5 gap-2">
+                      {[
+                        '🌟', '💀', '🤖', '👾', '👽', '🎃', '👻', '🤡', '👺', '👹',
+                        '🦄', '🐱', '🐶', '🦊', '🦁', '🐯', '🐷', '🐸', '🐙', '🦖',
+                        '🔥', '💧', '⚡', '❄️', '🌪️', '🌈', '☀️', '🌙', '⭐', '☄️',
+                        '⚔️', '🛡️', '🏹', '🔮', '💊', '💣', '💎', '👑', '🏆', '🎮',
+                        '😀', '😎', '😡', '😱', '🤔', '🤯', '🥶', '🥵', '🤢', '🤮'
+                      ].map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => setEditAvatar(emoji)}
+                          className={`text-2xl aspect-square rounded-lg border transition-all hover:scale-110 flex items-center justify-center ${editAvatar === emoji ? 'border-pink-500 bg-pink-900/20 shadow-[0_0_10px_rgba(236,72,153,0.3)]' : 'border-zinc-800 bg-zinc-900 hover:bg-zinc-800'}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nickname Input */}
+                <div className="mb-6">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Nickname</label>
+                  <input
+                    value={editNickname}
+                    onChange={(e) => setEditNickname(e.target.value)}
+                    className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-white focus:border-pink-500 outline-none font-bold transition-colors text-sm"
+                    placeholder="Enter nickname..."
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Nickname Input */}
-            <div className="mb-6">
-              <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Nickname</label>
-              <input
-                value={editNickname}
-                onChange={(e) => setEditNickname(e.target.value)}
-                className="w-full bg-black border border-zinc-800 rounded-xl p-3 text-white focus:border-pink-500 outline-none font-bold transition-colors"
-                placeholder="Enter nickname..."
-              />
+            
+            {/* Bottom Actions - Full Width */}
+            <div className="flex gap-3 pt-4 border-t border-white/5 mt-2">
+                <button onClick={() => setIsEditModalOpen(false)} className="flex-1 py-3 bg-zinc-800 rounded-xl font-bold text-zinc-400 hover:bg-zinc-700 transition uppercase tracking-widest text-sm">
+                    Cancel
+                </button>
+                <button onClick={handleSaveProfile} className="flex-[2] py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none text-sm">
+                    Save Changes
+                </button>
             </div>
-
-            <button onClick={handleSaveProfile} className="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none">
-              Save Changes
-            </button>
           </div>
         </div>
       )}
