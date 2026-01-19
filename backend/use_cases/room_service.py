@@ -56,19 +56,22 @@ class RoomService:
         if not room:
             return False, "Room not found"
         
+        # Allow rejoin for existing members (e.g., after page refresh)
+        if user_id in room.player_ids:
+            return True, "Rejoined successfully"
+        
         if room.is_full:
             return False, "Room is full"
         
         if room.status != RoomStatus.WAITING:
             return False, "Game already in progress"
         
-        # Skip password check for host or existing members
-        if user_id != room.host_id and user_id not in room.player_ids:
+        # Check password for new members (not host)
+        if user_id != room.host_id:
             if room.is_private and room.password and room.password != password:
                 return False, "Incorrect password"
         
-        if user_id not in room.player_ids:
-            room.player_ids.append(user_id)
+        room.player_ids.append(user_id)
         
         return True, "Joined successfully"
     
