@@ -6,7 +6,6 @@ import MultiCharacterSelect from './screens/MultiCharacterSelect'
 import MatchmakingScreen from './screens/MatchmakingScreen'
 import BattleScreen from './screens/BattleScreen'
 import ResultScreen from './screens/ResultScreen'
-import SocialScreen from './screens/SocialScreen'
 import ErrorModal from './components/ErrorModal'
 
 import ProtectedRoute from './components/ProtectedRoute'
@@ -26,7 +25,6 @@ function App() {
             <Route path="/matchmaking" element={<MatchmakingScreen />} />
             <Route path="/battle" element={<BattleScreen />} />
             <Route path="/result" element={<ResultScreen />} />
-            <Route path="/social" element={<SocialScreen />} />
           </Route>
         </Routes>
         {/* Global Error Modal */}
