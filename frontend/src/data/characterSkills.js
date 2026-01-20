@@ -190,32 +190,6 @@ export const CHARACTER_SKILLS = {
     }
   },
 
-  // 오타쿠 전사 오글이
-  'char_006': {
-    defaultImg: '/images/ogeul.webp',
-    skills: [
-      {
-        name: '피규어 어택',
-        trigger: '피규어의 힘이여!',
-        image: '/images/ogeul_skill_1.png',
-        duration: DEFAULT_SKILL_DURATION
-      },
-      {
-        name: '피규어 슬래시',
-        trigger: '오타쿠의 자존심!',
-        image: '/images/ogeul_skill_2.png',
-        duration: DEFAULT_SKILL_DURATION
-      }
-    ],
-    ultimate: {
-      name: '오타쿠 디멘션',
-      trigger: '오타쿠의 자존심! 피규어 슬래시!',
-      image: '/images/ogeul_ultimate.png',
-      effectClass: 'ultimate-effect',
-      duration: DEFAULT_ULTIMATE_DURATION
-    }
-  },
-
   // 딸바이 (진격거)
   'char_007': {
     defaultImg: '/images/normal/levi_normal.webp',

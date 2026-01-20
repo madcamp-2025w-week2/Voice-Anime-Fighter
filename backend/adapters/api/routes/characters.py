@@ -90,16 +90,6 @@ CHARACTERS = [
         is_unlocked=True
     ),
     Character(
-        id="char_006",
-        name="오타쿠 전사 오글이",
-        description="분홍 머리띠의 오타쿠. 피규어 파워로 공격.",
-        stats=CharacterStats(cringe_level=90, volume_req=80, precision=70),
-        spell_text="오타쿠의 자존심! 피규어 슬래시!",
-        thumbnail_url="/images/ogeul.webp",
-        sprite_url="/images/ogeul.webp",
-        is_unlocked=True
-    ),
-    Character(
         id="char_007",
         name="딸바이",
         description="전설의 폭주족 출신 배달부. 신속 정확하게 적의 멘탈을 배달 사고 낸다.",
