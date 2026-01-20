@@ -306,7 +306,7 @@ export const CHARACTER_SKILLS = {
 
   // 돌려막기 나루토
   'char_011': {
-    defaultImg: '/images/normal/naruto.webp',
+    defaultImg: '/images/normal/naruto_normal.webp',
     hitImg: '/images/hit/naruto_hit.webp',
     skills: [
       {
