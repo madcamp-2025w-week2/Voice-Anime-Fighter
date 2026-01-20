@@ -139,6 +139,16 @@ CHARACTERS = [
         sprite_url="/images/profile/goku_princess.webp",
         is_unlocked=True
     ),
+    Character(
+        id="char_011",
+        name="돌려막기 나루토",
+        description="닌자의 길을 걷는 열혈 소년. 그림자 분신술로 빚을 돌려막고 라센간으로 채권자를 날려버린다.",
+        stats=CharacterStats(cringe_level=85, volume_req=90, precision=75),
+        spell_text="다테바요! 그림자 분신술! 이번 달도 돌려막기 성공이다!",
+        thumbnail_url="/images/profile/naruto.webp",
+        sprite_url="/images/profile/naruto.webp",
+        is_unlocked=True
+    ),
 ]
 
 

@@ -318,6 +318,39 @@ export const CHARACTER_SKILLS = {
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
+  },
+
+  // 돌려막기 나루토
+  'char_011': {
+    defaultImg: '/images/normal/naruto.webp',
+    hitImg: '/images/hit/naruto_hit.webp',
+    skills: [
+      {
+        name: '그림자 분신술',
+        trigger: '다테바요! 그림자 분신술! 천 명의 나로 빚을 돌려막겠다!',
+        image: '/images/attack/naruto_attack.webp',
+        duration: DEFAULT_SKILL_DURATION
+      },
+      {
+        name: '라센간',
+        trigger: '회전하는 차크라의 폭풍! 라센간!! 채권자는 날아가랏!',
+        image: '/images/attack/naruto_attack.webp',
+        duration: DEFAULT_SKILL_DURATION
+      },
+      {
+        name: '선인모드',
+        trigger: '자연 에너지를 모아... 선인모드! 이자는 자연에서 가져왔다!',
+        image: '/images/attack/naruto_attack.webp',
+        duration: DEFAULT_SKILL_DURATION
+      }
+    ],
+    ultimate: {
+      name: '구미 차크라 모드',
+      trigger: '쿠라마! 힘을 빌려줘! 미수옥! 다테바요! 모든 빚을 날려버리겠다! 구미 차크라 폭발!',
+      image: '/images/attack/naruto_ultimate.webp',
+      effectClass: 'ultimate-effect',
+      duration: DEFAULT_ULTIMATE_DURATION
+    }
   }
 }
 
