@@ -14,6 +14,150 @@ import { checkSkillMatch, checkUltimateMatch } from '../utils/stringSimilarity'
 import EnergyChargeEffect from '../components/EnergyChargeEffect'
 import { stopSelectBgm } from './MultiCharacterSelect'
 
+// 캐릭터별 궁극기 테마 색상 (ultimate 이미지 기반)
+const ULTIMATE_THEME_COLORS = {
+  gojo: { primary: '#9333ea', secondary: '#c084fc', glow: 'rgba(147, 51, 234, 0.8)', name: '무량공처' },
+  tanjiro: { primary: '#ea580c', secondary: '#fb923c', glow: 'rgba(234, 88, 12, 0.8)', name: '히노카미 카구라' },
+  goku: { primary: '#ec4899', secondary: '#f9a8d4', glow: 'rgba(236, 72, 153, 0.8)', name: '겐키다마' },
+  lupy: { primary: '#f8fafc', secondary: '#e2e8f0', glow: 'rgba(248, 250, 252, 0.9)', name: '기어5' },
+  darksword: { primary: '#1e293b', secondary: '#475569', glow: 'rgba(30, 41, 59, 0.8)', name: '다크슬래시' },
+  light: { primary: '#facc15', secondary: '#fef08a', glow: 'rgba(250, 204, 21, 0.8)', name: '라이트닝' },
+  livi: { primary: '#14b8a6', secondary: '#5eead4', glow: 'rgba(20, 184, 166, 0.8)', name: '치유의 빛' },
+  moon: { primary: '#6366f1', secondary: '#a5b4fc', glow: 'rgba(99, 102, 241, 0.8)', name: '문라이트' },
+  nyang: { primary: '#f472b6', secondary: '#fbcfe8', glow: 'rgba(244, 114, 182, 0.8)', name: '냥냥펀치' },
+  otaku: { primary: '#06b6d4', secondary: '#67e8f9', glow: 'rgba(6, 182, 212, 0.8)', name: '오타쿠빔' },
+}
+
+// 캐릭터 ID -> 내부 이름 매핑 (파일/테마 키)
+const CHARACTER_ID_TO_NAME = {
+  'char_000': 'otaku',
+  'char_001': 'gojo',
+  'char_002': 'lupy',
+  'char_003': 'tanjiro',
+  'char_004': 'light',
+  'char_005': 'nyang',
+  'char_006': 'otaku', // 임시 (오글이 리소스 없음)
+  'char_007': 'livi',
+  'char_008': 'darksword',
+  'char_009': 'moon',
+  'char_010': 'goku',
+}
+
+// 궁극기 띠배너 컴포넌트
+const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }) => {
+  const theme = ULTIMATE_THEME_COLORS[characterId] || ULTIMATE_THEME_COLORS.otaku
+  
+  if (!isVisible) return null
+  
+  return (
+    <div 
+      className="absolute left-0 right-0 z-50 overflow-hidden"
+      style={{ top: '25%', height: '50vh' }}
+    >
+      {/* 배경 띠배너 - 그라데이션 + 깜빡임 */}
+      <div 
+        className="absolute inset-0 animate-pulse"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${theme.primary}dd 20%, ${theme.secondary}ff 50%, ${theme.primary}dd 80%, transparent)`,
+          boxShadow: `0 0 60px ${theme.glow}, 0 0 100px ${theme.glow}`,
+        }}
+      />
+      
+      {/* 전기 효과 - 상단 */}
+      <div className="absolute top-0 left-0 right-0 h-2">
+        <div 
+          className="h-full animate-electric-top"
+          style={{
+            background: `repeating-linear-gradient(90deg, transparent, ${theme.secondary} 2px, transparent 4px)`,
+            filter: 'blur(1px)',
+          }}
+        />
+      </div>
+      
+      {/* 전기 효과 - 하단 */}
+      <div className="absolute bottom-0 left-0 right-0 h-2">
+        <div 
+          className="h-full animate-electric-bottom"
+          style={{
+            background: `repeating-linear-gradient(90deg, transparent, ${theme.secondary} 2px, transparent 4px)`,
+            filter: 'blur(1px)',
+          }}
+        />
+      </div>
+      
+      {/* 번개 스파크 효과 */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-spark"
+            style={{
+              left: `${10 + i * 12}%`,
+              top: `${20 + (i % 3) * 25}%`,
+              width: '4px',
+              height: '30px',
+              background: theme.secondary,
+              borderRadius: '2px',
+              filter: `blur(2px) drop-shadow(0 0 10px ${theme.glow})`,
+              animationDelay: `${i * 0.1}s`,
+              transform: `rotate(${-20 + i * 8}deg)`,
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* 중앙 이미지 + 글로우 */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div 
+          className="relative animate-ultimate-image"
+          style={{
+            filter: `drop-shadow(0 0 30px ${theme.glow}) drop-shadow(0 0 60px ${theme.glow})`,
+          }}
+        >
+          <img 
+            src={ultimateImage} 
+            alt="Ultimate Attack"
+            className="h-[50vh] object-contain animate-pulse"
+            style={{
+              filter: 'brightness(1.2) contrast(1.1)',
+            }}
+          />
+          {/* 이미지 오버레이 글로우 */}
+          <div 
+            className="absolute inset-0 animate-glow-pulse"
+            style={{
+              background: `radial-gradient(ellipse at center, ${theme.glow} 0%, transparent 70%)`,
+              mixBlendMode: 'overlay',
+            }}
+          />
+        </div>
+      </div>
+      
+      {/* 캐릭터 이름 + 스킬명 */}
+      <div className="absolute bottom-4 left-0 right-0 text-center">
+        <div 
+          className="text-2xl md:text-3xl font-black text-white animate-bounce"
+          style={{
+            textShadow: `0 0 20px ${theme.glow}, 0 0 40px ${theme.glow}, 2px 2px 4px rgba(0,0,0,0.5)`,
+          }}
+        >
+          {characterName} - {theme.name}
+        </div>
+      </div>
+      
+      {/* 사이드 글로우 라인 */}
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1 animate-glow-line"
+        style={{ background: `linear-gradient(to bottom, transparent, ${theme.secondary}, transparent)` }}
+      />
+      <div 
+        className="absolute right-0 top-0 bottom-0 w-1 animate-glow-line"
+        style={{ background: `linear-gradient(to bottom, transparent, ${theme.secondary}, transparent)`, animationDelay: '0.5s' }}
+      />
+    </div>
+  )
+}
+
 // 배틀 BGM 전역 관리
 let battleBgmAudio = null;
 
@@ -56,6 +200,8 @@ export default function BattleScreen() {
   const [showCritical, setShowCritical] = useState(false)
   const [activeSkillImage, setActiveSkillImage] = useState(null) // 내 스킬 발동 시 이미지
   const [opponentSkillImage, setOpponentSkillImage] = useState(null) // 상대 스킬 발동 시 이미지
+  const [showUltimateBanner, setShowUltimateBanner] = useState(null) // 궁극기 띠배너 표시 상태 { characterId, image, name, isOpponent }
+  const [isOpponentRecording, setIsOpponentRecording] = useState(false) // 상대방 녹음 중 여부
 
   // 피격 이미지 상태
   const [myHitImage, setMyHitImage] = useState(null) // 내가 피격당할 때 이미지
@@ -172,11 +318,16 @@ export default function BattleScreen() {
         setIsVoiceInputPhase(true)
         setVoiceInputProgress(5)
 
-        // 자동으로 녹음 시작
+          // 자동으로 녹음 시작
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
           startVisualizer(stream)
           startRecording()
+          
+          // 상대방에게 녹음 시작 알림
+          if (roomId) {
+            emit('battle:voice_start', { room_id: roomId })
+          }
         } catch (err) {
           console.error('Failed to start recording:', err)
           setIsVoiceInputPhase(false)
@@ -223,6 +374,11 @@ export default function BattleScreen() {
     stopVisualizer()
     setIsVoiceInputPhase(false)
     setIsAttacking(true)
+
+    // 상대방에게 녹음 종료 알림
+    if (roomId) {
+      emit('battle:voice_end', { room_id: roomId })
+    }
 
     // 현재 표시 중인 스킬/궁극기 이미지 저장 (데미지 수신 시 사용)
     const currentSkillForImage = isUltimateReady
@@ -314,6 +470,30 @@ export default function BattleScreen() {
     on('battle:damage_received', async (data) => {
       const currentUserId = useUserStore.getState().user?.id
       const isAttacker = data.attacker_id === currentUserId
+
+      // 궁극기일 경우 띠배너 표시 (공격자/방어자 모두)
+      if (data.is_ultimate) {
+        const attackerChar = isAttacker ? selectedCharacter : opponentCharacter
+        const rawCharId = attackerChar?.id || 'char_000'
+        // ID를 이름으로 변환 (파일, 테마 키로 사용)
+        const charNameKey = CHARACTER_ID_TO_NAME[rawCharId] || 'otaku'
+        
+        const ultimateImagePath = `/images/attack/${charNameKey}_ultimate.webp`
+        const charName = attackerChar?.name || attackerChar?.id || 'Ultimate'
+        
+        console.log('🌟 ULTIMATE BANNER:', charNameKey, ultimateImagePath)
+        setShowUltimateBanner({
+          characterId: charNameKey, // 테마 키로 사용됨 (ULTIMATE_THEME_COLORS[charNameKey])
+          image: ultimateImagePath,
+          name: charName,
+          isOpponent: !isAttacker
+        })
+        
+        // 2.5초 후 배너 숨기기
+        setTimeout(() => {
+          setShowUltimateBanner(null)
+        }, 2500)
+      }
 
       // 0. 공격자일 경우 스킬 이미지 활성화 (오디오 재생 전)
       if (isAttacker && lastTriggeredSkillRef.current) {
@@ -443,11 +623,24 @@ export default function BattleScreen() {
       battle.endBattle(data.winner_id, data.loser_id, data.stats, currentUserId)
     })
 
+    // --- Voice Sync Handlers ---
+    on('battle:voice_start', (data) => {
+      console.log('🎤 Opponent started recording')
+      setIsOpponentRecording(true)
+    })
+
+    on('battle:voice_end', (data) => {
+      console.log('🎤 Opponent stopped recording')
+      setIsOpponentRecording(false)
+    })
+
     return () => {
       off('battle:init')
       off('battle:turn_change')
       off('battle:damage_received')
       off('battle:result')
+      off('battle:voice_start')
+      off('battle:voice_end')
     }
   }, [on, off, battle, navigate, playOtakuSound, playCriticalHitSound, selectedCharacter, opponentCharacter])
 
@@ -480,6 +673,14 @@ export default function BattleScreen() {
       {showCritical && (
         <div className="absolute inset-0 bg-yellow-500/30 z-40 animate-pulse" />
       )}
+
+      {/* 궁극기 띠배너 */}
+      <UltimateBanner
+        isVisible={!!showUltimateBanner}
+        characterId={showUltimateBanner?.characterId}
+        ultimateImage={showUltimateBanner?.image}
+        characterName={showUltimateBanner?.name}
+      />
 
       {/* 게임 시작 애니메이션 */}
       {showGameStart && (
@@ -573,12 +774,27 @@ export default function BattleScreen() {
         {/* 왼쪽 캐릭터 */}
         <div className={`w-1/3 flex flex-col items-center relative ${showDamage && ((isHost && showDamage.isPlayer) || (!isHost && !showDamage.isPlayer)) ? 'animate-shake' : ''} ${leftEffectClass}`}>
           {/* 에너지 차지 이펙트 - 내 캐릭터가 녹음 중일 때 */}
-          {isHost && isRecording && (
+          {((isHost && isRecording) || (!isHost && isOpponentRecording)) && (
             <div className="absolute inset-0 flex items-center justify-center">
               <EnergyChargeEffect
-                isActive={isRecording}
-                intensity={1 + (analyzerData[0] || 0) / 128}
-                color="#ff69b4"
+                isActive={true}
+                intensity={isHost ? (1 + (analyzerData[0] || 0) / 128) : 1.5}
+                color={isHost ? "#ff69b4" : "#00bfff"} // Host(Me)=Pink, Opponent(Host-view)=Blue? No.
+                // Logic:
+                // If I am Host: Left is Me (Pink), Right is Opponent (Blue)
+                // If I am Guest: Left is Opponent (Pink on their screen?), Right is Me (Blue)
+                // Left Character:
+                // - If isHost: It's ME. Show Pink if I am recording.
+                // - If !isHost: It's OPPONENT (Host). Show Pink/Blue? Let's keep consistent colors?
+                // Let's rely on standard colors: Me=Pink, Opponent=Blue (or variable)
+                // Actually:
+                // Left is always "Player 1 (Host)" visually to the Host?
+                // Wait, logic at line 229:
+                // const leftCharImage = isHost ? myCharImage : opponentCharImage
+                // const rightCharImage = isHost ? opponentCharImage : myCharImage
+                // Therefore:
+                // If isHost: Left = Me, Right = Opponent
+                // If !isHost: Left = Opponent, Right = Me
               />
             </div>
           )}
@@ -606,13 +822,13 @@ export default function BattleScreen() {
 
         {/* 오른쪽 캐릭터 */}
         <div className={`w-1/3 flex flex-col items-center relative ${isAttacking || showCritical ? 'animate-shake' : ''} ${rightEffectClass}`}>
-          {/* 에너지 차지 이펙트 - 내 캐릭터가 녹음 중일 때 (비호스트) */}
-          {!isHost && isRecording && (
+          {/* 에너지 차지 이펙트 */}
+          {((!isHost && isRecording) || (isHost && isOpponentRecording)) && (
             <div className="absolute inset-0 flex items-center justify-center">
               <EnergyChargeEffect
-                isActive={isRecording}
-                intensity={1 + (analyzerData[0] || 0) / 128}
-                color="#00bfff"
+                isActive={true}
+                intensity={!isHost ? (1 + (analyzerData[0] || 0) / 128) : 1.5}
+                color={!isHost ? "#00bfff" : "#ff69b4"} 
               />
             </div>
           )}

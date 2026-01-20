@@ -14,8 +14,8 @@ class BattleState:
     battle_id: str
     player1_id: str
     player2_id: str
-    player1_hp: int = 100
-    player2_hp: int = 100
+    player1_hp: int = 300
+    player2_hp: int = 300
     player1_character_id: Optional[str] = None
     player2_character_id: Optional[str] = None
     current_turn: int = 1  # 1 = player1, 2 = player2

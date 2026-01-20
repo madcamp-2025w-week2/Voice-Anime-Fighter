@@ -393,6 +393,13 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             logger.info(f"User {sid} left matchmaking queue")
             await sio.emit("match:cancelled", {}, room=sid)
     
+    @sio.on("lobby:rejoin")
+    async def lobby_rejoin(sid, data):
+        """Rejoin the lobby room (e.g., after a battle ends)."""
+        logger.info(f"[{sid}] Rejoining lobby room")
+        await sio.enter_room(sid, "lobby")
+        await sio.emit("lobby:rejoined", {"success": True}, room=sid)
+    
     @sio.event
     async def room_join(sid, data):
         """Join a room."""
@@ -722,6 +729,28 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         """Trigger battle start."""
         room_id = data.get("room_id")
         await sio.emit("battle:start", {}, room=room_id)
+
+    @sio.on("battle:voice_start")
+    async def battle_voice_start(sid, data):
+        """Handle voice recording start signal."""
+        room_id = data.get("room_id")
+        if not room_id: return
+        
+        user_info = connected_users.get(sid, {})
+        await sio.emit("battle:voice_start", {
+            "user_id": user_info.get("user_id", sid)
+        }, room=room_id, skip_sid=sid) # Don't send back to sender
+
+    @sio.on("battle:voice_end")
+    async def battle_voice_end(sid, data):
+        """Handle voice recording end signal."""
+        room_id = data.get("room_id")
+        if not room_id: return
+        
+        user_info = connected_users.get(sid, {})
+        await sio.emit("battle:voice_end", {
+            "user_id": user_info.get("user_id", sid)
+        }, room=room_id, skip_sid=sid)
 
     # ------------------------------------
     
