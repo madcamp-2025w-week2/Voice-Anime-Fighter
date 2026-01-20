@@ -52,6 +52,32 @@ export default function MultiCharacterSelect() {
     }
   }, [roomId, navigate])
 
+  // 선택 BGM 재생 (캐릭터/배경 선택 공유)
+  useEffect(() => {
+    // 이미 재생 중이면 스킵
+    if (!window.__selectBgmAudio) {
+      window.__selectBgmAudio = new Audio('/audio/select_bgm.mp3');
+      window.__selectBgmAudio.loop = true;
+      window.__selectBgmAudio.volume = 0.4;
+    }
+
+    const audio = window.__selectBgmAudio;
+
+    const playBgm = () => {
+      if (audio.paused) {
+        audio.play().catch(err => console.log('Select BGM autoplay blocked:', err));
+      }
+    };
+
+    document.addEventListener('click', playBgm, { once: true });
+    playBgm();
+
+    // Cleanup은 하지 않음 - 배경 선택 화면에서도 계속 재생
+    return () => {
+      document.removeEventListener('click', playBgm);
+    };
+  }, []);
+
   // 소켓 방 참여 (진입 시)
   useEffect(() => {
     if (roomId) {

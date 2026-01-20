@@ -60,9 +60,12 @@ export default function LobbyScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // BGM State
+  // BGM State - localStorage에서 저장된 볼륨 불러오기
   const bgmRef = useRef(null);
-  const [bgmVolume, setBgmVolume] = useState(0.5);
+  const [bgmVolume, setBgmVolume] = useState(() => {
+    const saved = localStorage.getItem('bgmVolume');
+    return saved !== null ? parseFloat(saved) : 0.5;
+  });
   const [showBgmMenu, setShowBgmMenu] = useState(false);
 
   // Edit Profile 모달이 열릴 때만 초기화 (모달 열리는 순간에만)
@@ -98,13 +101,14 @@ export default function LobbyScreen() {
     };
   }, []);
 
-  // 볼륨 변경 시 적용
+  // 볼륨 변경 시 적용 및 localStorage에 저장
   useEffect(() => {
     if (bgmRef.current) {
       bgmRef.current.volume = bgmVolume;
     }
+    localStorage.setItem('bgmVolume', bgmVolume.toString());
   }, [bgmVolume]);
-  
+
   // 모달이 닫힌 후 edit 필드 초기화
   useEffect(() => {
     if (!isEditModalOpen) {
