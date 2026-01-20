@@ -90,16 +90,6 @@ CHARACTERS = [
         is_unlocked=True
     ),
     Character(
-        id="char_006",
-        name="오타쿠 전사 오글이",
-        description="분홍 머리띠의 오타쿠. 피규어 파워로 공격.",
-        stats=CharacterStats(cringe_level=90, volume_req=80, precision=70),
-        spell_text="오타쿠의 자존심! 피규어 슬래시!",
-        thumbnail_url="/images/ogeul.webp",
-        sprite_url="/images/ogeul.webp",
-        is_unlocked=True
-    ),
-    Character(
         id="char_007",
         name="딸바이",
         description="전설의 폭주족 출신 배달부. 신속 정확하게 적의 멘탈을 배달 사고 낸다.",
@@ -137,6 +127,16 @@ CHARACTERS = [
         spell_text="치키치키 차카차카 초코초코 쵸! 호잇! 너의 소원을 들어주지 않겠다!",
         thumbnail_url="/images/profile/goku_princess.webp",
         sprite_url="/images/profile/goku_princess.webp",
+        is_unlocked=True
+    ),
+    Character(
+        id="char_011",
+        name="돌려막기 나루토",
+        description="닌자의 길을 걷는 열혈 소년. 그림자 분신술로 빚을 돌려막고 라센간으로 채권자를 날려버린다.",
+        stats=CharacterStats(cringe_level=85, volume_req=90, precision=75),
+        spell_text="다테바요! 그림자 분신술! 이번 달도 돌려막기 성공이다!",
+        thumbnail_url="/images/profile/naruto.webp",
+        sprite_url="/images/profile/naruto.webp",
         is_unlocked=True
     ),
 ]

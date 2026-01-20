@@ -196,33 +196,6 @@ export const CHARACTER_SKILLS = {
     }
   },
 
-  // 오타쿠 전사 오글이
-  'char_006': {
-    defaultImg: '/images/ogeul.webp',
-    hitImg: '/images/ogeul.webp',
-    skills: [
-      {
-        name: '피규어 어택',
-        trigger: '피규어의 힘이여!',
-        image: '/images/ogeul_skill_1.png',
-        duration: DEFAULT_SKILL_DURATION
-      },
-      {
-        name: '피규어 슬래시',
-        trigger: '오타쿠의 자존심!',
-        image: '/images/ogeul_skill_2.png',
-        duration: DEFAULT_SKILL_DURATION
-      }
-    ],
-    ultimate: {
-      name: '오타쿠 디멘션',
-      trigger: '오타쿠의 자존심! 피규어 슬래시!',
-      image: '/images/ogeul_ultimate.png',
-      effectClass: 'ultimate-effect',
-      duration: DEFAULT_ULTIMATE_DURATION
-    }
-  },
-
   // 딸바이 (진격거)
   'char_007': {
     defaultImg: '/images/normal/levi_normal.webp',
@@ -326,6 +299,39 @@ export const CHARACTER_SKILLS = {
       name: '큐티뽀짝 여의봉',
       trigger: '나와라! 큐티뽀짝 여의봉!! 어딜 감히 쳐다보느냐! 이 오징어 쩌꾸미들아!! 내 미모에... 정신을 못 차리고... 넋을 잃어라!!!! 홀릴 혹',
       image: '/images/attack/goku_attack.webp',
+      effectClass: 'ultimate-effect',
+      duration: DEFAULT_ULTIMATE_DURATION
+    }
+  },
+
+  // 돌려막기 나루토
+  'char_011': {
+    defaultImg: '/images/normal/naruto.webp',
+    hitImg: '/images/hit/naruto_hit.webp',
+    skills: [
+      {
+        name: '그림자 분신술',
+        trigger: '다테바요! 그림자 분신술! 천 명의 나로 빚을 돌려막겠다!',
+        image: '/images/attack/naruto_attack.webp',
+        duration: DEFAULT_SKILL_DURATION
+      },
+      {
+        name: '라센간',
+        trigger: '회전하는 차크라의 폭풍! 라센간!! 채권자는 날아가랏!',
+        image: '/images/attack/naruto_attack.webp',
+        duration: DEFAULT_SKILL_DURATION
+      },
+      {
+        name: '선인모드',
+        trigger: '자연 에너지를 모아... 선인모드! 이자는 자연에서 가져왔다!',
+        image: '/images/attack/naruto_attack.webp',
+        duration: DEFAULT_SKILL_DURATION
+      }
+    ],
+    ultimate: {
+      name: '구미 차크라 모드',
+      trigger: '쿠라마! 힘을 빌려줘! 미수옥! 다테바요! 모든 빚을 날려버리겠다! 구미 차크라 폭발!',
+      image: '/images/attack/naruto_ultimate.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
