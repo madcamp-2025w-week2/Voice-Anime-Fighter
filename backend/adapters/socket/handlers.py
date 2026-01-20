@@ -648,6 +648,11 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "background_id": background_id
         }, room=room_id)
     
+    
+    # Simple in-memory storage for background votes
+    # room_id -> { user_id: background_id }
+    background_votes = {}
+
     @sio.on("background:confirm")
     async def background_confirm(sid, data):
         """Handle background confirmation."""
@@ -657,11 +662,43 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             return
         
         user_info = connected_users.get(sid, {})
+        user_id = user_info.get("user_id", sid)
+        
         logger.info(f"[{sid}] background:confirm - {background_id} in room {room_id}")
+        
+        # Broadcast confirmation status
         await sio.emit("background:confirmed", {
-            "user_id": user_info.get("user_id", sid),
+            "user_id": user_id,
             "background_id": background_id
         }, room=room_id)
+
+        # Store vote
+        if room_id not in background_votes:
+            background_votes[room_id] = {}
+        background_votes[room_id][user_id] = background_id
+        
+        # Check if 2 players have voted
+        votes = background_votes[room_id]
+        if len(votes) >= 2:
+            # Determine winner
+            vote_values = list(votes.values())
+            final_bg = None
+            
+            if vote_values[0] == vote_values[1]:
+                final_bg = vote_values[0]
+                logger.info(f"Room {room_id}: Unanimous vote for {final_bg}")
+            else:
+                import random
+                final_bg = random.choice(vote_values)
+                logger.info(f"Room {room_id}: Random choice {final_bg} from {vote_values}")
+            
+            # Broadcast final decision
+            await sio.emit("background:final", {
+                "background_id": final_bg
+            }, room=room_id)
+            
+            # Cleanup votes for this room
+            del background_votes[room_id]
     
     @sio.on("battle:countdown")
     async def battle_countdown(sid, data):

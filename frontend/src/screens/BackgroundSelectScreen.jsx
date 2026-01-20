@@ -66,39 +66,29 @@ export default function BackgroundSelectScreen() {
       }
     })
     
+    // 최종 결정 수신 (서버에서 결정)
+    on('background:final', (data) => {
+      const chosenBg = BATTLE_BACKGROUNDS.find(bg => bg.id === data.background_id)
+      if (chosenBg) {
+        setFinalBackground(chosenBg)
+        setBackground(chosenBg)
+        setShowResult(true)
+        
+        // 1.5초 후 카운트다운 시작
+        setTimeout(() => {
+          setCountdown(3)
+        }, 1500)
+      }
+    })
+    
     return () => {
       off('background:selected')
       off('background:confirmed')
+      off('background:final')
     }
-  }, [on, off, user?.id])
+  }, [on, off, user?.id, setBackground])
   
-  // 둘 다 확정하면 최종 배경 결정
-  useEffect(() => {
-    if (myConfirmed && opponentConfirmed && !finalBackground) {
-      // 같은 배경 선택했으면 그걸로, 아니면 랜덤
-      let chosen
-      if (mySelection?.id === opponentSelection?.id) {
-        chosen = mySelection
-      } else {
-        // 둘 중 하나 랜덤
-        const options = [mySelection, opponentSelection].filter(Boolean)
-        if (options.length === 2) {
-          chosen = options[Math.floor(Math.random() * 2)]
-        } else {
-          chosen = options[0] || getRandomBackground()
-        }
-      }
-      
-      setFinalBackground(chosen)
-      setBackground(chosen)
-      setShowResult(true)
-      
-      // 1.5초 후 카운트다운 시작
-      setTimeout(() => {
-        setCountdown(3)
-      }, 1500)
-    }
-  }, [myConfirmed, opponentConfirmed, mySelection, opponentSelection, finalBackground, setBackground])
+  // (제거됨: 클라이언트 측 최종 결정 로직)
   
   // 카운트다운 처리
   useEffect(() => {
@@ -223,61 +213,101 @@ export default function BackgroundSelectScreen() {
       </div>
 
       {/* 메인 컨텐츠 */}
-      <div className="flex-1 relative z-10 flex">
-        {/* 왼쪽: 미리보기 & 선택 정보 */}
-        <div className="w-1/3 p-6 flex flex-col items-center justify-center">
-          {/* 큰 미리보기 */}
+      <div className="flex-1 relative z-10 flex flex-col p-6 gap-6 max-w-7xl mx-auto w-full">
+        {/* 상단: 대형 미리보기 & 정보 */}
+        <div className="flex-1 flex gap-8 min-h-0">
+          {/* 대형 미리보기 */}
           <div 
-            className="w-full aspect-video rounded-2xl overflow-hidden border-4 border-cyan-500/50 shadow-[0_0_40px_rgba(0,212,255,0.3)] mb-6"
+            className="flex-1 relative rounded-3xl overflow-hidden border-4 border-cyan-500/30 shadow-[0_0_50px_rgba(0,212,255,0.2)] group"
             style={previewBg?.style || { background: '#1a1a2e' }}
           >
-            <div className="w-full h-full flex items-end justify-center pb-4 bg-gradient-to-t from-black/70 to-transparent">
-              <span className="text-white text-3xl font-black drop-shadow-lg tracking-wider">
-                {previewBg?.name || '선택 없음'}
-              </span>
+             {/* Gradient Overlay */}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+            
+            {/* Background Name */}
+            <div className="absolute bottom-8 left-8">
+               <h2 className="text-5xl font-black text-white italic tracking-wider drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase">
+                {previewBg?.name || 'SELECT STAGE'}
+              </h2>
+            </div>
+            
+            {/* Player Badges on Preview */}
+            <div className="absolute top-6 right-6 flex flex-col gap-3">
+               {getPlayerBadges(previewBg?.id).map((badge, idx) => (
+                  <div 
+                    key={idx}
+                    className="px-6 py-2 rounded-xl backdrop-blur-md border border-white/20 text-white font-bold shadow-xl flex items-center gap-3"
+                    style={{ background: `linear-gradient(90deg, ${badge.color}88, ${badge.color}44)` }}
+                  >
+                    <div className="w-3 h-3 rounded-full animate-pulse bg-white" />
+                    {badge.name}
+                  </div>
+               ))}
             </div>
           </div>
-          
-          {/* 현재 선택 상태 */}
-          <div className="w-full bg-black/60 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: myColor }} />
-                <span className="text-white text-sm font-bold">{user?.nickname}</span>
-              </div>
-              <span className="text-cyan-400 text-sm">{mySelection?.name || '선택 대기'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: opponentColor }} />
-                <span className="text-white text-sm font-bold">{opponentNickname || 'Opponent'}</span>
-              </div>
-              <span className="text-pink-400 text-sm">{opponentSelection?.name || '선택 대기'}</span>
-            </div>
+
+          {/* 우측 정보 & 확정 패널 */}
+          <div className="w-80 flex flex-col gap-4">
+             {/* 현재 선택 상태 카드 */}
+             <div className="bg-black/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 flex-col gap-4 flex shadow-2xl">
+                <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest border-b border-white/10 pb-2">Current Status</h3>
+                
+                <div className="flex justify-between items-center group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: myColor }} />
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-500 font-bold">YOU</span>
+                        <span className="text-white font-bold">{user?.nickname}</span>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded bg-zinc-900 border border-zinc-700 text-xs ${myConfirmed ? 'text-green-400 border-green-900/50' : 'text-zinc-500'}`}>
+                    {myConfirmed ? 'READY' : 'SELECTING'}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: opponentColor }} />
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-500 font-bold">OPPONENT</span>
+                        <span className="text-white font-bold">{opponentNickname || 'Waiting...'}</span>
+                    </div>
+                  </div>
+                   <div className={`px-3 py-1 rounded bg-zinc-900 border border-zinc-700 text-xs ${opponentConfirmed ? 'text-green-400 border-green-900/50' : 'text-zinc-500'}`}>
+                    {opponentConfirmed ? 'READY' : '...'}
+                  </div>
+                </div>
+             </div>
+
+             {/* 확정 버튼 */}
+             <button
+              onClick={handleConfirm}
+              disabled={!mySelection || myConfirmed}
+              className={`flex-1 rounded-2xl font-black text-2xl italic uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-2 ${
+                myConfirmed
+                  ? 'bg-zinc-800 text-green-500 border-2 border-green-500/50'
+                  : mySelection
+                    ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:scale-[1.02] border-2 border-orange-400/50 shadow-[0_0_30px_rgba(220,38,38,0.4)]'
+                    : 'bg-zinc-900 text-zinc-600 cursor-not-allowed border-2 border-zinc-800'
+              }`}
+            >
+              {myConfirmed ? (
+                <>
+                  <Check className="w-8 h-8" /> COMPLETE
+                </>
+              ) : (
+                'CONFIRM'
+              )}
+            </button>
           </div>
-          
-          {/* 확정 버튼 */}
-          <button
-            onClick={handleConfirm}
-            disabled={!mySelection || myConfirmed}
-            className={`mt-6 w-full py-4 rounded-xl font-black text-xl uppercase tracking-wider transition-all ${
-              myConfirmed
-                ? 'bg-green-600 text-white shadow-[0_0_30px_rgba(34,197,94,0.5)]'
-                : mySelection
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:scale-105 shadow-[0_6px_0_rgba(6,95,139,1)] active:translate-y-[3px] active:shadow-[0_3px_0_rgba(6,95,139,1)]'
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {myConfirmed ? '✓ 투표 완료!' : mySelection ? '투표 확정' : '배경을 선택하세요'}
-          </button>
         </div>
         
-        {/* 오른쪽: 배경 그리드 */}
-        <div className="flex-1 p-6 overflow-auto">
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {/* 하단: 배경 그리드 (전체 표시) */}
+        <div className="h-64 shrink-0 bg-black/60 backdrop-blur-md rounded-2xl p-6 border-t border-white/10 overflow-y-auto custom-scrollbar">
+          <div className="flex flex-wrap gap-4 justify-center">
             {BATTLE_BACKGROUNDS.map((bg) => {
-              const badges = getPlayerBadges(bg.id)
               const isMySelected = mySelection?.id === bg.id
+              const isOpponentSelected = opponentSelection?.id === bg.id
               
               return (
                 <button
@@ -286,51 +316,36 @@ export default function BackgroundSelectScreen() {
                   onMouseEnter={() => !myConfirmed && setPreviewBg(bg)}
                   onMouseLeave={() => !myConfirmed && setPreviewBg(mySelection || BATTLE_BACKGROUNDS[0])}
                   disabled={myConfirmed}
-                  className={`relative aspect-video rounded-xl overflow-hidden border-3 transition-all duration-200 group ${
+                  className={`relative w-48 aspect-video rounded-lg overflow-hidden transition-all duration-200 group ${
                     isMySelected
-                      ? 'border-cyan-400 ring-4 ring-cyan-400/50 scale-105 shadow-[0_0_30px_rgba(0,212,255,0.5)]'
-                      : 'border-white/20 hover:border-white/50 hover:scale-102'
-                  } ${myConfirmed ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                      ? 'border-4 border-cyan-400 scale-110 z-20 shadow-[0_0_20px_rgba(6,182,212,0.6)]'
+                      : isOpponentSelected 
+                        ? 'border-4 border-pink-500 scale-110 z-20 shadow-[0_0_20px_rgba(236,72,153,0.6)]' 
+                        : 'border-2 border-zinc-700 hover:border-white hover:scale-105 hover:z-10'
+                  } ${myConfirmed ? 'opacity-50 grayscale cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {/* 배경 썸네일 */}
                   {bg.thumbnail ? (
                     <img 
                       src={bg.thumbnail} 
                       alt={bg.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full" style={bg.style} />
                   )}
                   
-                  {/* 이름 오버레이 */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center pb-2">
-                    <span className="text-white text-xs font-bold drop-shadow-lg">{bg.name}</span>
+                  {/* 이름 오버레이 (작게) */}
+                  <div className={`absolute inset-x-0 bottom-0 p-1 bg-gradient-to-t from-black/90 to-transparent transition-all ${isMySelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <span className="text-white text-[10px] font-bold uppercase tracking-wider block truncate text-center">{bg.name}</span>
                   </div>
                   
-                  {/* 플레이어 뱃지 (네온 그라데이션 + 닉네임) */}
-                  {badges.length > 0 && (
-                    <div className="absolute top-0 left-0 right-0 flex gap-1 p-1">
-                      {badges.map((badge, idx) => (
-                        <div
-                          key={idx}
-                          className="flex-1 px-2 py-1 rounded-b-lg text-center text-[10px] font-bold text-white truncate"
-                          style={{
-                            background: `linear-gradient(135deg, ${badge.color}aa, ${badge.color}55)`,
-                            boxShadow: `0 0 10px ${badge.color}66`,
-                          }}
-                        >
-                          {badge.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* 체크 마크 */}
+                  {/* 선택 표시 뱃지 */}
                   {isMySelected && (
-                    <div className="absolute top-2 right-2 bg-cyan-500 rounded-full p-1 shadow-lg">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
+                    <div className="absolute top-1 left-1 bg-cyan-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg">P1</div>
+                  )}
+                   {isOpponentSelected && (
+                    <div className="absolute top-1 right-1 bg-pink-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg">P2</div>
                   )}
                 </button>
               )
