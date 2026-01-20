@@ -46,26 +46,26 @@ const CHARACTER_ID_TO_NAME = {
 // 궁극기 띠배너 컴포넌트
 const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }) => {
   const theme = ULTIMATE_THEME_COLORS[characterId] || ULTIMATE_THEME_COLORS.otaku
-  
+
   if (!isVisible) return null
-  
+
   return (
-    <div 
+    <div
       className="absolute left-0 right-0 z-50 overflow-hidden"
       style={{ top: '25%', height: '50vh' }}
     >
       {/* 배경 띠배너 - 그라데이션 + 깜빡임 */}
-      <div 
+      <div
         className="absolute inset-0 animate-pulse"
         style={{
           background: `linear-gradient(90deg, transparent, ${theme.primary}dd 20%, ${theme.secondary}ff 50%, ${theme.primary}dd 80%, transparent)`,
           boxShadow: `0 0 60px ${theme.glow}, 0 0 100px ${theme.glow}`,
         }}
       />
-      
+
       {/* 전기 효과 - 상단 */}
       <div className="absolute top-0 left-0 right-0 h-2">
-        <div 
+        <div
           className="h-full animate-electric-top"
           style={{
             background: `repeating-linear-gradient(90deg, transparent, ${theme.secondary} 2px, transparent 4px)`,
@@ -73,10 +73,10 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
           }}
         />
       </div>
-      
+
       {/* 전기 효과 - 하단 */}
       <div className="absolute bottom-0 left-0 right-0 h-2">
-        <div 
+        <div
           className="h-full animate-electric-bottom"
           style={{
             background: `repeating-linear-gradient(90deg, transparent, ${theme.secondary} 2px, transparent 4px)`,
@@ -84,7 +84,7 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
           }}
         />
       </div>
-      
+
       {/* 번개 스파크 효과 */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(8)].map((_, i) => (
@@ -105,17 +105,17 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
           />
         ))}
       </div>
-      
+
       {/* 중앙 이미지 + 글로우 */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div 
+        <div
           className="relative animate-ultimate-image"
           style={{
             filter: `drop-shadow(0 0 30px ${theme.glow}) drop-shadow(0 0 60px ${theme.glow})`,
           }}
         >
-          <img 
-            src={ultimateImage} 
+          <img
+            src={ultimateImage}
             alt="Ultimate Attack"
             className="h-[50vh] object-contain animate-pulse"
             style={{
@@ -123,7 +123,7 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
             }}
           />
           {/* 이미지 오버레이 글로우 */}
-          <div 
+          <div
             className="absolute inset-0 animate-glow-pulse"
             style={{
               background: `radial-gradient(ellipse at center, ${theme.glow} 0%, transparent 70%)`,
@@ -132,10 +132,10 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
           />
         </div>
       </div>
-      
+
       {/* 캐릭터 이름 + 스킬명 */}
       <div className="absolute bottom-4 left-0 right-0 text-center">
-        <div 
+        <div
           className="text-2xl md:text-3xl font-black text-white animate-bounce"
           style={{
             textShadow: `0 0 20px ${theme.glow}, 0 0 40px ${theme.glow}, 2px 2px 4px rgba(0,0,0,0.5)`,
@@ -144,13 +144,13 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
           {characterName} - {theme.name}
         </div>
       </div>
-      
+
       {/* 사이드 글로우 라인 */}
-      <div 
+      <div
         className="absolute left-0 top-0 bottom-0 w-1 animate-glow-line"
         style={{ background: `linear-gradient(to bottom, transparent, ${theme.secondary}, transparent)` }}
       />
-      <div 
+      <div
         className="absolute right-0 top-0 bottom-0 w-1 animate-glow-line"
         style={{ background: `linear-gradient(to bottom, transparent, ${theme.secondary}, transparent)`, animationDelay: '0.5s' }}
       />
@@ -161,17 +161,17 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
 // 🌟 화려한 공격 이펙트 오버레이 (녹음 중 화면 50% 이상 덮음)
 const AttackOverlay = ({ isVisible }) => {
   if (!isVisible) return null
-  
+
   return (
     <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
       {/* 화면 50% 이상 덮는 그라데이션 오버레이 */}
-      <div 
+      <div
         className="absolute inset-0 animate-pulse"
         style={{
           background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, rgba(147,51,234,0.2) 30%, rgba(236,72,153,0.15) 50%, transparent 70%)',
         }}
       />
-      
+
       {/* 별빛 버스트 - 20개 */}
       {[...Array(20)].map((_, i) => (
         <div
@@ -189,17 +189,17 @@ const AttackOverlay = ({ isVisible }) => {
           {['✨', '⭐', '🌟', '💫', '✧', '★'][i % 6]}
         </div>
       ))}
-      
+
       {/* 번쩍이는 광선 효과 */}
-      <div 
+      <div
         className="absolute inset-0 animate-flash-burst"
         style={{
           background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.6) 0%, transparent 50%)',
         }}
       />
-      
+
       {/* 마법진 효과 */}
-      <div 
+      <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] animate-magic-circle"
         style={{
           border: '3px solid rgba(255,200,100,0.5)',
@@ -207,7 +207,7 @@ const AttackOverlay = ({ isVisible }) => {
           boxShadow: '0 0 30px rgba(255,200,100,0.4), inset 0 0 30px rgba(255,200,100,0.2)',
         }}
       />
-      <div 
+      <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[45vw] h-[45vw] max-w-[380px] max-h-[380px] animate-magic-circle-reverse"
         style={{
           border: '2px solid rgba(236,72,153,0.5)',
@@ -215,7 +215,7 @@ const AttackOverlay = ({ isVisible }) => {
           boxShadow: '0 0 20px rgba(236,72,153,0.4)',
         }}
       />
-      
+
       {/* 양쪽 코너 스파크 */}
       <div className="absolute top-0 left-0 w-32 h-32">
         <div className="animate-corner-spark w-full h-full bg-gradient-to-br from-yellow-300/50 to-transparent" />
@@ -282,6 +282,10 @@ export default function BattleScreen() {
   const [myHitImage, setMyHitImage] = useState(null) // 내가 피격당할 때 이미지
   const [opponentHitImage, setOpponentHitImage] = useState(null) // 상대가 피격당할 때 이미지
   const [isBlinking, setIsBlinking] = useState(false) // 피격 깜빡임 상태
+
+  // 공격자 대시 애니메이션 상태
+  const [dashPhase, setDashPhase] = useState(null) // 'dashing' | 'returning' | null
+  const [attackerSide, setAttackerSide] = useState(null) // 공격자 위치 ('left' | 'right' | null)
 
   // 음성 입력 관련 상태
   const [isVoiceInputPhase, setIsVoiceInputPhase] = useState(false)
@@ -393,12 +397,12 @@ export default function BattleScreen() {
         setIsVoiceInputPhase(true)
         setVoiceInputProgress(5)
 
-          // 자동으로 녹음 시작
+        // 자동으로 녹음 시작
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
           startVisualizer(stream)
           startRecording()
-          
+
           // 상대방에게 녹음 시작 알림
           if (roomId) {
             emit('battle:voice_start', { room_id: roomId })
@@ -448,7 +452,7 @@ export default function BattleScreen() {
     // 🔥 stopRecording이 완료되기를 기다리고 blob을 받음
     const recordedBlob = await stopRecording()
     console.log('🎤 Got recorded blob:', recordedBlob?.size)
-    
+
     stopVisualizer()
     setIsVoiceInputPhase(false)
     setIsAttacking(true)
@@ -553,10 +557,10 @@ export default function BattleScreen() {
         const rawCharId = attackerChar?.id || 'char_000'
         // ID를 이름으로 변환 (파일, 테마 키로 사용)
         const charNameKey = CHARACTER_ID_TO_NAME[rawCharId] || 'otaku'
-        
+
         const ultimateImagePath = `/images/attack/${charNameKey}_ultimate.webp`
         const charName = attackerChar?.name || attackerChar?.id || 'Ultimate'
-        
+
         console.log('🌟 ULTIMATE BANNER:', charNameKey, ultimateImagePath)
         setShowUltimateBanner({
           characterId: charNameKey, // 테마 키로 사용됨 (ULTIMATE_THEME_COLORS[charNameKey])
@@ -564,7 +568,7 @@ export default function BattleScreen() {
           name: charName,
           isOpponent: !isAttacker
         })
-        
+
         // 2.5초 후 배너 숨기기
         setTimeout(() => {
           setShowUltimateBanner(null)
@@ -598,7 +602,31 @@ export default function BattleScreen() {
         setOpponentSkillImage(null)
       }
 
-      // === 피격 애니메이션 시퀀스 시작 ===
+      // === 공격자 대시 + 피격 애니메이션 시퀀스 시작 ===
+
+      // 공격자 위치 결정 (isHost: 왼쪽=나, 오른쪽=상대 / !isHost: 왼쪽=상대, 오른쪽=나)
+      // 공격자 시점에서: isHost면 내가 왼쪽에서 오른쪽으로 대시, !isHost면 내가 오른쪽에서 왼쪽으로 대시
+      // 방어자 시점에서: isHost면 상대가 오른쪽에서 왼쪽으로 대시, !isHost면 상대가 왼쪽에서 오른쪽 대시
+      const attackerOnLeft = isAttacker ? isHost : !isHost
+      console.log('⚔️ Attacker dash:', attackerOnLeft ? 'LEFT → RIGHT' : 'RIGHT → LEFT')
+
+      // 대시 중 attack 이미지 설정
+      if (isAttacker) {
+        // 내가 공격자: 내 attack 이미지 설정
+        const myAttackImg = myCharacterSkills?.skills?.[0]?.image || myCharacterSkills?.defaultImg
+        setActiveSkillImage(myAttackImg)
+      } else {
+        // 상대가 공격자: 상대 attack 이미지 설정
+        const opponentAttackImg = data.skill_image || opponentCharacterSkills?.skills?.[0]?.image || opponentCharacterSkills?.defaultImg
+        setOpponentSkillImage(opponentAttackImg)
+      }
+
+      // 대시 애니메이션 시작
+      setAttackerSide(attackerOnLeft ? 'left' : 'right')
+      setDashPhase('dashing')
+
+      // 대시 완료 대기 (300ms)
+      await new Promise(resolve => setTimeout(resolve, 300))
 
       // 피격 SFX 재생
       const playHitSfx = () => {
@@ -658,9 +686,15 @@ export default function BattleScreen() {
           }
         }
 
-        // 상대 피격 이미지 복구 (턴 변경 시 normal로)
+        // 대시 복귀 애니메이션 시작
+        setDashPhase('returning')
+
+        // 복귀 애니메이션 완료 후 상태 초기화 (300ms)
         setTimeout(() => {
           setOpponentHitImage(null)
+          setDashPhase(null)
+          setAttackerSide(null)
+          setActiveSkillImage(null) // attack 이미지 → normal 이미지
         }, 300)
       } else {
         // Defender: take damage on self
@@ -669,9 +703,15 @@ export default function BattleScreen() {
         // Now it's defender's turn
         battle.setTurn(true)
 
-        // 내 피격 이미지 복구 (턴 변경 시 normal로)
+        // 대시 복귀 애니메이션 시작
+        setDashPhase('returning')
+
+        // 복귀 애니메이션 완료 후 상태 초기화 (300ms)
         setTimeout(() => {
           setMyHitImage(null)
+          setDashPhase(null)
+          setAttackerSide(null)
+          setOpponentSkillImage(null) // attack 이미지 → normal 이미지
         }, 300)
       }
 
@@ -860,21 +900,21 @@ export default function BattleScreen() {
                 isActive={true}
                 intensity={isHost ? (1 + (analyzerData[0] || 0) / 128) : 1.5}
                 color={isHost ? "#ff69b4" : "#00bfff"} // Host(Me)=Pink, Opponent(Host-view)=Blue? No.
-                // Logic:
-                // If I am Host: Left is Me (Pink), Right is Opponent (Blue)
-                // If I am Guest: Left is Opponent (Pink on their screen?), Right is Me (Blue)
-                // Left Character:
-                // - If isHost: It's ME. Show Pink if I am recording.
-                // - If !isHost: It's OPPONENT (Host). Show Pink/Blue? Let's keep consistent colors?
-                // Let's rely on standard colors: Me=Pink, Opponent=Blue (or variable)
-                // Actually:
-                // Left is always "Player 1 (Host)" visually to the Host?
-                // Wait, logic at line 229:
-                // const leftCharImage = isHost ? myCharImage : opponentCharImage
-                // const rightCharImage = isHost ? opponentCharImage : myCharImage
-                // Therefore:
-                // If isHost: Left = Me, Right = Opponent
-                // If !isHost: Left = Opponent, Right = Me
+              // Logic:
+              // If I am Host: Left is Me (Pink), Right is Opponent (Blue)
+              // If I am Guest: Left is Opponent (Pink on their screen?), Right is Me (Blue)
+              // Left Character:
+              // - If isHost: It's ME. Show Pink if I am recording.
+              // - If !isHost: It's OPPONENT (Host). Show Pink/Blue? Let's keep consistent colors?
+              // Let's rely on standard colors: Me=Pink, Opponent=Blue (or variable)
+              // Actually:
+              // Left is always "Player 1 (Host)" visually to the Host?
+              // Wait, logic at line 229:
+              // const leftCharImage = isHost ? myCharImage : opponentCharImage
+              // const rightCharImage = isHost ? opponentCharImage : myCharImage
+              // Therefore:
+              // If isHost: Left = Me, Right = Opponent
+              // If !isHost: Left = Opponent, Right = Me
               />
             </div>
           )}
@@ -886,20 +926,19 @@ export default function BattleScreen() {
               <div className="absolute left-1/2 top-1/2 text-2xl animate-star-fast z-30" style={{ marginTop: '-10px', marginLeft: '-50px' }}>✨</div>
             </>
           )}
-          <img 
-            src={leftCharImage} 
-            alt={leftLabel} 
-            className={`h-48 md:h-64 object-contain scale-[2] transition-all duration-300 ${leftEffectClass} ${
-              ((isHost && isRecording) || (!isHost && isOpponentRecording)) 
-                ? 'animate-rainbow-glow z-20' 
-                : ''
-            } ${isBlinking && !isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && isHost && myHitImage ? 'animate-hit-blink' : ''}`} 
-            style={{ 
+          <img
+            src={leftCharImage}
+            alt={leftLabel}
+            className={`h-48 md:h-64 object-contain scale-[2] transition-all duration-300 ${leftEffectClass} ${((isHost && isRecording) || (!isHost && isOpponentRecording))
+              ? 'animate-rainbow-glow z-20'
+              : ''
+              } ${isBlinking && !isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && isHost && myHitImage ? 'animate-hit-blink' : ''} ${dashPhase === 'dashing' && attackerSide === 'left' ? 'animate-dash-right' : ''} ${dashPhase === 'returning' && attackerSide === 'left' ? 'animate-dash-return-left' : ''}`}
+            style={{
               filter: ((isHost && isRecording) || (!isHost && isOpponentRecording))
                 ? undefined  // CSS 애니메이션에서 처리
                 : 'drop-shadow(0 0 10px rgba(255,0,0,0.3))',
               transformOrigin: 'bottom center'
-            }} 
+            }}
           />
         </div>
 
@@ -930,7 +969,7 @@ export default function BattleScreen() {
               <EnergyChargeEffect
                 isActive={true}
                 intensity={!isHost ? (1 + (analyzerData[0] || 0) / 128) : 1.5}
-                color={!isHost ? "#00bfff" : "#ff69b4"} 
+                color={!isHost ? "#00bfff" : "#ff69b4"}
               />
             </div>
           )}
@@ -945,11 +984,10 @@ export default function BattleScreen() {
           <img
             src={rightCharImage}
             alt={rightLabel}
-            className={`h-48 md:h-64 object-contain scale-x-[-2] scale-y-[2] transition-all duration-300 ${rightEffectClass} ${
-              ((!isHost && isRecording) || (isHost && isOpponentRecording))
-                ? 'animate-rainbow-glow z-20'
-                : ''
-            } ${isBlinking && isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && !isHost && myHitImage ? 'animate-hit-blink' : ''}`}
+            className={`h-48 md:h-64 object-contain scale-x-[-2] scale-y-[2] transition-all duration-300 ${rightEffectClass} ${((!isHost && isRecording) || (isHost && isOpponentRecording))
+              ? 'animate-rainbow-glow z-20'
+              : ''
+              } ${isBlinking && isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && !isHost && myHitImage ? 'animate-hit-blink' : ''} ${dashPhase === 'dashing' && attackerSide === 'right' ? 'animate-dash-left' : ''} ${dashPhase === 'returning' && attackerSide === 'right' ? 'animate-dash-return-right' : ''}`}
             style={{
               filter: ((!isHost && isRecording) || (isHost && isOpponentRecording))
                 ? undefined
