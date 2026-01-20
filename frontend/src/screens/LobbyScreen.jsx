@@ -60,12 +60,48 @@ export default function LobbyScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
+  // BGM State
+  const bgmRef = useRef(null);
+  const [bgmVolume, setBgmVolume] = useState(0.5);
+  const [showBgmMenu, setShowBgmMenu] = useState(false);
+
   useEffect(() => {
     if (user) {
       setEditNickname(user.nickname || '');
       setEditAvatar(user.avatar_url || '🌟');
     }
   }, [user]);
+
+  // BGM 재생 (로비 진입 시)
+  useEffect(() => {
+    const audio = new Audio('/audio/Untitled.mp3');
+    audio.loop = true;
+    audio.volume = bgmVolume;
+    bgmRef.current = audio;
+
+    // 자동 재생 시도
+    const playBgm = () => {
+      audio.play().catch(err => console.log('Lobby BGM autoplay blocked:', err));
+    };
+
+    document.addEventListener('click', playBgm, { once: true });
+    document.addEventListener('touchstart', playBgm, { once: true });
+    playBgm();
+
+    return () => {
+      audio.pause();
+      audio.src = '';
+      document.removeEventListener('click', playBgm);
+      document.removeEventListener('touchstart', playBgm);
+    };
+  }, []);
+
+  // 볼륨 변경 시 적용
+  useEffect(() => {
+    if (bgmRef.current) {
+      bgmRef.current.volume = bgmVolume;
+    }
+  }, [bgmVolume]);
 
   const handleSaveProfile = async () => {
     try {
@@ -802,7 +838,7 @@ export default function LobbyScreen() {
 
           {/* VS Cards */}
           <div className="flex items-stretch justify-center gap-8 md:gap-16 mb-8">
-            
+
             {/* Player Card (Me) */}
             <div className="w-64 bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-3xl p-6 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
               {/* Avatar + Character Badge */}
@@ -864,10 +900,10 @@ export default function LobbyScreen() {
                 </div>
                 {opponent?.main_character_id && (
                   <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-2 border-pink-400 overflow-hidden bg-black shadow-lg">
-                    <img 
-                      src={characters?.find(c => c.id === opponent.main_character_id)?.image || '/images/otacu.webp'} 
-                      alt="Opponent Character" 
-                      className="w-full h-full object-cover" 
+                    <img
+                      src={characters?.find(c => c.id === opponent.main_character_id)?.image || '/images/otacu.webp'}
+                      alt="Opponent Character"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 )}
@@ -914,7 +950,48 @@ export default function LobbyScreen() {
             </div>
           </div>
         </div>
-        <button className="p-2 hover:bg-white/10 rounded-full transition-colors"><Menu size={24} className="text-zinc-400" /></button>
+
+        {/* Menu Button with BGM Control */}
+        <div className="relative">
+          <button
+            onClick={() => setShowBgmMenu(!showBgmMenu)}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <Menu size={24} className="text-zinc-400" />
+          </button>
+
+          {/* BGM Volume Menu */}
+          {showBgmMenu && (
+            <div className="absolute right-0 top-full mt-2 bg-zinc-900 border border-zinc-700 rounded-lg p-4 shadow-xl z-50 min-w-[200px]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold text-white flex items-center gap-2">
+                  <Volume2 size={16} className="text-purple-400" />
+                  BGM Volume
+                </span>
+                <button
+                  onClick={() => setShowBgmMenu(false)}
+                  className="text-zinc-500 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={bgmVolume}
+                onChange={(e) => setBgmVolume(parseFloat(e.target.value))}
+                className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              />
+              <div className="flex justify-between text-xs text-zinc-500 mt-1">
+                <span>🔇</span>
+                <span>{Math.round(bgmVolume * 100)}%</span>
+                <span>🔊</span>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}
@@ -1406,10 +1483,10 @@ export default function LobbyScreen() {
                           key={idx}
                           onClick={() => rank && setSelectedRankingUser(rank)}
                           className={`flex items-center justify-between p-3 rounded-lg transition-all group relative ${rank
-                              ? isMe
-                                ? 'bg-pink-900/40 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.2)] cursor-pointer hover:bg-pink-900/60'
-                                : 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10'
-                              : 'opacity-20 pointer-events-none'
+                            ? isMe
+                              ? 'bg-pink-900/40 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.2)] cursor-pointer hover:bg-pink-900/60'
+                              : 'hover:bg-white/10 cursor-pointer border border-transparent hover:border-white/10'
+                            : 'opacity-20 pointer-events-none'
                             } ${showMyRankAtBottom ? 'mt-4 scale-105 z-10' : ''}`}
                         >
                           {/* 10위권 밖 내 순위 표시일 때 구분선 효과 */}
@@ -1541,7 +1618,7 @@ export default function LobbyScreen() {
               <div className="w-full md:w-1/3 flex flex-col items-center gap-3 shrink-0">
                 <div className="w-full aspect-square rounded-2xl bg-black border-2 border-zinc-800 overflow-hidden relative shadow-lg group">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 z-0"></div>
-                  
+
                   {/* Avatar Display */}
                   <div className="relative z-10 w-full h-full flex items-center justify-center text-6xl">
                     {isImageUrl(editAvatar) ? (
@@ -1552,7 +1629,7 @@ export default function LobbyScreen() {
                   </div>
 
                   {/* Overlay upload hint */}
-                  <div 
+                  <div
                     onClick={() => fileInputRef.current.click()}
                     className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer z-20 backdrop-blur-sm"
                   >
@@ -1567,11 +1644,11 @@ export default function LobbyScreen() {
                 {/* Title Prefix Selection */}
                 <div className="w-full border-t border-zinc-800 pt-3 mt-2">
                   <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block text-center flex items-center justify-center gap-1">
-                     Select Title <span className="text-zinc-600 text-[9px]">(Append Prefix)</span>
+                    Select Title <span className="text-zinc-600 text-[9px]">(Append Prefix)</span>
                   </label>
-                  
+
                   <div className="relative">
-                    <select 
+                    <select
                       onChange={(e) => {
                         const title = e.target.value;
                         if (!title) return;
@@ -1629,7 +1706,7 @@ export default function LobbyScreen() {
                   </div>
 
                   <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">Or Select Icon</label>
-                  
+
                   {/* Scrollable Icon Grid */}
                   <div className="h-40 overflow-y-auto pr-2 custom-scrollbar bg-black/30 rounded-xl p-2 border border-white/5">
                     <div className="grid grid-cols-5 gap-2">
@@ -1664,15 +1741,15 @@ export default function LobbyScreen() {
                 </div>
               </div>
             </div>
-            
+
             {/* Bottom Actions - Full Width */}
             <div className="flex gap-3 pt-4 border-t border-white/5 mt-2">
-                <button onClick={() => setIsEditModalOpen(false)} className="flex-1 py-3 bg-zinc-800 rounded-xl font-bold text-zinc-400 hover:bg-zinc-700 transition uppercase tracking-widest text-sm">
-                    Cancel
-                </button>
-                <button onClick={handleSaveProfile} className="flex-[2] py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none text-sm">
-                    Save Changes
-                </button>
+              <button onClick={() => setIsEditModalOpen(false)} className="flex-1 py-3 bg-zinc-800 rounded-xl font-bold text-zinc-400 hover:bg-zinc-700 transition uppercase tracking-widest text-sm">
+                Cancel
+              </button>
+              <button onClick={handleSaveProfile} className="flex-[2] py-3 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl font-black text-white hover:scale-[1.02] transition-all uppercase tracking-widest shadow-[0_4px_0_rgba(219,39,119,0.5)] active:translate-y-[2px] active:shadow-none text-sm">
+                Save Changes
+              </button>
             </div>
           </div>
         </div>

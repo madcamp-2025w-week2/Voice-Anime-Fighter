@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
 import { Settings, Sparkles } from 'lucide-react'
@@ -13,6 +13,49 @@ export default function TitleScreen() {
   const [isLoading, setIsLoading] = useState(false)
   const [showMicTest, setShowMicTest] = useState(false)
   const [micStatus, setMicStatus] = useState(null)
+  const bgmRef = useRef(null)
+
+  // 배경음악 재생 (페이지 진입 시)
+  useEffect(() => {
+    const audio = new Audio('/audio/title_bgm.mp3')
+    audio.loop = false
+    audio.volume = 0.5
+    bgmRef.current = audio
+
+    // 사용자 상호작용 후 재생 시도 (브라우저 자동재생 정책 대응)
+    const playBgm = () => {
+      audio.play().catch(err => console.log('BGM autoplay blocked:', err))
+    }
+
+    // 첫 클릭/터치 시 재생 시작
+    document.addEventListener('click', playBgm, { once: true })
+    document.addEventListener('touchstart', playBgm, { once: true })
+
+    // 즉시 재생 시도 (일부 브라우저에서 허용)
+    playBgm()
+
+    return () => {
+      audio.pause()
+      audio.src = ''
+      document.removeEventListener('click', playBgm)
+      document.removeEventListener('touchstart', playBgm)
+    }
+  }, [])
+
+  // BGM 페이드 아웃 후 중지
+  const stopBgm = () => {
+    if (bgmRef.current) {
+      const audio = bgmRef.current
+      const fadeOut = setInterval(() => {
+        if (audio.volume > 0.1) {
+          audio.volume -= 0.1
+        } else {
+          audio.pause()
+          clearInterval(fadeOut)
+        }
+      }, 50)
+    }
+  }
 
   // Request microphone permission
   const testMicrophone = async () => {
@@ -41,6 +84,7 @@ export default function TitleScreen() {
         if (response.ok) {
           const data = await response.json()
           login(data.user, data.access_token)
+          stopBgm()
           navigate('/lobby')
         } else {
           throw new Error('Backend login failed')
@@ -72,6 +116,7 @@ export default function TitleScreen() {
       if (response.ok) {
         const data = await response.json()
         login(data.user, data.access_token)
+        stopBgm()
         navigate(targetPath)
       } else {
         throw new Error('Guest login failed')
