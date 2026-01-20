@@ -46,7 +46,7 @@ export default function ResultScreen() {
     : 'bg-gradient-to-br from-gray-900 via-red-950 to-black'
     
   // Character Image Source
-  const charImage = selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/otacu.webp'
+  const charImage = selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/profile/otacu.webp'
 
   return (
     <div className={`min-h-screen w-full relative overflow-hidden flex flex-col items-center justify-center ${gradientBg} text-white selection:bg-white/20`}>

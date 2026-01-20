@@ -18,7 +18,7 @@ const DEFAULT_ULTIMATE_DURATION = 3000
 export const CHARACTER_SKILLS = {
   // 찐따 오타쿠 쿠로
   'char_000': {
-    defaultImg: '/images/otacu.webp',
+    defaultImg: '/images/profile/otacu.webp',
     skills: [
       {
         name: '라멘 어택',
@@ -44,7 +44,7 @@ export const CHARACTER_SKILLS = {
 
   // 고졸 사토루
   'char_001': {
-    defaultImg: '/images/satoru_v2.webp',
+    defaultImg: '/images/profile/satoru_v2.webp',
     skills: [
       {
         name: '크린지 윙크',
@@ -70,7 +70,7 @@ export const CHARACTER_SKILLS = {
 
   // 몽키 D: 드라이브
   'char_002': {
-    defaultImg: '/images/lupy.webp',
+    defaultImg: '/images/profile/lupy.webp',
     skills: [
       {
         name: '고무고무 펀치',
@@ -96,7 +96,7 @@ export const CHARACTER_SKILLS = {
 
   // 바싹 탄지로
   'char_003': {
-    defaultImg: '/images/tan.webp',
+    defaultImg: '/images/profile/tanjiro.webp',
     skills: [
       {
         name: '물의 호흡',
@@ -148,7 +148,7 @@ export const CHARACTER_SKILLS = {
 
   // 고양이 집사 냥댕이
   'char_005': {
-    defaultImg: '/images/nyang.webp',
+    defaultImg: '/images/profile/nyang.webp',
     skills: [
       {
         name: '냥냥펀치',
@@ -200,25 +200,25 @@ export const CHARACTER_SKILLS = {
 
   // 딸바이
   'char_007': {
-    defaultImg: '/images/livi.webp',
+    defaultImg: '/images/profile/livi.webp',
     skills: [
       {
         name: '부릉부릉',
         trigger: '부릉부릉~!',
-        image: '/images/livi.webp',
+        image: '/images/profile/livi.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '팩트 폭력',
         trigger: '팩트 폭력 배달!',
-        image: '/images/livi.webp',
+        image: '/images/profile/livi.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '특급 배달',
       trigger: '부릉부릉~! 주문하신 팩트 폭력 배달 왔습니다! 수령 거부는 안돼!',
-      image: '/images/livi.webp',
+      image: '/images/profile/livi.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -226,25 +226,25 @@ export const CHARACTER_SKILLS = {
 
   // 흑염룡 카이토
   'char_008': {
-    defaultImg: '/images/dark_sword.webp',
+    defaultImg: '/images/profile/dark_sword.webp',
     skills: [
       {
         name: '다크니스 슬래시',
         trigger: '다크니스 슬래시!',
-        image: '/images/dark_sword.webp',
+        image: '/images/profile/dark_sword.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '흑염룡의 눈',
         trigger: '눈을 떠라 흑염룡!',
-        image: '/images/dark_sword.webp',
+        image: '/images/profile/dark_sword.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '다크니스 디멘션 슬래시',
       trigger: '눈을 떠라... 내 안의 흑염룡! 다크니스 디멘션 슬래시!',
-      image: '/images/dark_sword.webp',
+      image: '/images/profile/dark_sword.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -252,25 +252,25 @@ export const CHARACTER_SKILLS = {
 
   // 바겐세일러문
   'char_009': {
-    defaultImg: '/images/bargain_moon.webp',
+    defaultImg: '/images/profile/bargain_moon.webp',
     skills: [
       {
         name: '할인 스티커',
         trigger: '50% 할인!',
-        image: '/images/bargain_moon.webp',
+        image: '/images/profile/bargain_moon.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '마감 세일',
         trigger: '마감 세일 시작!',
-        image: '/images/bargain_moon.webp',
+        image: '/images/profile/bargain_moon.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '영혼 할인',
       trigger: '오늘의 특가! 마감 세일! 당신의 영혼도 50% 할인해드리죠!',
-      image: '/images/bargain_moon.webp',
+      image: '/images/profile/bargain_moon.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -278,25 +278,25 @@ export const CHARACTER_SKILLS = {
 
   // 손오공주님
   'char_010': {
-    defaultImg: '/images/goku_princess.webp',
+    defaultImg: '/images/profile/goku_princess.webp',
     skills: [
       {
         name: '여의봉 어택',
         trigger: '여의봉 커져라!',
-        image: '/images/goku_princess.webp',
+        image: '/images/profile/goku_princess.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '치키치키 차카차카',
         trigger: '치키치키 차카차카!',
-        image: '/images/goku_princess.webp',
+        image: '/images/profile/goku_princess.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '소원 거부',
       trigger: '치키치키 차카차카 초코초코 쵸! 호잇! 너의 소원을 들어주지 않겠다!',
-      image: '/images/goku_princess.webp',
+      image: '/images/profile/goku_princess.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -318,7 +318,7 @@ export function getCharacterSkills(characterId) {
  * @returns {Object} - 기본 스킬 데이터
  */
 export function createDefaultSkills(character) {
-  const defaultImg = character?.sprite_url || character?.thumbnail_url || '/images/otacu.webp'
+  const defaultImg = character?.sprite_url || character?.thumbnail_url || '/images/profile/otacu.webp'
   const spellText = character?.spell_text || '마법의 주문!'
   
   return {

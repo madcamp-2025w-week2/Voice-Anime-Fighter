@@ -923,7 +923,7 @@ export default function LobbyScreen() {
                 {opponent?.main_character_id && (
                   <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-2 border-pink-400 overflow-hidden bg-black shadow-lg">
                     <img
-                      src={characters?.find(c => c.id === opponent.main_character_id)?.image || '/images/otacu.webp'}
+                      src={characters?.find(c => c.id === opponent.main_character_id)?.image || '/images/profile/otacu.webp'}
                       alt="Opponent Character"
                       className="w-full h-full object-cover"
                     />
@@ -1276,7 +1276,7 @@ export default function LobbyScreen() {
                         const imgSrc = mainCharacter?.image
                           || mainCharacter?.sprite_url
                           || mainCharacter?.thumbnail_url
-                          || '/images/otacu.webp';
+                          || '/images/profile/otacu.webp';
 
                         return (
                           <img
@@ -1390,7 +1390,7 @@ export default function LobbyScreen() {
                         const imgSrc = userMainChar?.image
                           || userMainChar?.sprite_url
                           || userMainChar?.thumbnail_url
-                          || '/images/otacu.webp';
+                          || '/images/profile/otacu.webp';
 
                         return (
                           <div className="h-[200px] flex items-center justify-center relative shrink-0 bg-black/40 rounded-xl border border-zinc-800 overflow-hidden">

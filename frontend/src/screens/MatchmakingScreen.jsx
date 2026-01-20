@@ -19,7 +19,7 @@ export default function MatchmakingScreen() {
   // Find character image by ID
   const getCharacterImage = (characterId) => {
     const char = characters?.find(c => c.id === characterId)
-    return char?.image || char?.sprite_url || '/images/otacu.webp'
+    return char?.image || char?.sprite_url || '/images/profile/otacu.webp'
   }
 
   // Calculate win rate

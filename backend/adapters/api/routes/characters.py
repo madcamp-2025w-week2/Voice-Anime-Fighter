@@ -35,8 +35,8 @@ CHARACTERS = [
         description="방에서 라면만 먹으며 애니만 보는 진정한 오타쿠. 그의 오글거림은 세계 최강.",
         stats=CharacterStats(cringe_level=100, volume_req=60, precision=85),
         spell_text="월화수목금토일 사랑스러운 마법소녀로 변신할거야 미라클 메이크 업!",
-        thumbnail_url="/images/otacu.webp",
-        sprite_url="/images/otacu.webp",
+        thumbnail_url="/images/profile/otacu.webp",
+        sprite_url="/images/profile/otacu.webp",
         is_unlocked=True
     ),
     Character(
@@ -45,8 +45,8 @@ CHARACTERS = [
         description="오글거림의 여왕. 오타쿠 세계를 지배하는 언더독 마법소녀.",
         stats=CharacterStats(cringe_level=95, volume_req=70, precision=80),
         spell_text="영역전개 무량공처! 죽어라 이새끼들아!",
-        thumbnail_url="/images/satoru_v2.webp",
-        sprite_url="/images/satoru_v2.webp",
+        thumbnail_url="/images/profile/satoru_v2.webp",
+        sprite_url="/images/profile/satoru_v2.webp",
         is_unlocked=True
     ),
     Character(
@@ -55,8 +55,8 @@ CHARACTERS = [
         description="해적왕 대신 배달왕을 꿈꾸는 루키. 드라이브 스루의 속도로 적을 제압한다.",
         stats=CharacterStats(cringe_level=75, volume_req=85, precision=65),
         spell_text="고무고무~! 총알 배송! 배달비는 너의 패배다!",
-        thumbnail_url="/images/lupy.webp",
-        sprite_url="/images/lupy.webp",
+        thumbnail_url="/images/profile/lupy.webp",
+        sprite_url="/images/profile/lupy.webp",
         is_unlocked=True
     ),
     Character(
@@ -65,8 +65,8 @@ CHARACTERS = [
         description="불의 호흡을 사용하는 귀살대 대원. 박력 넘치는 기합으로 상대를 압도.",
         stats=CharacterStats(cringe_level=50, volume_req=95, precision=60),
         spell_text="물의 호흡! 첫번째 형!",
-        thumbnail_url="/images/tan.webp",
-        sprite_url="/images/tan.webp",
+        thumbnail_url="/images/profile/tanjiro.webp",
+        sprite_url="/images/profile/tanjiro.webp",
         is_unlocked=True
     ),
     Character(
@@ -85,8 +85,8 @@ CHARACTERS = [
         description="고양이와 대화하는 신비로운 집사. 냥냥펀치로 공격.",
         stats=CharacterStats(cringe_level=85, volume_req=55, precision=85),
         spell_text="냥냥펀치! 고양이의 힘을 빌려라!",
-        thumbnail_url="/images/nyang.webp",
-        sprite_url="/images/nyang.webp",
+        thumbnail_url="/images/profile/nyang.webp",
+        sprite_url="/images/profile/nyang.webp",
         is_unlocked=True
     ),
     Character(
@@ -105,8 +105,8 @@ CHARACTERS = [
         description="전설의 폭주족 출신 배달부. 신속 정확하게 적의 멘탈을 배달 사고 낸다.",
         stats=CharacterStats(cringe_level=88, volume_req=90, precision=50),
         spell_text="부릉부릉~! 주문하신 팩트 폭력 배달 왔습니다! 수령 거부는 안돼!",
-        thumbnail_url="/images/livi.webp",
-        sprite_url="/images/livi.webp",
+        thumbnail_url="/images/profile/livi.webp",
+        sprite_url="/images/profile/livi.webp",
         is_unlocked=True
     ),
     Character(
@@ -115,8 +115,8 @@ CHARACTERS = [
         description="오른손에 흑염룡을 봉인한 중2병 소드마스터. 시공의 폭풍을 부른다.",
         stats=CharacterStats(cringe_level=100, volume_req=80, precision=70),
         spell_text="눈을 떠라... 내 안의 흑염룡! 다크니스 디멘션 슬래시!",
-        thumbnail_url="/images/dark_sword.webp",
-        sprite_url="/images/dark_sword.webp",
+        thumbnail_url="/images/profile/dark_sword.webp",
+        sprite_url="/images/profile/dark_sword.webp",
         is_unlocked=True
     ),
     Character(
@@ -125,8 +125,8 @@ CHARACTERS = [
         description="이마트 마감 시간의 지배자. 할인 스티커로 적을 봉인한다.",
         stats=CharacterStats(cringe_level=95, volume_req=90, precision=60),
         spell_text="오늘의 특가! 마감 세일! 당신의 영혼도 50% 할인해드리죠!",
-        thumbnail_url="/images/bargain_moon.webp",
-        sprite_url="/images/bargain_moon.webp",
+        thumbnail_url="/images/profile/bargain_moon.webp",
+        sprite_url="/images/profile/bargain_moon.webp",
         is_unlocked=True
     ),
     Character(
@@ -135,8 +135,8 @@ CHARACTERS = [
         description="서유기 세계관에서 이세계 전생한 마법소녀. 핑크빛 여의봉을 휘두른다.",
         stats=CharacterStats(cringe_level=88, volume_req=75, precision=85),
         spell_text="치키치키 차카차카 초코초코 쵸! 호잇! 너의 소원을 들어주지 않겠다!",
-        thumbnail_url="/images/goku_princess.webp",
-        sprite_url="/images/goku_princess.webp",
+        thumbnail_url="/images/profile/goku_princess.webp",
+        sprite_url="/images/profile/goku_princess.webp",
         is_unlocked=True
     ),
 ]
