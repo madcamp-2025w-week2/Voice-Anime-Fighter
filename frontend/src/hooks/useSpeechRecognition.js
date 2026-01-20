@@ -83,6 +83,7 @@ export function useSpeechRecognition() {
       setResult(null)
       setLiveTranscript('')
       setFinalTranscript('')
+      setAudioBlob(null)  // 🔥 이전 오디오 초기화!
       chunksRef.current = []
       
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -131,25 +132,41 @@ export function useSpeechRecognition() {
     }
   }, [])
   
-  // Stop recording
+  // Stop recording - returns Promise with audio blob
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-      
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop())
+    return new Promise((resolve) => {
+      if (mediaRecorderRef.current && isRecording) {
+        const mediaRecorder = mediaRecorderRef.current
+        
+        // 🔥 onstop 이벤트 핸들러를 교체하여 현재 녹음 blob을 반환
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType })
+          console.log('🎵 Recording stopped, blob size:', blob.size, 'chunks:', chunksRef.current.length)
+          setAudioBlob(blob)
+          resolve(blob)  // 녹음 완료 후 blob 반환
+        }
+        
+        mediaRecorder.stop()
+        setIsRecording(false)
+        
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop())
+        }
+        
+        // Stop Web Speech API
+        if (recognitionRef.current) {
+          recognitionRef.current.stop()
+        }
+      } else {
+        // 녹음 중이 아니면 null 반환
+        resolve(null)
       }
-      
-      // Stop Web Speech API
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-      }
-    }
+    })
   }, [isRecording])
   
   // Analyze voice (send to backend with STT text)
-  const analyzeVoice = useCallback(async (battleId, expectedSpell, characterId = 'char_001') => {
+  // 🔥 audioBlob을 직접 파라미터로 받음 (stopRecording에서 반환된 blob)
+  const analyzeVoice = useCallback(async (battleId, expectedSpell, characterId = 'char_001', providedBlob = null) => {
     setIsAnalyzing(true)
     setError(null)
     
@@ -157,13 +174,12 @@ export function useSpeechRecognition() {
     const sttText = getCurrentTranscript()
     console.log('📝 STT Text:', sttText)
     
-    // Wait a bit for audioBlob to be ready
-    await new Promise(resolve => setTimeout(resolve, 200))
+    // 🔥 제공된 blob 사용, 없으면 state/chunks fallback
+    const currentBlob = providedBlob 
+      || audioBlob 
+      || (chunksRef.current.length > 0 ? new Blob(chunksRef.current, { type: 'audio/webm' }) : null)
     
-    // Check if we have audio blob
-    const currentBlob = audioBlob || (chunksRef.current.length > 0 
-      ? new Blob(chunksRef.current, { type: 'audio/webm' })
-      : null)
+    console.log('🎵 Using provided blob:', !!providedBlob, 'size:', currentBlob?.size)
     
     if (!currentBlob) {
       console.warn('No audio blob available, using demo mode')

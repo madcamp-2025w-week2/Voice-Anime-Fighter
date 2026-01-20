@@ -158,6 +158,81 @@ const UltimateBanner = ({ isVisible, characterId, ultimateImage, characterName }
   )
 }
 
+// 🌟 화려한 공격 이펙트 오버레이 (녹음 중 화면 50% 이상 덮음)
+const AttackOverlay = ({ isVisible }) => {
+  if (!isVisible) return null
+  
+  return (
+    <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden">
+      {/* 화면 50% 이상 덮는 그라데이션 오버레이 */}
+      <div 
+        className="absolute inset-0 animate-pulse"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, rgba(147,51,234,0.2) 30%, rgba(236,72,153,0.15) 50%, transparent 70%)',
+        }}
+      />
+      
+      {/* 별빛 버스트 - 20개 */}
+      {[...Array(20)].map((_, i) => (
+        <div
+          key={`star-${i}`}
+          className="absolute animate-star-burst text-4xl"
+          style={{
+            left: `${10 + (i * 4.5)}%`,
+            top: `${10 + (i * 4)}%`,
+            animationDelay: `${i * 0.1}s`,
+            animationDuration: `${0.8 + (i % 5) * 0.1}s`,
+            opacity: 0.8,
+            filter: 'drop-shadow(0 0 10px rgba(255,255,0,0.8))',
+          }}
+        >
+          {['✨', '⭐', '🌟', '💫', '✧', '★'][i % 6]}
+        </div>
+      ))}
+      
+      {/* 번쩍이는 광선 효과 */}
+      <div 
+        className="absolute inset-0 animate-flash-burst"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.6) 0%, transparent 50%)',
+        }}
+      />
+      
+      {/* 마법진 효과 */}
+      <div 
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] animate-magic-circle"
+        style={{
+          border: '3px solid rgba(255,200,100,0.5)',
+          borderRadius: '50%',
+          boxShadow: '0 0 30px rgba(255,200,100,0.4), inset 0 0 30px rgba(255,200,100,0.2)',
+        }}
+      />
+      <div 
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[45vw] h-[45vw] max-w-[380px] max-h-[380px] animate-magic-circle-reverse"
+        style={{
+          border: '2px solid rgba(236,72,153,0.5)',
+          borderRadius: '50%',
+          boxShadow: '0 0 20px rgba(236,72,153,0.4)',
+        }}
+      />
+      
+      {/* 양쪽 코너 스파크 */}
+      <div className="absolute top-0 left-0 w-32 h-32">
+        <div className="animate-corner-spark w-full h-full bg-gradient-to-br from-yellow-300/50 to-transparent" />
+      </div>
+      <div className="absolute top-0 right-0 w-32 h-32">
+        <div className="animate-corner-spark w-full h-full bg-gradient-to-bl from-pink-300/50 to-transparent" style={{ animationDelay: '0.2s' }} />
+      </div>
+      <div className="absolute bottom-0 left-0 w-32 h-32">
+        <div className="animate-corner-spark w-full h-full bg-gradient-to-tr from-cyan-300/50 to-transparent" style={{ animationDelay: '0.4s' }} />
+      </div>
+      <div className="absolute bottom-0 right-0 w-32 h-32">
+        <div className="animate-corner-spark w-full h-full bg-gradient-to-tl from-purple-300/50 to-transparent" style={{ animationDelay: '0.6s' }} />
+      </div>
+    </div>
+  )
+}
+
 // 배틀 BGM 전역 관리
 let battleBgmAudio = null;
 
@@ -370,7 +445,10 @@ export default function BattleScreen() {
   const handleAutoRecordEnd = useCallback(async () => {
     if (!isRecording) return
 
-    stopRecording()
+    // 🔥 stopRecording이 완료되기를 기다리고 blob을 받음
+    const recordedBlob = await stopRecording()
+    console.log('🎤 Got recorded blob:', recordedBlob?.size)
+    
     stopVisualizer()
     setIsVoiceInputPhase(false)
     setIsAttacking(true)
@@ -387,27 +465,25 @@ export default function BattleScreen() {
     lastTriggeredSkillRef.current = currentSkillForImage
     console.log('📸 Current skill for image:', currentSkillForImage?.name, currentSkillForImage?.image)
 
-    // 바로 분석 요청 (백엔드에서 정확도/grade 계산)
-    setTimeout(async () => {
-      const battleId = roomId || battle.battleId || 'demo'
-      const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id)
+    // 🔥 바로 분석 요청 (setTimeout 제거, blob 직접 전달)
+    const battleId = roomId || battle.battleId || 'demo'
+    const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id, recordedBlob)
 
-      if (analysisResult && analysisResult.success) {
-        // 백엔드에서 받은 grade를 포함하여 전송 (스킬 이미지 포함)
-        sendAttack(battleId, {
-          ...analysisResult.damage,
-          audio_url: analysisResult.audio_url,
-          is_ultimate: isUltimateReady,
-          skill_image: currentSkillForImage?.image || null // 스킬 이미지 URL 전송
-        })
-        battle.setTurn(false)
-      } else {
-        setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
-        battle.setTurn(false)
-      }
-      setIsAttacking(false)
-    }, 500)
-  }, [isRecording, stopRecording, stopVisualizer, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, roomId, isUltimateReady, myCharacterSkills, currentSkills])
+    if (analysisResult && analysisResult.success) {
+      // 백엔드에서 받은 grade를 포함하여 전송 (스킬 이미지 포함)
+      sendAttack(battleId, {
+        ...analysisResult.damage,
+        audio_url: analysisResult.audio_url,
+        is_ultimate: isUltimateReady,
+        skill_image: currentSkillForImage?.image || null // 스킬 이미지 URL 전송
+      })
+      battle.setTurn(false)
+    } else {
+      setShowDamage({ value: 0, isPlayer: false, grade: 'F', isCritical: false })
+      battle.setTurn(false)
+    }
+    setIsAttacking(false)
+  }, [isRecording, stopRecording, stopVisualizer, analyzeVoice, battle, selectedCharacter, currentSpell, sendAttack, roomId, isUltimateReady, myCharacterSkills, currentSkills, emit])
 
   // 턴 변경 감지 - 내 턴이 되면 카운트다운 시작
   useEffect(() => {
@@ -682,6 +758,9 @@ export default function BattleScreen() {
         characterName={showUltimateBanner?.name}
       />
 
+      {/* 🌟 화려한 공격 이펙트 오버레이 (녹음 중일 때 양 플레이어 모두에게 표시) */}
+      <AttackOverlay isVisible={isRecording || isOpponentRecording} />
+
       {/* 게임 시작 애니메이션 */}
       {showGameStart && (
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-pink-800/90 to-orange-700/90 z-50 flex items-center justify-center overflow-hidden">
@@ -770,7 +849,8 @@ export default function BattleScreen() {
       </div>
 
       <div className="flex-1" />
-      <div className="absolute top-[20%] left-0 right-0 z-10 flex items-end justify-between px-4 pointer-events-none">
+      {/* 캐릭터 컨테이너 - 2배 크기에 맞춰 아래로 이동, overflow-visible로 잘림 방지 */}
+      <div className="absolute top-[50%] left-0 right-0 z-10 flex items-end justify-between px-4 pointer-events-none overflow-visible">
         {/* 왼쪽 캐릭터 */}
         <div className={`w-1/3 flex flex-col items-center relative ${showDamage && ((isHost && showDamage.isPlayer) || (!isHost && !showDamage.isPlayer)) ? 'animate-shake' : ''} ${leftEffectClass}`}>
           {/* 에너지 차지 이펙트 - 내 캐릭터가 녹음 중일 때 */}
@@ -798,7 +878,29 @@ export default function BattleScreen() {
               />
             </div>
           )}
-          <img src={leftCharImage} alt={leftLabel} className={`h-48 md:h-64 object-contain ${leftEffectClass} ${isBlinking && !isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && isHost && myHitImage ? 'animate-hit-blink' : ''}`} style={{ filter: 'drop-shadow(0 0 10px rgba(255,0,0,0.3))' }} />
+          {/* 회전하는 별들 - 녹음 중일 때 */}
+          {((isHost && isRecording) || (!isHost && isOpponentRecording)) && (
+            <>
+              <div className="absolute left-1/2 top-1/2 text-4xl animate-star-slow z-30" style={{ marginTop: '-60px' }}>⭐</div>
+              <div className="absolute left-1/2 top-1/2 text-3xl animate-star-medium z-30" style={{ marginTop: '-30px', marginLeft: '40px' }}>🌟</div>
+              <div className="absolute left-1/2 top-1/2 text-2xl animate-star-fast z-30" style={{ marginTop: '-10px', marginLeft: '-50px' }}>✨</div>
+            </>
+          )}
+          <img 
+            src={leftCharImage} 
+            alt={leftLabel} 
+            className={`h-48 md:h-64 object-contain scale-[2] transition-all duration-300 ${leftEffectClass} ${
+              ((isHost && isRecording) || (!isHost && isOpponentRecording)) 
+                ? 'animate-rainbow-glow z-20' 
+                : ''
+            } ${isBlinking && !isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && isHost && myHitImage ? 'animate-hit-blink' : ''}`} 
+            style={{ 
+              filter: ((isHost && isRecording) || (!isHost && isOpponentRecording))
+                ? undefined  // CSS 애니메이션에서 처리
+                : 'drop-shadow(0 0 10px rgba(255,0,0,0.3))',
+              transformOrigin: 'bottom center'
+            }} 
+          />
         </div>
 
         {showDamage && (
@@ -832,11 +934,28 @@ export default function BattleScreen() {
               />
             </div>
           )}
+          {/* 회전하는 별들 - 녹음 중일 때 */}
+          {((!isHost && isRecording) || (isHost && isOpponentRecording)) && (
+            <>
+              <div className="absolute left-1/2 top-1/2 text-4xl animate-star-slow z-30" style={{ marginTop: '-60px' }}>⭐</div>
+              <div className="absolute left-1/2 top-1/2 text-3xl animate-star-medium z-30" style={{ marginTop: '-30px', marginLeft: '40px' }}>🌟</div>
+              <div className="absolute left-1/2 top-1/2 text-2xl animate-star-fast z-30" style={{ marginTop: '-10px', marginLeft: '-50px' }}>✨</div>
+            </>
+          )}
           <img
             src={rightCharImage}
             alt={rightLabel}
-            className={`h-48 md:h-64 object-contain transform scale-x-[-1] ${rightEffectClass} ${isBlinking && isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && !isHost && myHitImage ? 'animate-hit-blink' : ''}`}
-            style={{ filter: `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})` }}
+            className={`h-48 md:h-64 object-contain scale-x-[-2] scale-y-[2] transition-all duration-300 ${rightEffectClass} ${
+              ((!isHost && isRecording) || (isHost && isOpponentRecording))
+                ? 'animate-rainbow-glow z-20'
+                : ''
+            } ${isBlinking && isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && !isHost && myHitImage ? 'animate-hit-blink' : ''}`}
+            style={{
+              filter: ((!isHost && isRecording) || (isHost && isOpponentRecording))
+                ? undefined
+                : `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})`,
+              transformOrigin: 'bottom center'
+            }}
           />
         </div>
       </div>

@@ -583,3 +583,148 @@ body {
 .animate-glow-line {
   animation: glow-line 0.8s ease-in-out infinite;
 }
+
+/* === ATTACK OVERLAY ANIMATIONS === */
+
+/* 무지개 회전 오라 */
+@keyframes rainbow-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-rainbow-spin {
+  animation: rainbow-spin 3s linear infinite;
+}
+
+/* 별빛 버스트 */
+@keyframes star-burst {
+  0%, 100% { 
+    opacity: 0; 
+    transform: scale(0) translateY(0); 
+  }
+  20% { 
+    opacity: 1; 
+    transform: scale(1.5) translateY(-20px); 
+  }
+  50% { 
+    opacity: 0.8; 
+    transform: scale(1) translateY(-50px); 
+  }
+  80% { 
+    opacity: 0.3; 
+    transform: scale(0.5) translateY(-100px); 
+  }
+}
+
+.animate-star-burst {
+  animation: star-burst 1s ease-out infinite;
+}
+
+/* 플래시 버스트 */
+@keyframes flash-burst {
+  0%, 100% { opacity: 0; }
+  10%, 30% { opacity: 0.8; }
+  20% { opacity: 0; }
+  50% { opacity: 0.3; }
+}
+
+.animate-flash-burst {
+  animation: flash-burst 0.5s ease-in-out infinite;
+}
+
+/* 마법진 회전 */
+@keyframes magic-circle {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.8); opacity: 0; }
+  20% { transform: translate(-50%, -50%) rotate(72deg) scale(1); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); opacity: 0.5; }
+}
+
+.animate-magic-circle {
+  animation: magic-circle 2s ease-out infinite;
+}
+
+/* 마법진 역회전 */
+@keyframes magic-circle-reverse {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+.animate-magic-circle-reverse {
+  animation: magic-circle-reverse 3s linear infinite;
+}
+
+/* 코너 스파크 */
+@keyframes corner-spark {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+
+.animate-corner-spark {
+  animation: corner-spark 0.8s ease-in-out infinite;
+}
+
+/* 무지개 오라 (캐릭터 외곽선 따라 빛나는 효과) - 이미지 참고 */
+@keyframes rainbow-aura {
+  0%, 100% { 
+    filter: 
+      drop-shadow(0 0 8px rgba(255,0,0,0.9))
+      drop-shadow(0 0 16px rgba(255,165,0,0.7))
+      drop-shadow(0 0 24px rgba(255,255,0,0.5))
+      drop-shadow(0 0 32px rgba(0,255,0,0.3)); 
+  }
+  25% { 
+    filter: 
+      drop-shadow(0 0 8px rgba(0,255,0,0.9))
+      drop-shadow(0 0 16px rgba(0,255,255,0.7))
+      drop-shadow(0 0 24px rgba(0,0,255,0.5))
+      drop-shadow(0 0 32px rgba(148,0,211,0.3)); 
+  }
+  50% { 
+    filter: 
+      drop-shadow(0 0 8px rgba(0,0,255,0.9))
+      drop-shadow(0 0 16px rgba(148,0,211,0.7))
+      drop-shadow(0 0 24px rgba(255,0,255,0.5))
+      drop-shadow(0 0 32px rgba(255,0,0,0.3)); 
+  }
+  75% { 
+    filter: 
+      drop-shadow(0 0 8px rgba(255,0,255,0.9))
+      drop-shadow(0 0 16px rgba(255,0,0,0.7))
+      drop-shadow(0 0 24px rgba(255,165,0,0.5))
+      drop-shadow(0 0 32px rgba(255,255,0,0.3)); 
+  }
+}
+
+.animate-rainbow-glow {
+  animation: rainbow-aura 2s linear infinite;
+}
+
+/* 회전하는 별 애니메이션 - 느린 속도 */
+@keyframes star-spin-slow {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* 회전하는 별 애니메이션 - 중간 속도 */
+@keyframes star-spin-medium {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+/* 회전하는 별 애니메이션 - 빠른 속도 */
+@keyframes star-spin-fast {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.animate-star-slow {
+  animation: star-spin-slow 4s linear infinite;
+}
+
+.animate-star-medium {
+  animation: star-spin-medium 2.5s linear infinite;
+}
+
+.animate-star-fast {
+  animation: star-spin-fast 1.5s linear infinite;
+}
