@@ -130,7 +130,7 @@ CHARACTERS = [
         is_unlocked=True
     ),
     Character(
-        id="char_011",
+        id="char_006",
         name="돌려막기 나루토",
         description="닌자의 길을 걷는 열혈 소년. 그림자 분신술로 빚을 돌려막고 라센간으로 채권자를 날려버린다.",
         stats=CharacterStats(cringe_level=85, volume_req=90, precision=75),

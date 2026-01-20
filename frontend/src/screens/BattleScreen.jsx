@@ -36,7 +36,7 @@ const CHARACTER_ID_TO_NAME = {
   'char_003': 'tanjiro',
   'char_004': 'light',
   'char_005': 'nyang',
-  'char_006': 'otaku', // 임시 (오글이 리소스 없음)
+  'char_006': 'naruto', // 돌려막기 나루토
   'char_007': 'livi',
   'char_008': 'darksword',
   'char_009': 'moon',

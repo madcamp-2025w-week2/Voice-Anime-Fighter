@@ -121,8 +121,8 @@ export const CHARACTER_SKILLS = {
     defaultImg: '/images/normal/nyang_normal.webp',
     hitImg: '/images/hit/nyang_hit.webp',
     skills: [
-      { name: '냥냥펀치', trigger: '냥냥펀치!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '고양이 발톱', trigger: '고양이의 발톱 공격!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '냥냥펀치', trigger: '냥냥펀치! 냥녕뇽냥늉냥뇽뇽냥늉녕늉뇽냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '고양이 발톱', trigger: '고양이의 발톱 공격! 미야아아아아옹~', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '츄르 유혹', trigger: '이 츄르를 받아라! 냥이의 간식 앞에 무릎 꿇지 않을 자 없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '꾹꾹이 마사지', trigger: '너의 심장을 꾹꾹이로 떡 반죽처럼 만들어주겠다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '헤어볼 발사', trigger: '나의 사랑이 담긴 불순물! 헤어볼 발사! 더러워해도 소용없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION }
@@ -131,6 +131,26 @@ export const CHARACTER_SKILLS = {
       name: '고양이 군단 소환',
       trigger: '냥냥펀치! 고양이의 힘을 빌려라!',
       image: '/images/attack/nyang_attack.webp',
+      effectClass: 'ultimate-effect',
+      duration: DEFAULT_ULTIMATE_DURATION
+    }
+  },
+
+  // 돌려막기 나루토
+  'char_006': {
+    defaultImg: '/images/normal/naruto_normal.webp',
+    hitImg: '/images/hit/naruto_hit.webp',
+    skills: [
+      { name: '그림자 분신술', trigger: '그림자 분신술! 천 명의 나로 빚을 돌려막겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '라센간', trigger: '회전하는 차크라의 폭풍! 라센간!! 채권자는 날아가랏!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '선인모드', trigger: '자연 에너지를 모아... 선인모드! 이 이자는 자연에서 가져왔다!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '나루토 사스케', trigger: '사스케에에!! 돌아와!! 너의 빚은 내가 다 갚아주겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '주둥아리술', trigger: '넌 원래 착한 녀석이었어. 그러니까 나의 빚을 대신 좀 갚아주라니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION }
+    ],
+    ultimate: {
+      name: '구미 차크라 모드',
+      trigger: '미안하다 이거 보여주려고 어그로끌었다.. 나루토 사스케 싸움수준 ㄹㅇ실화냐? 진짜 세계관최강자들의 싸움이다.. 그찐따같던 나루토가 맞나? 진짜 나루토는 전설이다..',
+      image: '/images/attack/naruto_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -211,26 +231,6 @@ export const CHARACTER_SKILLS = {
       name: '큐티뽀짝 여의봉',
       trigger: '나와라! 큐티뽀짝 여의봉!! 어딜 감히 쳐다보느냐! 이 오징어 쩌꾸미들아!! 내 미모에... 정신을 못 차리고... 넋을 잃어라!!!! 홀릴 혹',
       image: '/images/attack/goku_attack.webp',
-      effectClass: 'ultimate-effect',
-      duration: DEFAULT_ULTIMATE_DURATION
-    }
-  },
-
-  // 돌려막기 나루토
-  'char_011': {
-    defaultImg: '/images/normal/naruto_normal.webp',
-    hitImg: '/images/hit/naruto_hit.webp',
-    skills: [
-      { name: '그림자 분신술', trigger: '그림자 분신술! 천 명의 나로 빚을 돌려막겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '라센간', trigger: '회전하는 차크라의 폭풍! 라센간!! 채권자는 날아가랏!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '선인모드', trigger: '자연 에너지를 모아... 선인모드! 이 이자는 자연에서 가져왔다!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '나루토 사스케', trigger: '사스케에에!! 돌아와!! 너의 빚은 내가 다 갚아주겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '주둥아리술', trigger: '넌 원래 착한 녀석이었어. 그러니까 나의 빚을 대신 좀 갚아주라니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION }
-    ],
-    ultimate: {
-      name: '구미 차크라 모드',
-      trigger: '미안하다 이거 보여주려고 어그로끌었다.. 나루토 사스케 싸움수준 ㄹㅇ실화냐? 진짜 세계관최강자들의 싸움이다.. 그찐따같던 나루토가 맞나? 진짜 나루토는 전설이다..',
-      image: '/images/attack/naruto_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }

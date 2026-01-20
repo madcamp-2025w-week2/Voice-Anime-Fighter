@@ -14,55 +14,96 @@ import { calculateSimilarity, checkSkillMatch, checkUltimateMatch } from '../uti
 export function useBattleCharacter(character) {
   // 궁극기 게이지 (0 ~ 100, 3번 성공 = 100%)
   const [gauge, setGauge] = useState(0)
-  
+
   // 궁극기 사용 가능 상태 (다음 턴부터 활성화)
   const [isUltimateReady, setIsUltimateReady] = useState(false)
-  
+
   // 게이지가 100%에 도달했는지 추적 (다음 턴에 ultimate 활성화를 위해)
   const gaugeReachedFullRef = useRef(false)
-  
+
   // 현재 표시 중인 이미지 (스킬/궁극기 발동 시 변경)
   const [currentImage, setCurrentImage] = useState(character?.defaultImg || '')
-  
+
   // 현재 활성화된 CSS 효과 클래스
   const [effectClass, setEffectClass] = useState('')
-  
+
   // 턴 카운트 (궁극기 타이밍 추적용)
   const [turnCount, setTurnCount] = useState(0)
-  
+
   // 이번 턴에 제시된 스킬들 (랜덤 선택)
   const [currentSkills, setCurrentSkills] = useState([])
-  
+
   // 스킬/궁극기 발동 중 상태
   const [isActivating, setIsActivating] = useState(false)
-  
-  // 캐릭터 변경 시 이미지 초기화
+
+  // 스킬 풀 (덱 셔플 알고리즘용 - 아직 나오지 않은 스킬들)
+  const [availableSkillPool, setAvailableSkillPool] = useState([])
+
+  // 이전 캐릭터 ID 추적 (캐릭터 변경 감지용)
+  const prevCharacterIdRef = useRef(null)
+
+  // 캐릭터 변경 시 이미지 및 스킬 풀 초기화
   useEffect(() => {
     if (character?.defaultImg) {
       setCurrentImage(character.defaultImg)
     }
-  }, [character?.defaultImg])
+
+    // 캐릭터가 실제로 변경되었을 때만 스킬 풀 리셋 (무한 루프 방지)
+    const currentCharId = character?.id || character?.defaultImg
+    if (character?.skills && prevCharacterIdRef.current !== currentCharId) {
+      setAvailableSkillPool([...character.skills])
+      prevCharacterIdRef.current = currentCharId
+    }
+  }, [character?.defaultImg, character?.id]) // skills 대신 id를 의존성으로 사용
+
+  /**
+   * Fisher-Yates 셔플 알고리즘 (균등한 랜덤 분포)
+   */
+  const fisherYatesShuffle = (array) => {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
 
   /**
    * 새로운 턴 시작 시 호출
-   * - 랜덤 스킬 선택
+   * - 덱 셔플 알고리즘으로 스킬 선택 (모든 스킬이 한 번씩 나온 후 리셋)
    * - 게이지 100% 도달 후 다음 턴이면 궁극기 활성화
    */
   const startNewTurn = useCallback(() => {
     setTurnCount(prev => prev + 1)
-    
+
     // 게이지 100% 도달 후 다음 턴이면 궁극기 활성화
     if (gaugeReachedFullRef.current && !isUltimateReady) {
       setIsUltimateReady(true)
     }
-    
-    // 스킬 2개 중 랜덤하게 선택 (현재는 둘 다 제공하고 랜덤 1개를 하이라이트)
+
+    // 덱 셔플 알고리즘으로 스킬 선택
     if (character?.skills && character.skills.length >= 2) {
-      // 랜덤하게 섞기
-      const shuffled = [...character.skills].sort(() => Math.random() - 0.5)
-      setCurrentSkills(shuffled)
+      setAvailableSkillPool(prevPool => {
+        // 풀이 비어있으면 모든 스킬로 리셋 (새 사이클 시작)
+        let pool = prevPool.length > 0 ? [...prevPool] : [...character.skills]
+
+        // Fisher-Yates로 풀을 셔플
+        const shuffledPool = fisherYatesShuffle(pool)
+
+        // 첫 번째 스킬을 선택하고 풀에서 제거
+        const selectedSkill = shuffledPool[0]
+        const remainingPool = shuffledPool.slice(1)
+
+        // 선택된 스킬을 currentSkills의 첫 번째로, 나머지는 뒤에 배치
+        const otherSkills = character.skills.filter(s => s.name !== selectedSkill.name)
+        setCurrentSkills([selectedSkill, ...fisherYatesShuffle(otherSkills)])
+
+        console.log(`🎲 Skill selected: ${selectedSkill.name} | Remaining in pool: ${remainingPool.length}/${character.skills.length}`)
+
+        return remainingPool
+      })
     }
-    
+
     // 이미지 초기화
     setCurrentImage(character?.defaultImg || '')
     setEffectClass('')
@@ -128,17 +169,17 @@ export function useBattleCharacter(character) {
    */
   const activateSkill = useCallback((skill, duration = 1500) => {
     if (isActivating) return
-    
+
     setIsActivating(true)
-    
+
     // 이미지 변경
     if (skill.image) {
       setCurrentImage(skill.image)
     }
-    
+
     // CSS 효과 클래스 적용
     setEffectClass('skill-effect')
-    
+
     // 게이지 증가 (1/3 = 약 33.33%)
     setGauge(prev => {
       const newGauge = Math.min(100, prev + 100 / 3)
@@ -148,7 +189,7 @@ export function useBattleCharacter(character) {
       }
       return newGauge
     })
-    
+
     // duration 후 원래 상태로 복귀
     setTimeout(() => {
       setCurrentImage(character?.defaultImg || '')
@@ -163,25 +204,25 @@ export function useBattleCharacter(character) {
    */
   const activateUltimate = useCallback((ultimate) => {
     if (isActivating || !isUltimateReady) return
-    
+
     setIsActivating(true)
-    
+
     // 이미지 변경
     if (ultimate.image) {
       setCurrentImage(ultimate.image)
     }
-    
+
     // 궁극기 전용 CSS 효과 클래스 적용
     setEffectClass(ultimate.effectClass || 'ultimate-effect')
-    
+
     // 궁극기 사용 후 게이지 초기화
     setGauge(0)
     setIsUltimateReady(false)
     gaugeReachedFullRef.current = false
-    
+
     // 궁극기 효과 duration (기본 3초)
     const ultimateDuration = ultimate.duration || 3000
-    
+
     setTimeout(() => {
       setCurrentImage(character?.defaultImg || '')
       setEffectClass('')
@@ -196,7 +237,7 @@ export function useBattleCharacter(character) {
    */
   const processTranscript = useCallback((transcript) => {
     const result = analyzeTranscript(transcript)
-    
+
     if (result.matched) {
       if (result.type === 'ultimate') {
         activateUltimate(result.skill)
@@ -204,7 +245,7 @@ export function useBattleCharacter(character) {
         activateSkill(result.skill)
       }
     }
-    
+
     return result
   }, [analyzeTranscript, activateSkill, activateUltimate])
 
@@ -231,11 +272,11 @@ export function useBattleCharacter(character) {
     currentSkills,
     turnCount,
     isActivating,
-    
+
     // 계산된 값
     gaugePercentage: gauge,
     gaugeSegments: Math.floor(gauge / (100 / 3)), // 0, 1, 2, 3
-    
+
     // 함수
     startNewTurn,
     analyzeTranscript,
