@@ -75,8 +75,8 @@ CHARACTERS = [
         description="노트 한 권으로 신세계를 꿈꾸는 위험한 천재. 하지만 글씨체가 너무 악필이다.",
         stats=CharacterStats(cringe_level=100, volume_req=60, precision=90),
         spell_text="계획대로다... 삭제! 삭제! 삭제! 너의 패배는 이미 결정되었다!",
-        thumbnail_url="/images/agami_raichu_v2.webp",
-        sprite_url="/images/agami_raichu_v2.webp",
+        thumbnail_url="/images/profile/agami_raichu_v2.webp",
+        sprite_url="/images/profile/agami_raichu_v2.webp",
         is_unlocked=True
     ),
     Character(

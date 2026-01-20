@@ -122,7 +122,7 @@ export const CHARACTER_SKILLS = {
 
   // 아가미 라이츄
   'char_004': {
-    defaultImg: '/images/agami_raichu_v2.webp',
+    defaultImg: '/images/profile/agami_raichu_v2.webp',
     skills: [
       {
         name: '삭제',
