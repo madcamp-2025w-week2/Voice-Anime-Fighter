@@ -57,6 +57,11 @@ export default function BattleScreen() {
   const [activeSkillImage, setActiveSkillImage] = useState(null) // 내 스킬 발동 시 이미지
   const [opponentSkillImage, setOpponentSkillImage] = useState(null) // 상대 스킬 발동 시 이미지
 
+  // 피격 이미지 상태
+  const [myHitImage, setMyHitImage] = useState(null) // 내가 피격당할 때 이미지
+  const [opponentHitImage, setOpponentHitImage] = useState(null) // 상대가 피격당할 때 이미지
+  const [isBlinking, setIsBlinking] = useState(false) // 피격 깜빡임 상태
+
   // 음성 입력 관련 상태
   const [isVoiceInputPhase, setIsVoiceInputPhase] = useState(false)
   const [voiceInputProgress, setVoiceInputProgress] = useState(5) // 5초에서 시작
@@ -91,9 +96,9 @@ export default function BattleScreen() {
   const myNickname = user?.nickname || 'Me'
   const opponentDisplayName = opponentNickname || 'Opponent'
 
-  // 현재 표시할 캐릭터 이미지 (스킬 발동 시 변경됨)
-  const myCharImage = activeSkillImage || myCurrentImage || selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/normal/otaku_normal.webp'
-  const opponentCharImage = opponentSkillImage || opponentCharacterSkills?.defaultImg || opponentCharacter?.image || opponentCharacter?.sprite_url || '/images/normal/gojo_normal.webp'
+  // 현재 표시할 캐릭터 이미지 (피격 > 스킬 > 기본)
+  const myCharImage = myHitImage || activeSkillImage || myCurrentImage || selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/normal/otaku_normal.webp'
+  const opponentCharImage = opponentHitImage || opponentSkillImage || opponentCharacterSkills?.defaultImg || opponentCharacter?.image || opponentCharacter?.sprite_url || '/images/normal/gojo_normal.webp'
 
   const leftCharImage = isHost ? myCharImage : opponentCharImage
   const rightCharImage = isHost ? opponentCharImage : myCharImage
@@ -332,17 +337,43 @@ export default function BattleScreen() {
 
       // 스킬 이미지 복구 (오디오 재생 후)
       if (isAttacker) {
-        setTimeout(() => {
-          setActiveSkillImage(null)
-        }, 500)
+        setActiveSkillImage(null)
       } else {
-        // 방어자 - 상대방 스킬 이미지 복구
-        setTimeout(() => {
-          setOpponentSkillImage(null)
-        }, 500)
+        setOpponentSkillImage(null)
       }
 
-      // 2. Apply damage after audio finishes
+      // === 피격 애니메이션 시퀀스 시작 ===
+
+      // 피격 SFX 재생
+      const playHitSfx = () => {
+        const hitAudio = new Audio('/sounds/hit.wav')
+        hitAudio.volume = 0.7
+        hitAudio.play().catch(err => console.warn('Hit SFX play failed:', err))
+      }
+      playHitSfx()
+
+      // 피격 이미지 설정 (공격자: 상대 피격 / 방어자: 자신 피격)
+      if (isAttacker) {
+        // 공격자 시점: 상대방이 맞음 → opponent hit image
+        const opponentHitImg = opponentCharacterSkills?.hitImg || opponentCharacterSkills?.defaultImg
+        console.log('💥 Setting OPPONENT hit image:', opponentHitImg)
+        setOpponentHitImage(opponentHitImg)
+      } else {
+        // 방어자 시점: 내가 맞음 → my hit image
+        const myHitImg = myCharacterSkills?.hitImg || myCharacterSkills?.defaultImg
+        console.log('💥 Setting MY hit image:', myHitImg)
+        setMyHitImage(myHitImg)
+      }
+
+      // 2회 깜빡임 효과 (150ms on, 150ms off × 2회 = 600ms)
+      setIsBlinking(true)
+
+      // 깜빡임 시퀀스 후 HP 감소 및 이미지 복구
+      await new Promise(resolve => setTimeout(resolve, 600))
+
+      setIsBlinking(false)
+
+      // 2. Apply damage after hit animation
       if (isAttacker) {
         // Attacker: apply damage to opponent
         battle.dealDamage(data.damage, { grade: data.grade })
@@ -370,12 +401,22 @@ export default function BattleScreen() {
             })
           }
         }
+
+        // 상대 피격 이미지 복구 (턴 변경 시 normal로)
+        setTimeout(() => {
+          setOpponentHitImage(null)
+        }, 300)
       } else {
         // Defender: take damage on self
         battle.takeDamage(data.damage)
         setShowDamage({ value: data.damage, isPlayer: true, grade: data.grade, isCritical: data.is_critical })
         // Now it's defender's turn
         battle.setTurn(true)
+
+        // 내 피격 이미지 복구 (턴 변경 시 normal로)
+        setTimeout(() => {
+          setMyHitImage(null)
+        }, 300)
       }
 
       // 3. Critical hit effect (both see it)
@@ -541,7 +582,7 @@ export default function BattleScreen() {
               />
             </div>
           )}
-          <img src={leftCharImage} alt={leftLabel} className={`h-48 md:h-64 object-contain ${leftEffectClass}`} style={{ filter: 'drop-shadow(0 0 10px rgba(255,0,0,0.3))' }} />
+          <img src={leftCharImage} alt={leftLabel} className={`h-48 md:h-64 object-contain ${leftEffectClass} ${isBlinking && !isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && isHost && myHitImage ? 'animate-hit-blink' : ''}`} style={{ filter: 'drop-shadow(0 0 10px rgba(255,0,0,0.3))' }} />
         </div>
 
         {showDamage && (
@@ -578,7 +619,7 @@ export default function BattleScreen() {
           <img
             src={rightCharImage}
             alt={rightLabel}
-            className={`h-48 md:h-64 object-contain transform scale-x-[-1] ${rightEffectClass}`}
+            className={`h-48 md:h-64 object-contain transform scale-x-[-1] ${rightEffectClass} ${isBlinking && isHost && opponentHitImage ? 'animate-hit-blink' : ''} ${isBlinking && !isHost && myHitImage ? 'animate-hit-blink' : ''}`}
             style={{ filter: `drop-shadow(0 0 10px ${showCritical ? 'rgba(255,255,0,0.8)' : 'rgba(0,200,255,0.3)'})` }}
           />
         </div>
