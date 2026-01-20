@@ -150,7 +150,7 @@ export default function TitleScreen() {
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/images/title_bg.png')" }}
+        style={{ backgroundImage: "url('/images/background/title_bg.png')" }}
       />
       <div className="absolute inset-0 bg-black/10" />
 

@@ -431,7 +431,7 @@ export default function BattleScreen() {
       ) : (
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/images/battle_bg.png')" }}
+          style={{ backgroundImage: "url('/images/background/battle_bg.png')" }}
         />
       )}
       <div className="absolute inset-0 bg-black/20" />
