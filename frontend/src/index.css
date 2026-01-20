@@ -27,15 +27,17 @@ body {
 
 /* Custom Scrollbar Utility for Compact Lists (Thinner) */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ec4899, #8b5cf6);
-    border-radius: 3px;
+  background: linear-gradient(to bottom, #ec4899, #8b5cf6);
+  border-radius: 3px;
 }
 
 /* Glow effects */
@@ -86,9 +88,11 @@ body {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -96,7 +100,7 @@ body {
 
 /* Star background */
 .stars-bg {
-  background-image: 
+  background-image:
     radial-gradient(2px 2px at 20px 30px, #fff, transparent),
     radial-gradient(2px 2px at 40px 70px, #fff, transparent),
     radial-gradient(2px 2px at 50px 160px, #fff, transparent),
@@ -125,9 +129,19 @@ body {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 /* Voice visualizer wave */
@@ -155,10 +169,12 @@ body {
     opacity: 0;
     transform: translateY(20px) scale(0.5);
   }
+
   50% {
     opacity: 1;
     transform: translateY(-10px) scale(1.3);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-40px) scale(1);
@@ -173,31 +189,82 @@ body {
 }
 
 @keyframes grade-flash {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.5); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.5);
+  }
 }
 
-.grade-SSS { color: #fbbf24; text-shadow: 0 0 20px #fbbf24; }
-.grade-S { color: #f472b6; text-shadow: 0 0 15px #f472b6; }
-.grade-A { color: #a78bfa; text-shadow: 0 0 10px #a78bfa; }
-.grade-B { color: #60a5fa; }
-.grade-C { color: #4ade80; }
-.grade-F { color: #6b7280; }
+.grade-SSS {
+  color: #fbbf24;
+  text-shadow: 0 0 20px #fbbf24;
+}
+
+.grade-S {
+  color: #f472b6;
+  text-shadow: 0 0 15px #f472b6;
+}
+
+.grade-A {
+  color: #a78bfa;
+  text-shadow: 0 0 10px #a78bfa;
+}
+
+.grade-B {
+  color: #60a5fa;
+}
+
+.grade-C {
+  color: #4ade80;
+}
+
+.grade-F {
+  color: #6b7280;
+}
 
 @keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 @keyframes wobble {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-3deg); }
-  75% { transform: rotate(3deg); }
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-3deg);
+  }
+
+  75% {
+    transform: rotate(3deg);
+  }
 }
 
 @keyframes wave {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 /* Skill activation effect */
@@ -206,16 +273,18 @@ body {
 }
 
 @keyframes skill-flash {
-  0% { 
-    filter: brightness(1) drop-shadow(0 0 10px rgba(236, 72, 153, 0.3)); 
+  0% {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));
     transform: scale(1);
   }
-  50% { 
-    filter: brightness(1.3) drop-shadow(0 0 30px rgba(236, 72, 153, 0.8)); 
+
+  50% {
+    filter: brightness(1.3) drop-shadow(0 0 30px rgba(236, 72, 153, 0.8));
     transform: scale(1.1);
   }
-  100% { 
-    filter: brightness(1) drop-shadow(0 0 10px rgba(236, 72, 153, 0.3)); 
+
+  100% {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(236, 72, 153, 0.3));
     transform: scale(1);
   }
 }
@@ -226,33 +295,38 @@ body {
 }
 
 @keyframes ultimate-burst {
-  0% { 
+  0% {
     filter: brightness(1) drop-shadow(0 0 0 transparent);
     transform: scale(1);
   }
-  20% { 
+
+  20% {
     filter: brightness(2) drop-shadow(0 0 50px rgba(255, 215, 0, 1));
     transform: scale(1.2);
   }
-  40% { 
+
+  40% {
     filter: brightness(1.5) drop-shadow(0 0 80px rgba(255, 100, 0, 0.8));
     transform: scale(1.15);
   }
+
   60% {
     filter: brightness(1.8) drop-shadow(0 0 60px rgba(255, 50, 100, 0.9));
     transform: scale(1.1);
   }
-  100% { 
+
+  100% {
     filter: brightness(1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
     transform: scale(1);
   }
 }
 
 @keyframes ultimate-glow {
-  0% { 
+  0% {
     filter: brightness(1.2) drop-shadow(0 0 30px rgba(255, 215, 0, 0.6));
   }
-  100% { 
+
+  100% {
     filter: brightness(1.5) drop-shadow(0 0 50px rgba(255, 215, 0, 0.9));
   }
 }
@@ -263,10 +337,13 @@ body {
 }
 
 @keyframes ultimate-ready-pulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
   }
-  50% { 
+
+  50% {
     box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 150, 50, 0.4);
   }
 }
@@ -305,3 +382,204 @@ body {
   transition: filter 0.3s ease;
 }
 
+/* Hit blink animation - 피격 시 깜빡임 효과 */
+.animate-hit-blink {
+  animation: hit-blink 0.6s ease-in-out;
+}
+
+@keyframes hit-blink {
+  0% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 0, 0, 0.3));
+  }
+
+  12.5% {
+    opacity: 0.3;
+    filter: brightness(2) drop-shadow(0 0 30px rgba(255, 0, 0, 1));
+  }
+
+  25% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 0, 0, 0.3));
+  }
+
+  37.5% {
+    opacity: 0.3;
+    filter: brightness(2) drop-shadow(0 0 30px rgba(255, 0, 0, 1));
+  }
+
+  50% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 0, 0, 0.3));
+  }
+
+  100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 0, 0, 0.3));
+  }
+}
+
+/* === ULTIMATE BANNER ANIMATIONS === */
+
+/* 전기 효과 - 상단 */
+@keyframes electric-top {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateX(0);
+  }
+
+  25% {
+    opacity: 1;
+    transform: translateX(-20px);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translateX(30px);
+  }
+
+  75% {
+    opacity: 0.9;
+    transform: translateX(-10px);
+  }
+}
+
+/* 전기 효과 - 하단 */
+@keyframes electric-bottom {
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translateX(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateX(25px);
+  }
+
+  60% {
+    opacity: 0.4;
+    transform: translateX(-15px);
+  }
+
+  90% {
+    opacity: 0.8;
+    transform: translateX(10px);
+  }
+}
+
+/* 번개 스파크 */
+@keyframes spark {
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+
+  10% {
+    opacity: 1;
+    transform: scale(1.5) rotate(20deg);
+  }
+
+  20% {
+    opacity: 0.3;
+    transform: scale(0.8) rotate(-10deg);
+  }
+
+  30% {
+    opacity: 1;
+    transform: scale(1.2) rotate(15deg);
+  }
+
+  50% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+}
+
+/* 궁극기 이미지 등장 */
+@keyframes ultimate-image {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-10deg);
+  }
+
+  30% {
+    opacity: 1;
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  50% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  70% {
+    transform: scale(1.05) rotate(-2deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 글로우 펄스 */
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* 사이드 글로우 라인 */
+@keyframes glow-line {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    height: 30%;
+    top: 35%;
+  }
+
+  50% {
+    opacity: 1;
+    height: 100%;
+    top: 0%;
+  }
+}
+
+/* 애니메이션 클래스 */
+.animate-electric-top {
+  animation: electric-top 0.15s ease-in-out infinite;
+}
+
+.animate-electric-bottom {
+  animation: electric-bottom 0.12s ease-in-out infinite;
+}
+
+.animate-spark {
+  animation: spark 0.8s ease-in-out infinite;
+}
+
+.animate-ultimate-image {
+  animation: ultimate-image 0.6s ease-out forwards;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 0.5s ease-in-out infinite;
+}
+
+.animate-glow-line {
+  animation: glow-line 0.8s ease-in-out infinite;
+}

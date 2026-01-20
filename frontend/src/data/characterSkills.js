@@ -19,6 +19,7 @@ export const CHARACTER_SKILLS = {
   // 찐따 오타쿠 쿠로
   'char_000': {
     defaultImg: '/images/normal/otaku_normal.webp',
+    hitImg: '/images/hit/otaku_hit.webp',
     skills: [
       {
         name: '야메로',
@@ -57,6 +58,7 @@ export const CHARACTER_SKILLS = {
   // 고졸 사토루
   'char_001': {
     defaultImg: '/images/normal/gojo_normal.webp',
+    hitImg: '/images/hit/gojo_hit.webp',
     skills: [
       {
         name: '료이키텐카이',
@@ -89,6 +91,7 @@ export const CHARACTER_SKILLS = {
   // 몽키 D: 드라이브
   'char_002': {
     defaultImg: '/images/normal/luffy_normal.webp',
+    hitImg: '/images/hit/lupy_hit.webp',
     skills: [
       {
         name: '고무고무 제트 D 드라이브',
@@ -115,6 +118,7 @@ export const CHARACTER_SKILLS = {
   // 바싹 탄지로
   'char_003': {
     defaultImg: '/images/normal/tanjiro_normal.webp',
+    hitImg: '/images/hit/tanjiro_hit.webp',
     skills: [
       {
         name: 'NTR의 호흡',
@@ -141,6 +145,7 @@ export const CHARACTER_SKILLS = {
   // 아가미 라이츄
   'char_004': {
     defaultImg: '/images/normal/light_normal.webp',
+    hitImg: '/images/hit/light_hit.webp',
     skills: [
       {
         name: '지우 때리기',
@@ -166,25 +171,26 @@ export const CHARACTER_SKILLS = {
 
   // 고양이 집사 냥댕이
   'char_005': {
-    defaultImg: '/images/profile/nyang.webp',
+    defaultImg: '/images/normal/nyang_normal.webp',
+    hitImg: '/images/hit/nyang_hit.webp',
     skills: [
       {
         name: '냥냥펀치',
         trigger: '냥냥펀치!',
-        image: '/images/nyang_skill_1.png',
+        image: '/images/attack/nyang_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '고양이 발톱',
         trigger: '고양이의 발톱 공격!',
-        image: '/images/nyang_skill_2.png',
+        image: '/images/attack/nyang_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '고양이 군단 소환',
       trigger: '냥냥펀치! 고양이의 힘을 빌려라!',
-      image: '/images/nyang_ultimate.png',
+      image: '/images/attack/nyang_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -193,6 +199,7 @@ export const CHARACTER_SKILLS = {
   // 딸바이 (진격거)
   'char_007': {
     defaultImg: '/images/normal/levi_normal.webp',
+    hitImg: '/images/hit/livi_hit.webp',
     skills: [
       {
         name: '골든 타임',
@@ -218,25 +225,26 @@ export const CHARACTER_SKILLS = {
 
   // 흑염룡 소드마스터
   'char_008': {
-    defaultImg: '/images/normal/dark_sword_normal.webp',
+    defaultImg: '/images/normal/darksword_normal.webp',
+    hitImg: '/images/hit/darksword_hit.webp',
     skills: [
       {
         name: '게임 속 사람들',
         trigger: '내가 게임을 하고 싶어서 그랬겠어? 게임 안에 사람들이 있잖아!!',
-        image: '/images/attack/dark_sword_attack.webp',
+        image: '/images/attack/darksword_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '순애 애니',
         trigger: '너희들, 애니메이션을 뭐라고 생각하는 거냐! 이건 단순한 그림이 아니라 한 사람의 영혼이 담긴 결정체라고! 무례하긴, 순애다!!',
-        image: '/images/attack/dark_sword_attack.webp',
+        image: '/images/attack/darksword_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '다크니스 디멘션 슬래시',
       trigger: '눈을 떠라... 내 안의 흑염룡! 코리안 소드마스터 등장!! 다크니스 디멘션 슬래시!',
-      image: '/images/attack/dark_sword_attack.webp',
+      image: '/images/attack/darksword_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -244,25 +252,26 @@ export const CHARACTER_SKILLS = {
 
   // 바겐세일러문
   'char_009': {
-    defaultImg: '/images/normal/bargain_moon_normal.webp',
+    defaultImg: '/images/normal/moon_normal.webp',
+    hitImg: '/images/hit/moon_hit.webp',
     skills: [
       {
         name: '품절주의',
         trigger: '미안해, 솔직하지 못한 내 지갑이... 하지만 세일 품목 앞에선 몸이 먼저 반응하는걸? 앗, 품절주의!!',
-        image: '/images/attack/bargain_moon_attack.webp',
+        image: '/images/attack/moon_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '소매넣기',
         trigger: '바겐세일~! 시식만하고 도망 가는 널 용서하지 않겠다! 소매넣기!!',
-        image: '/images/attack/bargain_moon_attack.webp',
+        image: '/images/attack/moon_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '70% 할인',
       trigger: '사랑과 정의의 이름으로 70% 할인을 용서하지 않겠다! 오늘이 지나면 다시는 오지 않을 이 가격, 지금 당장 결제해라!',
-      image: '/images/attack/bargain_moon_attack.webp',
+      image: '/images/attack/moon_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
@@ -270,25 +279,26 @@ export const CHARACTER_SKILLS = {
 
   // 손오공주님
   'char_010': {
-    defaultImg: '/images/normal/goku_princess_normal.webp',
+    defaultImg: '/images/normal/goku_normal.webp',
+    hitImg: '/images/hit/goku_hit.webp',
     skills: [
       {
         name: '아름다울 미',
         trigger: '나를 보고 반해라! 아름다울 미!!!! 오호호!',
-        image: '/images/attack/goku_princess_attack.webp',
+        image: '/images/attack/goku_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       },
       {
         name: '소원 거부',
         trigger: '치키치키 차카차카 초코초코 쵸! 호잇! 너의 소원을 들어주지 않겠다!',
-        image: '/images/attack/goku_princess_attack.webp',
+        image: '/images/attack/goku_attack.webp',
         duration: DEFAULT_SKILL_DURATION
       }
     ],
     ultimate: {
       name: '큐티뽀짝 여의봉',
       trigger: '나와라! 큐티뽀짝 여의봉!! 어딜 감히 쳐다보느냐! 이 오징어 쩌꾸미들아!! 내 미모에... 정신을 못 차리고... 넋을 잃어라!!!! 홀릴 혹',
-      image: '/images/attack/goku_princess_attack.webp',
+      image: '/images/attack/goku_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }

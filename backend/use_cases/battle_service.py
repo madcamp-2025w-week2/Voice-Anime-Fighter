@@ -157,17 +157,17 @@ class BattleService:
         - total = (base + cringe + volume) * multiplier
         - Critical: total *= 1.5
         """
-        base_damage = 20
+        base_damage = 100
         
         # Cringe bonus (higher cringe level = more bonus for accurate spells)
-        cringe_bonus = int(character.stats.cringe_level * analysis.text_accuracy * 0.5)
+        cringe_bonus = int(character.stats.cringe_level * analysis.text_accuracy * 0.2)
         
         # Volume bonus (louder = more damage, scaled)
         volume_factor = min(1.0, analysis.volume_db / 80)
-        volume_bonus = int(30 * volume_factor * (character.stats.volume_req / 100))
+        volume_bonus = int(10 * volume_factor * (character.stats.volume_req / 100))
         
         # Accuracy multiplier
-        accuracy_multiplier = 0.5 + (analysis.text_accuracy * 0.5) + (analysis.confidence * 0.2)
+        accuracy_multiplier = 0.2 + (analysis.text_accuracy * 0.5) + (analysis.confidence * 0.2)
         
         # Total damage
         total_damage = int((base_damage + cringe_bonus + volume_bonus) * accuracy_multiplier)

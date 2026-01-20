@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-const INITIAL_HP = 100
+const INITIAL_HP = 300
 
 export const useBattleStore = create((set, get) => ({
   // Battle state
