@@ -6,16 +6,6 @@ import { useUserStore } from '../stores/userStore'
 import { useSocket } from '../hooks/useSocket'
 import { BATTLE_BACKGROUNDS, getRandomBackground } from '../data/battleBackgrounds'
 
-// 선택 BGM 중지 함수 (전역 오디오 객체 참조)
-const stopSelectBgm = () => {
-  // MultiCharacterSelect에서 생성된 전역 오디오 객체 중지
-  const audio = window.__selectBgmAudio;
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-};
-
 export default function BackgroundSelectScreen() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -110,7 +100,6 @@ export default function BackgroundSelectScreen() {
     } else if (countdown === 0) {
       // 0이 되면 'FIGHT' 표시 후 배틀로 이동
       const timer = setTimeout(() => {
-        stopSelectBgm() // BGM 중지
         navigate('/battle', { state: { room_id: roomId } })
       }, 1000)
       return () => clearTimeout(timer)
@@ -295,10 +284,10 @@ export default function BackgroundSelectScreen() {
               onClick={handleConfirm}
               disabled={!mySelection || myConfirmed}
               className={`flex-1 rounded-2xl font-black text-2xl italic uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-2 ${myConfirmed
-                ? 'bg-zinc-800 text-green-500 border-2 border-green-500/50'
-                : mySelection
-                  ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:scale-[1.02] border-2 border-orange-400/50 shadow-[0_0_30px_rgba(220,38,38,0.4)]'
-                  : 'bg-zinc-900 text-zinc-600 cursor-not-allowed border-2 border-zinc-800'
+                  ? 'bg-zinc-800 text-green-500 border-2 border-green-500/50'
+                  : mySelection
+                    ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:scale-[1.02] border-2 border-orange-400/50 shadow-[0_0_30px_rgba(220,38,38,0.4)]'
+                    : 'bg-zinc-900 text-zinc-600 cursor-not-allowed border-2 border-zinc-800'
                 }`}
             >
               {myConfirmed ? (
@@ -327,10 +316,10 @@ export default function BackgroundSelectScreen() {
                   onMouseLeave={() => !myConfirmed && setPreviewBg(mySelection || BATTLE_BACKGROUNDS[0])}
                   disabled={myConfirmed}
                   className={`relative w-48 aspect-video rounded-lg overflow-hidden transition-all duration-200 group ${isMySelected
-                    ? 'border-4 border-cyan-400 scale-110 z-20 shadow-[0_0_20px_rgba(6,182,212,0.6)]'
-                    : isOpponentSelected
-                      ? 'border-4 border-pink-500 scale-110 z-20 shadow-[0_0_20px_rgba(236,72,153,0.6)]'
-                      : 'border-2 border-zinc-700 hover:border-white hover:scale-105 hover:z-10'
+                      ? 'border-4 border-cyan-400 scale-110 z-20 shadow-[0_0_20px_rgba(6,182,212,0.6)]'
+                      : isOpponentSelected
+                        ? 'border-4 border-pink-500 scale-110 z-20 shadow-[0_0_20px_rgba(236,72,153,0.6)]'
+                        : 'border-2 border-zinc-700 hover:border-white hover:scale-105 hover:z-10'
                     } ${myConfirmed ? 'opacity-50 grayscale cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {/* 배경 썸네일 */}

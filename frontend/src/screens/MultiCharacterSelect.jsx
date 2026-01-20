@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Check, Loader2 } from 'lucide-react'
 import { useGameStore } from '../stores/gameStore'
@@ -6,6 +6,18 @@ import { useUserStore } from '../stores/userStore'
 import { useSocket } from '../hooks/useSocket'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
+
+// 전역 오디오 객체 (화면 전환 시에도 유지)
+let selectBgmAudio = null;
+
+// 선택 BGM 중지 함수 (외부에서 호출 가능)
+export const stopSelectBgm = () => {
+  if (selectBgmAudio) {
+    selectBgmAudio.pause();
+    selectBgmAudio.currentTime = 0;
+    selectBgmAudio = null;
+  }
+};
 
 export default function MultiCharacterSelect() {
   const navigate = useNavigate()
@@ -55,17 +67,15 @@ export default function MultiCharacterSelect() {
   // 선택 BGM 재생 (캐릭터/배경 선택 공유)
   useEffect(() => {
     // 이미 재생 중이면 스킵
-    if (!window.__selectBgmAudio) {
-      window.__selectBgmAudio = new Audio('/audio/select_bgm.mp3');
-      window.__selectBgmAudio.loop = true;
-      window.__selectBgmAudio.volume = 0.4;
+    if (!selectBgmAudio) {
+      selectBgmAudio = new Audio('/audio/select_bgm.mp3');
+      selectBgmAudio.loop = true;
+      selectBgmAudio.volume = 0.4;
     }
 
-    const audio = window.__selectBgmAudio;
-
     const playBgm = () => {
-      if (audio.paused) {
-        audio.play().catch(err => console.log('Select BGM autoplay blocked:', err));
+      if (selectBgmAudio.paused) {
+        selectBgmAudio.play().catch(err => console.log('Select BGM autoplay blocked:', err));
       }
     };
 

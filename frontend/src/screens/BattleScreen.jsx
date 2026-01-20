@@ -12,6 +12,19 @@ import { useBattleCharacter } from '../hooks/useBattleCharacter'
 import { getOrCreateCharacterSkills } from '../data/characterSkills'
 import { checkSkillMatch, checkUltimateMatch } from '../utils/stringSimilarity'
 import EnergyChargeEffect from '../components/EnergyChargeEffect'
+import { stopSelectBgm } from './MultiCharacterSelect'
+
+// 배틀 BGM 전역 관리
+let battleBgmAudio = null;
+
+// 배틀 BGM 중지 함수 (외부에서 호출 가능)
+export const stopBattleBgm = () => {
+  if (battleBgmAudio) {
+    battleBgmAudio.pause();
+    battleBgmAudio.currentTime = 0;
+    battleBgmAudio = null;
+  }
+};
 
 export default function BattleScreen() {
   const navigate = useNavigate()
@@ -50,7 +63,7 @@ export default function BattleScreen() {
   const voiceInputIntervalRef = useRef(null)
   const previousIsMyTurn = useRef(null)
   const lastTriggeredSkillRef = useRef(null) // 마지막 발동한 스킬 저장
-  
+
   // 궁극기 게이지 상태 (로컬 - 소켓 핸들러에서 접근 필요)
   const [gauge, setGauge] = useState(0)
   const [isUltimateReady, setIsUltimateReady] = useState(false)
@@ -59,7 +72,7 @@ export default function BattleScreen() {
   // 스킬 시스템 - 캐릭터별 스킬 데이터 가져오기
   const myCharacterSkills = getOrCreateCharacterSkills(selectedCharacter)
   const opponentCharacterSkills = getOrCreateCharacterSkills(opponentCharacter)
-  
+
   // useBattleCharacter 훅으로 스킬 선택 관리 (게이지는 로컬 상태 사용)
   const {
     currentImage: myCurrentImage,
@@ -70,7 +83,7 @@ export default function BattleScreen() {
     activateSkill,
     activateUltimate
   } = useBattleCharacter(myCharacterSkills)
-  
+
   // 게이지 세그먼트 계산 (0, 1, 2, 3)
   const gaugeSegments = Math.floor(gauge / (100 / 3))
 
@@ -93,13 +106,43 @@ export default function BattleScreen() {
 
   // 현재 턴에서 사용할 스킬/궁극기 대사
   const currentSkill = currentSkills[0] // 첫 번째 스킬 사용
-  const currentSpell = isUltimateReady 
-    ? myCharacterSkills?.ultimate?.trigger 
+  const currentSpell = isUltimateReady
+    ? myCharacterSkills?.ultimate?.trigger
     : currentSkill?.trigger || selectedCharacter?.spell_text || '마법의 주문!'
 
   useEffect(() => {
     return () => cleanupAudio()
   }, [cleanupAudio])
+
+  // 배틀 BGM 재생 (화면 진입 시)
+  useEffect(() => {
+    // 선택 화면 BGM 중지
+    stopSelectBgm();
+
+    // 이전 배틀 BGM 정리 후 새로 생성
+    if (battleBgmAudio) {
+      battleBgmAudio.pause();
+    }
+
+    battleBgmAudio = new Audio('/audio/battle_bgm.mp3');
+    battleBgmAudio.loop = true;
+    battleBgmAudio.volume = 0.06; // 더 작은 볼륨
+
+    const playBgm = () => {
+      if (battleBgmAudio && battleBgmAudio.paused) {
+        battleBgmAudio.play().catch(err => console.log('Battle BGM autoplay blocked:', err));
+      }
+    };
+
+    document.addEventListener('click', playBgm, { once: true });
+    playBgm();
+
+    return () => {
+      document.removeEventListener('click', playBgm);
+      // 컴포넌트 언마운트 시 BGM 중지
+      stopBattleBgm();
+    };
+  }, []);
 
   // 게임 시작 애니메이션 (최초 1회)
   useEffect(() => {
@@ -177,8 +220,8 @@ export default function BattleScreen() {
     setIsAttacking(true)
 
     // 현재 표시 중인 스킬/궁극기 이미지 저장 (데미지 수신 시 사용)
-    const currentSkillForImage = isUltimateReady 
-      ? myCharacterSkills?.ultimate 
+    const currentSkillForImage = isUltimateReady
+      ? myCharacterSkills?.ultimate
       : currentSkills[0]
     lastTriggeredSkillRef.current = currentSkillForImage
     console.log('📸 Current skill for image:', currentSkillForImage?.name, currentSkillForImage?.image)
@@ -187,11 +230,11 @@ export default function BattleScreen() {
     setTimeout(async () => {
       const battleId = roomId || battle.battleId || 'demo'
       const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id)
-      
+
       if (analysisResult && analysisResult.success) {
         // 백엔드에서 받은 grade를 포함하여 전송 (스킬 이미지 포함)
-        sendAttack(battleId, { 
-          ...analysisResult.damage, 
+        sendAttack(battleId, {
+          ...analysisResult.damage,
           audio_url: analysisResult.audio_url,
           is_ultimate: isUltimateReady,
           skill_image: currentSkillForImage?.image || null // 스킬 이미지 URL 전송
@@ -275,7 +318,7 @@ export default function BattleScreen() {
           setActiveSkillImage(skill.image)
         }
       }
-      
+
       // 방어자일 경우 상대방 스킬 이미지 표시 (소켓으로 받은 이미지)
       if (!isAttacker && data.skill_image) {
         console.log('🎯 Setting OPPONENT skill image:', data.skill_image)
@@ -286,7 +329,7 @@ export default function BattleScreen() {
       if (data.audio_url) {
         await playOtakuSound(data.audio_url)
       }
-      
+
       // 스킬 이미지 복구 (오디오 재생 후)
       if (isAttacker) {
         setTimeout(() => {
@@ -304,7 +347,7 @@ export default function BattleScreen() {
         // Attacker: apply damage to opponent
         battle.dealDamage(data.damage, { grade: data.grade })
         setShowDamage({ value: data.damage, isPlayer: false, grade: data.grade, isCritical: data.is_critical })
-        
+
         // 백엔드 grade 기반으로 궁극기 게이지 증가 (S, A, B 등급 = 성공)
         if (['SSS', 'SS', 'S', 'A', 'B'].includes(data.grade)) {
           // 궁극기 사용 시 게이지 초기화
@@ -490,8 +533,8 @@ export default function BattleScreen() {
           {/* 에너지 차지 이펙트 - 내 캐릭터가 녹음 중일 때 */}
           {isHost && isRecording && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <EnergyChargeEffect 
-                isActive={isRecording} 
+              <EnergyChargeEffect
+                isActive={isRecording}
                 intensity={1 + (analyzerData[0] || 0) / 128}
                 color="#ff69b4"
               />
@@ -524,8 +567,8 @@ export default function BattleScreen() {
           {/* 에너지 차지 이펙트 - 내 캐릭터가 녹음 중일 때 (비호스트) */}
           {!isHost && isRecording && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <EnergyChargeEffect 
-                isActive={isRecording} 
+              <EnergyChargeEffect
+                isActive={isRecording}
                 intensity={1 + (analyzerData[0] || 0) / 128}
                 color="#00bfff"
               />
@@ -547,11 +590,10 @@ export default function BattleScreen() {
             <span className="text-white text-sm font-bold">✨ 궁극기</span>
             <div className="flex-1 h-4 bg-gray-800/80 rounded-full overflow-hidden border border-purple-500/50">
               <div
-                className={`h-full transition-all duration-300 ${
-                  isUltimateReady 
-                    ? 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-pulse' 
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500'
-                }`}
+                className={`h-full transition-all duration-300 ${isUltimateReady
+                  ? 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-pulse'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                  }`}
                 style={{ width: `${gauge}%` }}
               />
             </div>
@@ -560,11 +602,10 @@ export default function BattleScreen() {
               {[0, 1, 2].map(i => (
                 <Star
                   key={i}
-                  className={`w-4 h-4 ${
-                    gaugeSegments > i 
-                      ? 'text-yellow-400 fill-yellow-400' 
-                      : 'text-gray-600'
-                  }`}
+                  className={`w-4 h-4 ${gaugeSegments > i
+                    ? 'text-yellow-400 fill-yellow-400'
+                    : 'text-gray-600'
+                    }`}
                 />
               ))}
             </div>
