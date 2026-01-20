@@ -238,8 +238,8 @@ export default function BattleScreen() {
   const opponentDisplayName = opponentNickname || 'Opponent'
 
   // 현재 표시할 캐릭터 이미지 (스킬 발동 시 변경됨)
-  const myCharImage = activeSkillImage || myCurrentImage || selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/profile/otacu.webp'
-  const opponentCharImage = opponentSkillImage || opponentCharacter?.image || opponentCharacter?.sprite_url || '/images/satoru.webp'
+  const myCharImage = activeSkillImage || myCurrentImage || selectedCharacter?.image || selectedCharacter?.sprite_url || '/images/normal/otaku_normal.webp'
+  const opponentCharImage = opponentSkillImage || opponentCharacterSkills?.defaultImg || opponentCharacter?.image || opponentCharacter?.sprite_url || '/images/normal/gojo_normal.webp'
 
   const leftCharImage = isHost ? myCharImage : opponentCharImage
   const rightCharImage = isHost ? opponentCharImage : myCharImage
