@@ -3,6 +3,7 @@ import TitleScreen from './screens/TitleScreen'
 import LobbyScreen from './screens/LobbyScreen'
 import CharacterSelectScreen from './screens/CharacterSelectScreen'
 import MultiCharacterSelect from './screens/MultiCharacterSelect'
+import BackgroundSelectScreen from './screens/BackgroundSelectScreen'
 import MatchmakingScreen from './screens/MatchmakingScreen'
 import BattleScreen from './screens/BattleScreen'
 import ResultScreen from './screens/ResultScreen'
@@ -22,6 +23,7 @@ function App() {
             <Route path="/lobby" element={<LobbyScreen />} />
             <Route path="/select" element={<CharacterSelectScreen />} />
             <Route path="/multi-select" element={<MultiCharacterSelect />} />
+            <Route path="/background-select" element={<BackgroundSelectScreen />} />
             <Route path="/matchmaking" element={<MatchmakingScreen />} />
             <Route path="/battle" element={<BattleScreen />} />
             <Route path="/result" element={<ResultScreen />} />

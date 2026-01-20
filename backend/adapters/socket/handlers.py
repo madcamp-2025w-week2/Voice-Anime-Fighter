@@ -632,6 +632,37 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "character_id": character_id
         }, room=room_id)
     
+    # --- Background Selection Handlers ---
+    @sio.on("background:select")
+    async def background_select(sid, data):
+        """Handle background selection (preview)."""
+        room_id = data.get("room_id")
+        background_id = data.get("background_id")
+        if not room_id:
+            return
+        
+        user_info = connected_users.get(sid, {})
+        logger.info(f"[{sid}] background:select - {background_id} in room {room_id}")
+        await sio.emit("background:selected", {
+            "user_id": user_info.get("user_id", sid),
+            "background_id": background_id
+        }, room=room_id)
+    
+    @sio.on("background:confirm")
+    async def background_confirm(sid, data):
+        """Handle background confirmation."""
+        room_id = data.get("room_id")
+        background_id = data.get("background_id")
+        if not room_id:
+            return
+        
+        user_info = connected_users.get(sid, {})
+        logger.info(f"[{sid}] background:confirm - {background_id} in room {room_id}")
+        await sio.emit("background:confirmed", {
+            "user_id": user_info.get("user_id", sid),
+            "background_id": background_id
+        }, room=room_id)
+    
     @sio.on("battle:countdown")
     async def battle_countdown(sid, data):
         """Trigger countdown."""
@@ -684,7 +715,9 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "grade": damage_data.get("grade", "F"),
             "animation_trigger": damage_data.get("animation_trigger", "miss"),
             "is_critical": damage_data.get("is_critical", False),
-            "audio_url": damage_data.get("audio_url", None)
+            "audio_url": damage_data.get("audio_url", None),
+            "skill_image": damage_data.get("skill_image", None),  # 스킬 이미지 전달
+            "is_ultimate": damage_data.get("is_ultimate", False)  # 궁극기 여부 전달
         }
         
         # Redis에서 동기화된 HP 정보 추가

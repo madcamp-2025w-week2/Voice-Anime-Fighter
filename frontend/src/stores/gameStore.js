@@ -30,6 +30,9 @@ export const useGameStore = create((set) => ({
 
   // Characters list
   characters: [],
+  
+  // Selected battle background
+  selectedBackground: null,
 
   // Actions
   setScreen: (screen) => set({ currentScreen: screen }),
@@ -52,6 +55,8 @@ export const useGameStore = create((set) => ({
   setRoom: (room) => set({ currentRoom: room }),
 
   setCharacters: (characters) => set({ characters }),
+  
+  setBackground: (background) => set({ selectedBackground: background }),
 
   startBattle: (battleData) => set({
     currentBattle: battleData,
@@ -72,6 +77,7 @@ export const useGameStore = create((set) => ({
     isHost: false,
     currentRoom: null,
     currentBattle: null,
+    selectedBackground: null,
     currentScreen: 'lobby',
   }),
 }))

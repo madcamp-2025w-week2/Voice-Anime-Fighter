@@ -65,10 +65,12 @@ export default function LobbyScreen() {
   const [bgmVolume, setBgmVolume] = useState(0.5);
   const [showBgmMenu, setShowBgmMenu] = useState(false);
 
+  // Edit Profile 모달이 열릴 때만 초기화 (모달 열리는 순간에만)
   useEffect(() => {
-    if (user) {
-      setEditNickname(user.nickname || '');
-      setEditAvatar(user.avatar_url || '🌟');
+    if (isEditModalOpen && user) {
+      // 모달이 열리는 순간에만 초기화 (polling 중 덮어쓰기 방지)
+      setEditNickname(prev => prev || user.nickname || '');
+      setEditAvatar(prev => prev || user.avatar_url || '🌟');
     }
   }, [user]);
 
@@ -102,6 +104,14 @@ export default function LobbyScreen() {
       bgmRef.current.volume = bgmVolume;
     }
   }, [bgmVolume]);
+  
+  // 모달이 닫힌 후 edit 필드 초기화
+  useEffect(() => {
+    if (!isEditModalOpen) {
+      setEditNickname(user?.nickname || '');
+      setEditAvatar(user?.avatar_url || '🌟');
+    }
+  }, [isEditModalOpen, user?.nickname, user?.avatar_url]);
 
   const handleSaveProfile = async () => {
     try {
@@ -362,14 +372,18 @@ export default function LobbyScreen() {
     fetchCharacters();
 
     // Polling every 5 seconds to keep data fresh
+    // 단, Edit Profile 모달이 열려있을 때는 userInfo 폴링 중단
     const interval = setInterval(() => {
       fetchRankings();
       fetchRooms();
-      fetchUserInfo();
+      // Edit Profile 모달이 닫혀있을 때만 userInfo 폴링
+      if (!isEditModalOpen) {
+        fetchUserInfo();
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [token, isEditModalOpen]);
 
 
   // Search Filter

@@ -95,14 +95,15 @@ export default function MultiCharacterSelect() {
     }
   }, [on, off, user?.id, navigate, roomId, characters])
 
-  // 둘 다 확정하면 바로 배틀로 이동
+  // 둘 다 확정하면 배경 선택 화면으로 이동
   useEffect(() => {
     if (myConfirmed && opponentConfirmed) {
       // Save selections to global store before navigating
       selectCharacter(mySelected)
       setOpponentCharacter(opponentSelected)
       setIsHost(isHostFromState)
-      navigate('/battle', { state: { room_id: roomId } })
+      // 배경 선택 화면으로 이동
+      navigate('/background-select', { state: { room_id: roomId } })
     }
   }, [myConfirmed, opponentConfirmed, mySelected, opponentSelected, isHostFromState, navigate, selectCharacter, setOpponentCharacter, setIsHost, roomId])
 
