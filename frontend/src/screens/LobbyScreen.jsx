@@ -245,6 +245,10 @@ export default function LobbyScreen() {
       socket.on('user:count', (data) => {
         setOnlineCount(data.count);
       });
+      
+      // Request initial count
+      socket.emit('get:user_count');
+
       return () => {
         socket.off('user:count');
       };
@@ -380,7 +384,7 @@ export default function LobbyScreen() {
       if (!isEditModalOpen) {
         fetchUserInfo();
       }
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [token, isEditModalOpen]);
@@ -846,7 +850,7 @@ export default function LobbyScreen() {
       {matchState === 'FOUND' && (
         <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300">
           {/* Title */}
-          <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 mb-8 drop-shadow-lg animate-pulse">
+          <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 mb-8 drop-shadow-lg animate-pulse px-8 py-2 leading-relaxed">
             MATCH FOUND!
           </h1>
 

@@ -556,6 +556,11 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         # Rejoin global chat
         await sio.enter_room(sid, "lobby")
     
+    @sio.on("get:user_count")
+    async def get_user_count(sid, data):
+        """Send current user count to requester."""
+        await sio.emit("user:count", {"count": len(connected_users)}, room=sid)
+
     @sio.on("room:ready")
     async def room_ready(sid, data):
         """Toggle ready state."""

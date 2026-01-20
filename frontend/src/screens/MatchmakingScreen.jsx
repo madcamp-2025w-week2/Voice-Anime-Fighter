@@ -105,7 +105,7 @@ export default function MatchmakingScreen() {
       </div>
 
       {/* Title */}
-      <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 mb-8 drop-shadow-lg">
+      <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 mb-8 drop-shadow-lg px-12 py-4 leading-relaxed">
         {status === 'searching' ? 'SEARCHING...' : status === 'found' ? 'MATCH FOUND!' : 'GET READY!'}
       </h1>
 
