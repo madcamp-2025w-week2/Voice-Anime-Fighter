@@ -249,6 +249,10 @@ export default function LobbyScreen() {
       socket.on('user:count', (data) => {
         setOnlineCount(data.count);
       });
+      
+      // Request initial count
+      socket.emit('get:user_count');
+
       return () => {
         socket.off('user:count');
       };
@@ -384,7 +388,7 @@ export default function LobbyScreen() {
       if (!isEditModalOpen) {
         fetchUserInfo();
       }
-    }, 5000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [token, isEditModalOpen]);
@@ -850,7 +854,7 @@ export default function LobbyScreen() {
       {matchState === 'FOUND' && (
         <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300">
           {/* Title */}
-          <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 mb-8 drop-shadow-lg animate-pulse">
+          <h1 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-500 mb-8 drop-shadow-lg animate-pulse px-8 py-2 leading-relaxed">
             MATCH FOUND!
           </h1>
 
@@ -861,7 +865,7 @@ export default function LobbyScreen() {
             <div className="w-64 bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-3xl p-6 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
               {/* Avatar + Character Badge */}
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl shadow-lg border-3 border-cyan-400/50 overflow-hidden">
+                <div className="w-24 h-24 shrink-0 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl shadow-lg border-3 border-cyan-400/50 overflow-hidden">
                   {isImageUrl(user?.avatar_url) ? (
                     <img src={getAvatarUrl(user.avatar_url)} alt="Me" className="w-full h-full object-cover" />
                   ) : (
@@ -909,7 +913,7 @@ export default function LobbyScreen() {
             <div className="w-64 bg-black/60 backdrop-blur-xl border border-pink-500/30 rounded-3xl p-6 flex flex-col items-center gap-4 shadow-[0_0_30px_rgba(236,72,153,0.2)]">
               {/* Avatar + Character Badge */}
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-4xl shadow-lg border-3 border-pink-400/50 overflow-hidden">
+                <div className="w-24 h-24 shrink-0 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-4xl shadow-lg border-3 border-pink-400/50 overflow-hidden">
                   {isImageUrl(opponent?.avatar_url) ? (
                     <img src={getAvatarUrl(opponent.avatar_url)} alt="Opponent" className="w-full h-full object-cover" />
                   ) : (
@@ -1103,7 +1107,7 @@ export default function LobbyScreen() {
 
               <div className="flex gap-4 mb-4 shrink-0">
                 <div className="flex-1 glass p-4 rounded-xl flex items-center gap-4 border border-cyan-500/30">
-                  <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center text-2xl border border-cyan-500 overflow-hidden">
+                  <div className="w-16 h-16 shrink-0 bg-cyan-500/20 rounded-full flex items-center justify-center text-2xl border border-cyan-500 overflow-hidden">
                     {isImageUrl(user?.avatar_url) ? (
                       <img src={getAvatarUrl(user.avatar_url)} alt="Me" className="w-full h-full object-cover" />
                     ) : (
@@ -1117,7 +1121,7 @@ export default function LobbyScreen() {
                 </div>
                 <div className="flex items-center justify-center"><Sword size={32} className="text-zinc-600" /></div>
                 <div className="flex-1 glass p-4 rounded-xl flex items-center gap-4 border border-pink-500/30">
-                  <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center text-2xl border border-pink-500 overflow-hidden">
+                  <div className="w-16 h-16 shrink-0 bg-pink-500/20 rounded-full flex items-center justify-center text-2xl border border-pink-500 overflow-hidden">
                     {isImageUrl(opponent?.avatar_url) ? (
                       <img src={getAvatarUrl(opponent.avatar_url)} alt="Opponent" className="w-full h-full object-cover" />
                     ) : (
@@ -1302,7 +1306,7 @@ export default function LobbyScreen() {
                     </div>
 
                     <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
+                    <div className="w-16 h-16 shrink-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
                       {isImageUrl(user?.avatar_url) ? (
                         <img src={getAvatarUrl(user.avatar_url)} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
@@ -1413,7 +1417,7 @@ export default function LobbyScreen() {
                       {/* User Profile Header */}
                       <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-zinc-800 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20"></div>
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
+                        <div className="w-16 h-16 shrink-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-3xl shadow-lg shadow-purple-900/50 z-10 border-2 border-white/10 overflow-hidden">
                           {isImageUrl(selectedRankingUser?.avatar_url) ? (
                             <img src={getAvatarUrl(selectedRankingUser.avatar_url)} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (

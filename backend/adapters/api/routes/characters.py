@@ -44,7 +44,7 @@ CHARACTERS = [
         name="고졸 사토루",
         description="오글거림의 여왕. 오타쿠 세계를 지배하는 언더독 마법소녀.",
         stats=CharacterStats(cringe_level=95, volume_req=70, precision=80),
-        spell_text="마법소녀 카와이 러블리 루루핑!",
+        spell_text="영역전개 무량공처! 죽어라 이새끼들아!",
         thumbnail_url="/images/satoru_v2.webp",
         sprite_url="/images/satoru_v2.webp",
         is_unlocked=True
