@@ -593,12 +593,17 @@ def register_socket_handlers(sio: socketio.AsyncServer):
         user_info = connected_users.get(sid, {})
         nickname = user_info.get("nickname", "Unknown")
         
+        
+        # Use timezone-aware UTC timestamp
+        from datetime import timezone
+        timestamp = datetime.now(timezone.utc).isoformat()
+
         chat_data = {
             "user_id": user_info.get("user_id", sid),
             "nickname": nickname,
             "message": message,
-            "timestamp": datetime.utcnow().isoformat(),
-            "is_global": not bool(room_id)
+            "timestamp": timestamp,
+            "room_id": room_id
         }
         
         if room_id:

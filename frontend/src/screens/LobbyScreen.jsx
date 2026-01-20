@@ -899,7 +899,7 @@ export default function LobbyScreen() {
 
             {/* VS Logo & Countdown */}
             <div className="flex flex-col items-center justify-center">
-              <div className="text-8xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-red-500 drop-shadow-[0_0_30px_rgba(234,179,8,0.5)] animate-pulse tracking-tighter">
+              <div className="text-8xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-red-500 drop-shadow-[0_0_30px_rgba(234,179,8,0.5)] animate-pulse tracking-tighter px-8 py-4 leading-normal">
                 VS
               </div>
               {countdown !== null && (

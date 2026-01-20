@@ -188,10 +188,10 @@ export default function MultiCharacterSelect() {
       <div className="flex-1 relative z-10 flex items-stretch p-4 gap-4">
 
         {/* 좌측 - Player 1 (나의 선택) */}
-        <div className="w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+        <div className="w-1/4 min-w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
           <div className="text-cyan-400 font-black text-lg mb-3 uppercase tracking-wider">{user?.nickname || 'Player 1'}</div>
 
-          <div className="relative h-48 w-36 mb-3">
+          <div className="relative w-full max-w-[240px] aspect-[3/4] mb-3">
             {mySelected ? (
               mySelected.image ? (
                 <img src={mySelected.image} alt={mySelected.name} className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
@@ -279,10 +279,10 @@ export default function MultiCharacterSelect() {
         </div>
 
         {/* 우측 - Player 2 (상대의 선택) */}
-        <div className="w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-red-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+        <div className="w-1/4 min-w-[200px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm border border-red-500/30 rounded-xl p-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
           <div className="text-red-400 font-black text-lg mb-3 uppercase tracking-wider">{opponentNickname || 'Opponent'}</div>
 
-          <div className="relative h-48 w-36 mb-3">
+          <div className="relative w-full max-w-[240px] aspect-[3/4] mb-3">
             {opponentSelected ? (
               opponentSelected.image ? (
                 <img src={opponentSelected.image} alt={opponentSelected.name} className="w-full h-full object-contain transform scale-x-[-1] drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />

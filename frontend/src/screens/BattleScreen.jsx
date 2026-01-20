@@ -527,7 +527,8 @@ export default function BattleScreen() {
         </div>
       </div>
 
-      <div className="flex-1 relative z-10 flex items-end justify-between px-4 pb-4">
+      <div className="flex-1" />
+      <div className="absolute top-[20%] left-0 right-0 z-10 flex items-end justify-between px-4 pointer-events-none">
         {/* 왼쪽 캐릭터 */}
         <div className={`w-1/3 flex flex-col items-center relative ${showDamage && ((isHost && showDamage.isPlayer) || (!isHost && !showDamage.isPlayer)) ? 'animate-shake' : ''} ${leftEffectClass}`}>
           {/* 에너지 차지 이펙트 - 내 캐릭터가 녹음 중일 때 */}
