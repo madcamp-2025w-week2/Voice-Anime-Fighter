@@ -305,3 +305,141 @@ body {
   transition: filter 0.3s ease;
 }
 
+/* === ULTIMATE BANNER ANIMATIONS === */
+
+/* 전기 효과 - 상단 */
+@keyframes electric-top {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: translateX(0); 
+  }
+  25% { 
+    opacity: 1; 
+    transform: translateX(-20px); 
+  }
+  50% { 
+    opacity: 0.5; 
+    transform: translateX(30px); 
+  }
+  75% { 
+    opacity: 0.9; 
+    transform: translateX(-10px); 
+  }
+}
+
+/* 전기 효과 - 하단 */
+@keyframes electric-bottom {
+  0%, 100% { 
+    opacity: 0.5; 
+    transform: translateX(0); 
+  }
+  30% { 
+    opacity: 1; 
+    transform: translateX(25px); 
+  }
+  60% { 
+    opacity: 0.4; 
+    transform: translateX(-15px); 
+  }
+  90% { 
+    opacity: 0.8; 
+    transform: translateX(10px); 
+  }
+}
+
+/* 번개 스파크 */
+@keyframes spark {
+  0%, 100% { 
+    opacity: 0; 
+    transform: scale(0.5) rotate(0deg); 
+  }
+  10% { 
+    opacity: 1; 
+    transform: scale(1.5) rotate(20deg); 
+  }
+  20% { 
+    opacity: 0.3; 
+    transform: scale(0.8) rotate(-10deg); 
+  }
+  30% { 
+    opacity: 1; 
+    transform: scale(1.2) rotate(15deg); 
+  }
+  50% { 
+    opacity: 0; 
+    transform: scale(0.5) rotate(0deg); 
+  }
+}
+
+/* 궁극기 이미지 등장 */
+@keyframes ultimate-image {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.3) rotate(-10deg); 
+  }
+  30% { 
+    opacity: 1; 
+    transform: scale(1.15) rotate(5deg); 
+  }
+  50% { 
+    transform: scale(1) rotate(0deg); 
+  }
+  70% { 
+    transform: scale(1.05) rotate(-2deg); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) rotate(0deg); 
+  }
+}
+
+/* 글로우 펄스 */
+@keyframes glow-pulse {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.1); 
+  }
+}
+
+/* 사이드 글로우 라인 */
+@keyframes glow-line {
+  0%, 100% { 
+    opacity: 0.3; 
+    height: 30%; 
+    top: 35%; 
+  }
+  50% { 
+    opacity: 1; 
+    height: 100%; 
+    top: 0%; 
+  }
+}
+
+/* 애니메이션 클래스 */
+.animate-electric-top {
+  animation: electric-top 0.15s ease-in-out infinite;
+}
+
+.animate-electric-bottom {
+  animation: electric-bottom 0.12s ease-in-out infinite;
+}
+
+.animate-spark {
+  animation: spark 0.8s ease-in-out infinite;
+}
+
+.animate-ultimate-image {
+  animation: ultimate-image 0.6s ease-out forwards;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 0.5s ease-in-out infinite;
+}
+
+.animate-glow-line {
+  animation: glow-line 0.8s ease-in-out infinite;
+}

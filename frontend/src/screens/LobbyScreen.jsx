@@ -259,6 +259,14 @@ export default function LobbyScreen() {
     }
   }, [socket]);
 
+  // Rejoin lobby room (for global chat after battles)
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log('📢 Rejoining lobby room for global chat');
+      socket.emit('lobby:rejoin', {});
+    }
+  }, [socket, isConnected]);
+
   // State
   const [rankingTab, setRankingTab] = useState('RANKING');
   const [chatInput, setChatInput] = useState("");
