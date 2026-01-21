@@ -663,8 +663,8 @@ export default function BattleScreen() {
         battle.dealDamage(data.damage, { grade: data.grade })
         setShowDamage({ value: data.damage, isPlayer: false, grade: data.grade, isCritical: data.is_critical })
 
-        // 백엔드 grade 기반으로 궁극기 게이지 증가 (S, A, B 등급 = 성공)
-        if (['SSS', 'SS', 'S', 'A', 'B'].includes(data.grade)) {
+        // 백엔드 grade 기반으로 궁극기 게이지 증가 (S, A, B, C 등급 = 성공, 약 60% 이상)
+        if (['SSS', 'SS', 'S', 'A', 'B', 'C'].includes(data.grade)) {
           // 궁극기 사용 시 게이지 초기화
           if (data.is_ultimate || isUltimateReady) {
             setGauge(0)
@@ -772,6 +772,26 @@ export default function BattleScreen() {
       return () => clearTimeout(t)
     }
   }, [showDamage])
+
+  // 🔥 위기 각성 (Crisis Awakening): HP 30% 이하 시 궁극기 즉시 충전 (1회 한정)
+  const hasAwakenedRef = useRef(false)
+  useEffect(() => {
+    // battle object exists AND hp is valid AND hp <= 30% of maxHp AND not awakened yet
+    const threshold = battle.player.maxHp * 0.3
+    if (battle.isActive && battle.player.hp > 0 && battle.player.hp <= threshold && !hasAwakenedRef.current) {
+      console.log('🔥 CRISIS AWAKENING! Ultimate Gauge Fully Charged!')
+      hasAwakenedRef.current = true
+      
+      // 즉시 게이지 100% 및 궁극기 준비
+      setGauge(100)
+      gaugeReachedFullRef.current = true
+      setIsUltimateReady(true)
+      
+      // 시각적 피드백 (선택사항)
+      setShowCritical(true)
+      setTimeout(() => setShowCritical(false), 1500)
+    }
+  }, [battle.player.hp, battle.isActive])
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">

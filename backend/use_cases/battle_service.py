@@ -220,15 +220,15 @@ class BattleService:
         if is_critical:
             score += 10
         
-        if score >= 90:
+        if score >= 85:
             return "SSS"
-        elif score >= 80:
+        elif score >= 75:
             return "S"
-        elif score >= 65:
+        elif score >= 60:
             return "A"
-        elif score >= 50:
+        elif score >= 40:
             return "B"
-        elif score >= 30:
+        elif score >= 20:
             return "C"
         else:
             return "F"
