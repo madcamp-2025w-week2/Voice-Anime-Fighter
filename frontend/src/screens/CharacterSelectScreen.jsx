@@ -117,7 +117,7 @@ export default function CharacterSelectScreen() {
                 <div className="w-48 h-48 md:w-64 md:h-64 rounded-2xl bg-gradient-to-br from-magical-pink-400/30 to-magical-purple-400/30 border-2 border-magical-pink-400/50 flex items-center justify-center glow-pink mb-6 overflow-hidden shadow-[0_0_30px_rgba(236,72,153,0.3)] relative group shrink-0">
                   <div className="absolute inset-0 bg-[url('/effects/sparkle.png')] opacity-30 animate-pulse"></div>
                   <img
-                    src={previewChar.image || "/images/char_otaku.png"}
+                    src={previewChar.image || "/images/error_placeholder.webp"}
                     alt={previewChar.name}
                     className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                   />
@@ -156,7 +156,7 @@ export default function CharacterSelectScreen() {
               >
                 <div className="w-full aspect-square rounded-lg bg-gradient-to-br from-magical-pink-500/10 to-magical-purple-500/10 flex items-center justify-center mb-2 overflow-hidden border border-white/5 group-hover:border-white/20 transition-colors">
                   <img
-                    src={char.image || "/images/char_otaku.png"}
+                    src={char.image || "/images/error_placeholder.webp"}
                     alt={char.name}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
                   />

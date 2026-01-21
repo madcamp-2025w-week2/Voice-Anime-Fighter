@@ -252,7 +252,7 @@ export function getCharacterSkills(characterId) {
  * @returns {Object} - 기본 스킬 데이터
  */
 export function createDefaultSkills(character) {
-  const defaultImg = character?.sprite_url || character?.thumbnail_url || '/images/normal/otaku_normal.webp'
+  const defaultImg = character?.sprite_url || character?.thumbnail_url || '/images/error_placeholder.webp'
   const spellText = character?.spell_text || '마법의 주문!'
 
   return {
