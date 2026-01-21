@@ -59,7 +59,7 @@ export const CHARACTER_SKILLS = {
   // 몽키 D: 드라이브 (컴공 컨셉 유지)
   'char_002': {
     defaultImg: '/images/normal/luffy_normal.webp',
-    hitImg: '/images/hit/lupy_hit.webp',
+    hitImg: '/images/hit/luffy_hit.webp',
     skills: [
       { name: '고무고무 제트 D 드라이브', trigger: '기어 세컨드, 고무고무 제트 D 드라이브!', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '로컬 디버깅', trigger: '내 로컬에선... 돌아간다고오오오!!!!! 수도, 깃, 도커, 머지', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
@@ -159,7 +159,7 @@ export const CHARACTER_SKILLS = {
   // 딸바이 (진격거)
   'char_007': {
     defaultImg: '/images/normal/levi_normal.webp',
-    hitImg: '/images/hit/livi_hit.webp',
+    hitImg: '/images/hit/levi_hit.webp',
     skills: [
       { name: '골든 타임', trigger: '부아앙 비켜라!! 급한 건... 치킨의 골든 타임이다!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '사사게요', trigger: '사사게요!! 사사게요!! 별점 5점을 사사게요!!!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
@@ -252,7 +252,7 @@ export function getCharacterSkills(characterId) {
  * @returns {Object} - 기본 스킬 데이터
  */
 export function createDefaultSkills(character) {
-  const defaultImg = character?.sprite_url || character?.thumbnail_url || '/images/normal/otacu_normal.webp'
+  const defaultImg = character?.sprite_url || character?.thumbnail_url || '/images/normal/otaku_normal.webp'
   const spellText = character?.spell_text || '마법의 주문!'
 
   return {
