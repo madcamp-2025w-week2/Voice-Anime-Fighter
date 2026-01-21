@@ -5,7 +5,7 @@
 export const BATTLE_BACKGROUNDS = [
   {
     id: 'battle_arena',
-    name: '배틀 아레나',
+    name: '뒷골목',
     thumbnail: '/images/background/battle_bg.webp',
     style: {
       backgroundImage: "url('/images/background/battle_bg.webp')",
@@ -15,7 +15,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_dojo',
-    name: '평온한 도장',
+    name: '우부야시키 저택',
     thumbnail: '/images/background/bg_dojo.webp',
     style: {
       backgroundImage: "url('/images/background/bg_dojo.webp')",
@@ -25,7 +25,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_tennis',
-    name: '우주 테니스장',
+    name: '마법 대결장',
     thumbnail: '/images/background/bg_tennis.webp',
     style: {
       backgroundImage: "url('/images/background/bg_tennis.webp')",
@@ -35,7 +35,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_idol',
-    name: '아이돌 스테이지',
+    name: '지하아이돌 콘서트장',
     thumbnail: '/images/background/bg_idol.webp',
     style: {
       backgroundImage: "url('/images/background/bg_idol.webp')",
@@ -45,7 +45,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_mountain',
-    name: '거대한 바위산',
+    name: '화과산',
     thumbnail: '/images/background/bg_mountain.webp',
     style: {
       backgroundImage: "url('/images/background/bg_mountain.webp')",
@@ -55,7 +55,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_magic',
-    name: '매지컬 아레나',
+    name: '매지컬 대전 아레나',
     thumbnail: '/images/background/bg_magic.webp',
     style: {
       backgroundImage: "url('/images/background/bg_magic.webp')",
@@ -65,7 +65,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_skull_island',
-    name: '스컬 아일랜드',
+    name: '올 블루',
     thumbnail: '/images/background/bg_skull_island.webp',
     style: {
       backgroundImage: "url('/images/background/bg_skull_island.webp')",
@@ -95,7 +95,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_akihabara',
-    name: '아키하바라 거리',
+    name: '도쿄 아키하바라',
     thumbnail: '/images/background/bg_akihabara.webp',
     style: {
       backgroundImage: "url('/images/background/bg_akihabara.webp')",
@@ -105,7 +105,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_shibuya',
-    name: '시부야 크로싱',
+    name: '도쿄 시부야',
     thumbnail: '/images/background/bg_shibuya.webp',
     style: {
       backgroundImage: "url('/images/background/bg_shibuya.webp')",
@@ -115,7 +115,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_titan_wall',
-    name: '거인의 성벽',
+    name: '월 마리아 방벽',
     thumbnail: '/images/background/bg_titan_wall.webp',
     style: {
       backgroundImage: "url('/images/background/bg_titan_wall.webp')",
@@ -125,7 +125,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_demon_lord',
-    name: '마왕의 성',
+    name: '마왕성',
     thumbnail: '/images/background/bg_demon_lord.webp',
     style: {
       backgroundImage: "url('/images/background/bg_demon_lord.webp')",
@@ -135,7 +135,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_modern_city',
-    name: '아카데미 캠퍼스',
+    name: '크래프톤 SoC 빌딩',
     thumbnail: '/images/background/bg_modern_city.webp',
     style: {
       backgroundImage: "url('/images/background/bg_modern_city.webp')",
@@ -145,7 +145,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_supermarket',
-    name: '대형 마트',
+    name: '홈플러스',
     thumbnail: '/images/background/bg_supermarket.webp',
     style: {
       backgroundImage: "url('/images/background/bg_supermarket.webp')",
@@ -185,7 +185,7 @@ export const BATTLE_BACKGROUNDS = [
   },
   {
     id: 'bg_ice_palace',
-    name: '얼음 궁전',
+    name: '겨울왕국',
     thumbnail: '/images/background/bg_ice_palace.webp',
     style: {
       backgroundImage: "url('/images/background/bg_ice_palace.webp')",
@@ -196,7 +196,7 @@ export const BATTLE_BACKGROUNDS = [
 
   {
     id: 'bg_disney_castle',
-    name: '매직 캐슬',
+    name: '손오공주님 성',
     thumbnail: '/images/background/bg_disney_castle.webp',
     style: {
       backgroundImage: "url('/images/background/bg_disney_castle.webp')",
@@ -210,6 +210,36 @@ export const BATTLE_BACKGROUNDS = [
     thumbnail: '/images/background/bg_statue_waterfall.webp',
     style: {
       backgroundImage: "url('/images/background/bg_statue_waterfall.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+  },
+  {
+    id: 'bg_suburban_house',
+    name: '짱구 집',
+    thumbnail: '/images/background/bg_suburban_house.webp',
+    style: {
+      backgroundImage: "url('/images/background/bg_suburban_house.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+  },
+  {
+    id: 'bg_flower_field',
+    name: '자유를 갈망하며 맴돌던 꽃밭',
+    thumbnail: '/images/background/bg_flower_field.webp',
+    style: {
+      backgroundImage: "url('/images/background/bg_flower_field.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+  },
+  {
+    id: 'bg_destroyed_city',
+    name: '파괴된 도시',
+    thumbnail: '/images/background/bg_destroyed_city.webp',
+    style: {
+      backgroundImage: "url('/images/background/bg_destroyed_city.webp')",
       backgroundSize: 'cover',
       backgroundPosition: 'center',
     },
