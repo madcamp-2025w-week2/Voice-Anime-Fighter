@@ -182,7 +182,7 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/darksword_hit.webp',
     skills: [
       { name: '게임 속 사람들', trigger: '내가 게임을 하고 싶어서 그랬겠어? 게임 안에 사람들이 있잖아!!', image: '/images/attack/darksword_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '순애 애니', trigger: '너희들, 애니메이션을 뭐라고 생각하는 거냐! 이건 단순한 그림이 아니라 한 사람의 영혼이 담긴 결정체라고! 무례하긴, 순애다!!', image: '/images/attack/darksword_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '순애 애니', trigger: '너희들, 애니를 뭐라고 생각하는 거냐! 단순한 그림이 아니라 영혼이 담긴 결정체라고! 무례하긴, 순애다!!', image: '/images/attack/darksword_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '이도류 인생', trigger: '내 손에는 두 명의 여자친구를 위한 칼이 쥐어져 있다!', image: '/images/attack/darksword_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '스타버스트 크린지', trigger: '더 빠르게! 나의 끓어오르는 피보다 더 빠르게 오글거려주마!', image: '/images/attack/darksword_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '봉인된 오른손', trigger: '보지 마! 내 오른손이 힘을 주체 못 하고 근질거린다구!', image: '/images/attack/darksword_attack.webp', duration: DEFAULT_SKILL_DURATION }
