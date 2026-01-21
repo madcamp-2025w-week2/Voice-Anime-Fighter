@@ -19,14 +19,18 @@ import { stopSelectBgm } from './MultiCharacterSelect'
 const ULTIMATE_THEME_COLORS = {
   gojo: { primary: '#9333ea', secondary: '#c084fc', glow: 'rgba(147, 51, 234, 0.8)', name: '무량공처' },
   tanjiro: { primary: '#ea580c', secondary: '#fb923c', glow: 'rgba(234, 88, 12, 0.8)', name: '히노카미 카구라' },
-  goku: { primary: '#ec4899', secondary: '#f9a8d4', glow: 'rgba(236, 72, 153, 0.8)', name: '겐키다마' },
-  luffy: { primary: '#f8fafc', secondary: '#e2e8f0', glow: 'rgba(248, 250, 252, 0.9)', name: '기어5' },
-  darksword: { primary: '#1e293b', secondary: '#475569', glow: 'rgba(30, 41, 59, 0.8)', name: '다크슬래시' },
-  light: { primary: '#facc15', secondary: '#fef08a', glow: 'rgba(250, 204, 21, 0.8)', name: '라이트닝' },
-  levi: { primary: '#14b8a6', secondary: '#5eead4', glow: 'rgba(20, 184, 166, 0.8)', name: '치유의 빛' },
-  moon: { primary: '#6366f1', secondary: '#a5b4fc', glow: 'rgba(99, 102, 241, 0.8)', name: '문라이트' },
-  nyang: { primary: '#f472b6', secondary: '#fbcfe8', glow: 'rgba(244, 114, 182, 0.8)', name: '냥냥펀치' },
-  otaku: { primary: '#06b6d4', secondary: '#67e8f9', glow: 'rgba(6, 182, 212, 0.8)', name: '오타쿠빔' },
+  goku: { primary: '#e37f97', secondary: '#f9a8d4', glow: 'rgba(236, 72, 153, 0.8)', name: '겐키다마' },
+  luffy: { primary: '#214b7b', secondary: '#e2e8f0', glow: 'rgba(248, 250, 252, 0.9)', name: '기어5' },
+  darksword: { primary: '#bab2a2', secondary: '#475569', glow: 'rgba(30, 41, 59, 0.8)', name: '다크슬래시' },
+  light: { primary: '#293638', secondary: '#fef08a', glow: 'rgba(250, 204, 21, 0.8)', name: '라이트닝' },
+  levi: { primary: '#6c7590', secondary: '#5eead4', glow: 'rgba(20, 184, 166, 0.8)', name: '치유의 빛' },
+  moon: { primary: '#3a2c45', secondary: '#a5b4fc', glow: 'rgba(99, 102, 241, 0.8)', name: '문라이트' },
+  nyang: { primary: '#c8b6b3', secondary: '#fbcfe8', glow: 'rgba(244, 114, 182, 0.8)', name: '냥냥펀치' },
+  otaku: { primary: '#59658f', secondary: '#67e8f9', glow: 'rgba(6, 182, 212, 0.8)', name: '오타쿠빔' },
+  inuyasha: { primary: '#899bc6', secondary: '#e2e8f0', glow: 'rgba(220, 38, 38, 0.8)', name: '폭류파' },
+  winking_jjanggu: { primary: '#bac2d4', secondary: '#facc15', glow: 'rgba(59, 130, 246, 0.8)', name: '울트라 액션가면 슛' },
+  chainsawminsuk: { primary: '#f97316', secondary: '#fdba74', glow: 'rgba(249, 115, 22, 0.8)', name: '예비군 지각' },
+  naruto: { primary: '#73a5c2', secondary: '#fdba74', glow: 'rgba(249, 115, 22, 0.8)', name: '돌려막기 나루토' },
 }
 
 // 캐릭터 ID -> 내부 이름 매핑 (파일/테마 키)
@@ -44,7 +48,7 @@ const CHARACTER_ID_TO_NAME = {
   'char_010': 'goku',
   'char_011': 'inuyasha',
   'char_012': 'winking_jjanggu',
-  'char_013': 'chain',
+  'char_013': 'chainsawminsuk',
 }
 
 // 궁극기 띠배너 컴포넌트
