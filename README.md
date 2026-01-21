@@ -10,7 +10,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Transformers](https://img.shields.io/badge/Hugging%20Face-Transformers-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/docs/transformers/index)
 
-팀원 : KAIST 24 박성민, PSU 21 윤민석, SNU 20 김민기
+팀원 : KAIST 24 박성민, PNU 21 윤민석, SNU 20 김민기
 ---
 
 ## 📝 목차
