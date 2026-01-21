@@ -477,6 +477,7 @@ export default function BattleScreen() {
       // 백엔드에서 받은 grade를 포함하여 전송 (스킬 이미지 포함)
       sendAttack(battleId, {
         ...analysisResult.damage,
+        grade: analysisResult.grade, // 🔥 Grade를 명시적으로 추가해야 함 (damage 객체 안에 없음)
         audio_url: analysisResult.audio_url,
         is_ultimate: isUltimateReady,
         skill_image: currentSkillForImage?.image || null // 스킬 이미지 URL 전송
