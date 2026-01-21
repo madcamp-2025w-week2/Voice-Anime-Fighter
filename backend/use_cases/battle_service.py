@@ -183,7 +183,7 @@ class BattleService:
         # Critical hit bonus (1.5x)
         is_critical = getattr(analysis, 'is_critical', False)
         if is_critical:
-            total_damage = int(total_damage * 1.8)
+            total_damage = int(total_damage * 1.7)
         
         # Ultimate skill bonus (1.5x)
         if is_ultimate:

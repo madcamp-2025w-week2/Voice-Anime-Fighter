@@ -1045,23 +1045,23 @@ export default function BattleScreen() {
               const rankStyle = getRankStyle(showDamage.grade)
 
               return (
-                <div className={`absolute ${showDamage.isPlayer ? 'left-1/3' : 'right-1/3'} top-[20%] z-50 flex flex-col items-center pointer-events-none`}>
+                <div className={`absolute ${showDamage.isPlayer ? 'left-1/4' : 'right-1/4'} top-[12%] z-50 flex flex-col items-center pointer-events-none`}>
                   {showDamage.isCritical && (
-                    <div className="flex items-center justify-center gap-2 mb-2 animate-bounce">
-                      <Zap className="w-12 h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />
-                      <span className="text-yellow-300 font-black text-4xl italic tracking-wider drop-shadow-md font-title"
+                    <div className="flex items-center justify-center gap-1 md:gap-2 mb-1 md:mb-2 animate-bounce">
+                      <Zap className="w-6 h-6 md:w-10 lg:w-12 md:h-10 lg:h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />
+                      <span className="text-yellow-300 font-black text-xl md:text-3xl lg:text-4xl italic tracking-wider drop-shadow-md font-title"
                             style={{ textShadow: '0 0 10px rgba(253,224,71,0.6), 2px 2px 0 #000' }}>
                         CRITICAL!
                       </span>
-                      <Zap className="w-12 h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />
+                      <Zap className="w-6 h-6 md:w-10 lg:w-12 md:h-10 lg:h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />
                     </div>
                   )}
 
-                  {/* 데미지 숫자 */}
+                  {/* 데미지 숫자 - 반응형 크기 */}
                   <div
                     className={`font-title font-black italic tracking-tighter animate-bounce-hard ${rankStyle.className}`}
                     style={{
-                      fontSize: '8rem', // text-9xl equivalent or larger
+                      fontSize: 'clamp(3rem, 12vw, 8rem)',
                       lineHeight: 1,
                       textShadow: rankStyle.shadow,
                       filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))'
@@ -1070,10 +1070,11 @@ export default function BattleScreen() {
                     {showDamage.value > 0 ? `-${showDamage.value}` : 'MISS'}
                   </div>
 
-                  {/* 랭크 표시 */}
+                  {/* 랭크 표시 - 반응형 크기 */}
                   <div
-                    className={`text-6xl font-black italic mt-[-10px] ${rankStyle.className}`}
+                    className={`font-black italic mt-[-5px] md:mt-[-10px] ${rankStyle.className}`}
                     style={{
+                       fontSize: 'clamp(1.5rem, 6vw, 3.5rem)',
                        textShadow: '2px 2px 0 #000, 0 0 20px rgba(255,255,255,0.2)'
                     }}
                   >
