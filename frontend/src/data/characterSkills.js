@@ -69,7 +69,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '조이보이 귀환',
-      trigger: '해방의 드럼이 들린다. 팔백년만에 듣는구나...! 틀림없이 거기 있어!! 조이보이가 돌아왔다!! 고무고무 스타 건',
+      trigger: '해방의 드럼이 들린다. 틀림없이 거기 있어!! 조이보이가 돌아왔다!! 고무고무 스타 건',
       image: '/images/attack/luffy_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -123,13 +123,13 @@ export const CHARACTER_SKILLS = {
     skills: [
       { name: '냥냥펀치', trigger: '냥냥펀치! 귀여운 내 주먹! 뿌잉뿌잉', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '고양이 발톱', trigger: '고양이의 발톱 공격! 미야옹~! 이다냥', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '츄르 유혹', trigger: '이 츄르를 받아라! 냥이의 간식 앞에 무릎 꿇지 않을 자 없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '츄르 유혹', trigger: '이 츄르를 받아라! 나의 간식 앞에 무릎 꿇지 않을 자 없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '꾹꾹이 마사지', trigger: '너의 심장을 꾹꾹이로 떡 반죽처럼 만들어주겠다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '헤어볼 발사', trigger: '나의 사랑이 담긴 불순물! 헤어볼 발사! 더러워해도 소용없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
       name: '고양이 군단 소환',
-      trigger: '냥냥펀치! 고양이의 힘을 빌려라! 냥뇽녕냥',
+      trigger: '이야앗 오이오이 고양이의 힘을 빌려라! 가라 고양이들!',
       image: '/images/attack/nyang_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -209,7 +209,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '70프로 할인',
-      trigger: '사랑과 정의의 이름으로 반값 할인을 용서하지 않겠다! 오늘이 지나면 다시는 오지 않을 이 가격, 지금 당장 결제해라!',
+      trigger: '사랑과 정의의 이름으로 반값 할인을 용서하지 않겠다! 지금 당장 결제해라!',
       image: '/images/attack/moon_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -229,7 +229,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '큐티뽀짝 여의봉',
-      trigger: '나와라! 큐티뽀짝 여의봉!! 어딜 감히 쳐다보느냐! 이 오징어 쩌꾸미들아!! 내 미모에... 정신을 못 차리고... 넋을 잃어라!!!! 홀릴 혹',
+      trigger: '나와라! 큐티뽀짝 여의봉!! 어딜 감히 쳐다보느냐! 미모에 정신을 못 차리게.. 홀릴 혹',
       image: '/images/attack/goku_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -249,7 +249,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '폭류파',
-      trigger: '가영아 지금이야!! 우리의 합체... 아차차 화살이 없네? 어쨌든 휘몰아치는 요기의 태풍! 폭류파!!',
+      trigger: '가영아 지금이야!! 우리의 합체... 아차차 화살이 없네? 휘몰아치는 요기의 태풍! 폭류파!!',
       image: '/images/attack/inuyasha_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
