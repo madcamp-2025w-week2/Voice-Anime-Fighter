@@ -259,7 +259,7 @@ export default function BattleScreen() {
   const roomId = location.state?.room_id
 
   const battle = useBattleStore()
-  const { selectedCharacter, opponentCharacter, opponentNickname, isHost, selectedBackground } = useGameStore()
+  const { selectedCharacter, opponentCharacter, opponentNickname, opponentAvatarUrl, isHost, selectedBackground } = useGameStore()
   const { sendAttack, on, off, joinRoom, emit } = useSocket()
   const {
     isRecording,
@@ -855,6 +855,8 @@ export default function BattleScreen() {
           roomId={roomId}
           targetCount={50}
           onComplete={handleMiniGameComplete}
+          myAvatarUrl={user?.avatar_url}
+          opponentAvatarUrl={opponentAvatarUrl}
         />
       )}
 
@@ -895,11 +897,16 @@ export default function BattleScreen() {
 
       {/* 턴 시작 카운트다운 */}
       {turnCountdown >= 0 && !showGameStart && (
-        <div className="absolute inset-0 bg-black/70 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/70 z-50 flex flex-col items-center justify-center">
           {turnCountdown > 0 ? (
-            <div className="text-9xl font-bold text-white animate-pulse" style={{ textShadow: '0 0 30px rgba(255,255,255,0.5)' }}>
-              {turnCountdown}
-            </div>
+            <>
+              <div className="text-9xl font-bold text-white animate-pulse" style={{ textShadow: '0 0 30px rgba(255,255,255,0.5)' }}>
+                {turnCountdown}
+              </div>
+              <div className="mt-6 text-2xl md:text-3xl text-pink-300 font-bold animate-bounce" style={{ textShadow: '0 0 15px rgba(236,72,153,0.6)' }}>
+                🎤 대사를 감정을 담아 크게 외치세요!
+              </div>
+            </>
           ) : (
             <div className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-cyan-400 to-green-300 animate-bounce" style={{ textShadow: '0 0 40px rgba(0,255,150,0.8)' }}>
               YOUR TURN !!
@@ -1038,7 +1045,7 @@ export default function BattleScreen() {
               const rankStyle = getRankStyle(showDamage.grade)
 
               return (
-                <div className={`absolute ${showDamage.isPlayer ? 'left-1/3' : 'right-1/3'} top-1/3 z-50 flex flex-col items-center pointer-events-none`}>
+                <div className={`absolute ${showDamage.isPlayer ? 'left-1/3' : 'right-1/3'} top-[20%] z-50 flex flex-col items-center pointer-events-none`}>
                   {showDamage.isCritical && (
                     <div className="flex items-center justify-center gap-2 mb-2 animate-bounce">
                       <Zap className="w-12 h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />

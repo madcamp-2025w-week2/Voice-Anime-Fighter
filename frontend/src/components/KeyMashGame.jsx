@@ -20,7 +20,7 @@ const getAvatarUrl = (avatarUrl) => {
  * KeyMashGame - F/J 키 연타 미니게임 컴포넌트
  * 먼저 targetCount에 도달한 플레이어가 선공권 획득
  */
-export default function KeyMashGame({ roomId, targetCount = 50, onComplete }) {
+export default function KeyMashGame({ roomId, targetCount = 50, onComplete, myAvatarUrl: myAvatarUrlProp, opponentAvatarUrl: opponentAvatarUrlProp }) {
     const [myCount, setMyCount] = useState(0)
     const [opponentCount, setOpponentCount] = useState(0)
     const [winner, setWinner] = useState(null)
@@ -31,7 +31,10 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete }) {
     const { emit, on, off } = useSocket()
     
     const user = useUserStore((s) => s.user)
-    const { opponentNickname, opponentAvatarUrl } = useGameStore()
+    const { opponentNickname, opponentAvatarUrl: opponentAvatarUrlFromStore } = useGameStore()
+    
+    // Use prop if provided, otherwise fallback to store
+    const opponentAvatarUrl = opponentAvatarUrlProp || opponentAvatarUrlFromStore
     
     const myUserId = user?.id
     const hasEmittedWinner = useRef(false)
@@ -115,7 +118,7 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete }) {
     const opponentProgress = Math.min((opponentCount / targetCount) * 100, 100)
     const isMyWin = winner === myUserId
     
-    const myAvatar = getAvatarUrl(user?.avatar_url) || null
+    const myAvatar = getAvatarUrl(myAvatarUrlProp || user?.avatar_url) || null
     const oppAvatar = getAvatarUrl(opponentAvatarUrl) || null
 
     return (
