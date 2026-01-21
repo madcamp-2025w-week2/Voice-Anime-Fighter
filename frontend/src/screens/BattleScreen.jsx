@@ -12,6 +12,7 @@ import { useBattleCharacter } from '../hooks/useBattleCharacter'
 import { getOrCreateCharacterSkills } from '../data/characterSkills'
 import { checkSkillMatch, checkUltimateMatch } from '../utils/stringSimilarity'
 import EnergyChargeEffect from '../components/EnergyChargeEffect'
+import KeyMashGame from '../components/KeyMashGame'
 import { stopSelectBgm } from './MultiCharacterSelect'
 
 // 캐릭터별 궁극기 테마 색상 (ultimate 이미지 기반)
@@ -270,7 +271,9 @@ export default function BattleScreen() {
   const [showDamage, setShowDamage] = useState(null)
   const [isAttacking, setIsAttacking] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
-  const [showGameStart, setShowGameStart] = useState(true) // 게임 시작 애니메이션
+  const [showMiniGame, setShowMiniGame] = useState(true) // 미니게임 표시 여부
+  const [miniGameGoesFirst, setMiniGameGoesFirst] = useState(null) // 미니게임 승자 선공
+  const [showGameStart, setShowGameStart] = useState(false) // 게임 시작 애니메이션 (미니게임 후 시작)
   const [turnCountdown, setTurnCountdown] = useState(-1) // 턴 시작 시 카운트다운 (-1: 비활성)
   const [showCritical, setShowCritical] = useState(false)
   const [activeSkillImage, setActiveSkillImage] = useState(null) // 내 스킬 발동 시 이미지
@@ -374,16 +377,24 @@ export default function BattleScreen() {
     };
   }, []);
 
-  // 게임 시작 애니메이션 (최초 1회)
+  // 미니게임 완료 핸들러
+  const handleMiniGameComplete = useCallback((iWon) => {
+    console.log('🎮 Mini-game complete! I won:', iWon)
+    setMiniGameGoesFirst(iWon)
+    setShowMiniGame(false)
+    setShowGameStart(true) // 미니게임 후 게임 시작 애니메이션
+  }, [])
+
+  // 게임 시작 애니메이션 (미니게임 완료 후)
   useEffect(() => {
-    if (showGameStart) {
+    if (showGameStart && !showMiniGame) {
       const timer = setTimeout(() => {
         setShowGameStart(false)
         setGameStarted(true)
       }, 2500)
       return () => clearTimeout(timer)
     }
-  }, [showGameStart])
+  }, [showGameStart, showMiniGame])
 
   // 턴 시작 카운트다운 처리
   useEffect(() => {
@@ -514,37 +525,31 @@ export default function BattleScreen() {
     }
   }, [gameStarted, battle.isActive, battle.isMyTurn, isAnalyzing, isAttacking, isUltimateReady, startNewTurn])
 
+  // 미니게임 완료 후 room join 및 battle:ready 전송
   useEffect(() => {
-    if (roomId) {
-      console.log('🎮 BattleScreen: Joining room and signaling ready:', roomId)
+    if (roomId && !showMiniGame && miniGameGoesFirst !== null) {
+      console.log('🎮 BattleScreen: Mini-game complete, joining room and signaling ready:', roomId)
       joinRoom(roomId)
       emit('battle:ready', { room_id: roomId })
     }
-  }, [roomId, joinRoom, emit])
+  }, [roomId, joinRoom, emit, showMiniGame, miniGameGoesFirst])
 
   useEffect(() => {
     // Only init if game started, battle not active, and game hasn't ended (no winner yet)
-    if (gameStarted && !battle.isActive && !battle.winnerId) {
+    if (gameStarted && !battle.isActive && !battle.winnerId && miniGameGoesFirst !== null) {
       battle.initBattle({
         battleId: roomId || `battle_${Date.now()}`,
         playerCharacterId: selectedCharacter?.id || 'char_000',
         opponentCharacterId: opponentCharacter?.id || 'char_001',
         opponentNickname: 'Opponent',
-        goesFirst: isHost,
+        goesFirst: miniGameGoesFirst, // 미니게임 승자가 선공
       })
     }
-  }, [gameStarted, battle, roomId, selectedCharacter, opponentCharacter, isHost])
+  }, [gameStarted, battle, roomId, selectedCharacter, opponentCharacter, miniGameGoesFirst])
 
   useEffect(() => {
-    on('battle:init', (data) => {
-      battle.initBattle({
-        battleId: data.battle_id,
-        playerCharacterId: selectedCharacter?.id || 'char_000',
-        opponentCharacterId: opponentCharacter?.id || 'char_001',
-        opponentNickname: 'Opponent',
-        goesFirst: data.goes_first,
-      })
-    })
+    // battle:init 소켓 이벤트는 무시 (미니게임 결과를 사용)
+    // on('battle:init', ...) - 삭제함
 
     on('battle:turn_change', (data) => {
       battle.setTurn(data.is_my_turn)
@@ -824,8 +829,17 @@ export default function BattleScreen() {
       {/* 🌟 화려한 공격 이펙트 오버레이 (녹음 중일 때 양 플레이어 모두에게 표시) */}
       <AttackOverlay isVisible={isRecording || isOpponentRecording} />
 
+      {/* 미니게임 (선공권 결정) */}
+      {showMiniGame && roomId && (
+        <KeyMashGame
+          roomId={roomId}
+          targetCount={50}
+          onComplete={handleMiniGameComplete}
+        />
+      )}
+
       {/* 게임 시작 애니메이션 */}
-      {showGameStart && (
+      {showGameStart && !showMiniGame && (
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-pink-800/90 to-orange-700/90 z-50 flex items-center justify-center overflow-hidden">
           {/* 배경 효과 */}
           <div className="absolute inset-0">

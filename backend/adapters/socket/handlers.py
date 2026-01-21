@@ -1001,3 +1001,44 @@ def register_socket_handlers(sio: socketio.AsyncServer):
             "is_host": is_host
         }, room=sid)
 
+    # --- Mini-Game Handlers (First Turn Decision) ---
+    @sio.on("minigame:progress")
+    async def minigame_progress(sid, data):
+        """Broadcast player's key mash progress to room."""
+        room_id = data.get("room_id")
+        count = data.get("count", 0)
+        
+        if not room_id:
+            return
+        
+        user_info = connected_users.get(sid, {})
+        user_id = user_info.get("user_id", sid)
+        
+        # Broadcast to room (including sender for confirmation)
+        await sio.emit("minigame:progress", {
+            "user_id": user_id,
+            "count": count
+        }, room=room_id)
+    
+    @sio.on("minigame:winner")
+    async def minigame_winner(sid, data):
+        """Handle mini-game winner and set first turn."""
+        room_id = data.get("room_id")
+        winner_id = data.get("winner_id")
+        
+        if not room_id or not winner_id:
+            return
+        
+        room_id = str(room_id)
+        logger.info(f"[{sid}] minigame:winner - room: {room_id}, winner: {winner_id}")
+        
+        # Update battle_ready_data with winner as first turn player
+        if room_id in battle_ready_data:
+            battle_ready_data[room_id]["first_turn_player_id"] = str(winner_id)
+            logger.info(f"[{sid}] Updated first_turn_player_id to {winner_id}")
+        
+        # Broadcast winner to room
+        await sio.emit("minigame:winner", {
+            "winner_id": winner_id
+        }, room=room_id)
+
