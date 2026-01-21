@@ -42,6 +42,9 @@ const CHARACTER_ID_TO_NAME = {
   'char_008': 'darksword',
   'char_009': 'moon',
   'char_010': 'goku',
+  'char_011': 'inuyasha',
+  'char_012': 'winking_jjanggu',
+  'char_013': 'chain',
 }
 
 // 궁극기 띠배너 컴포넌트

@@ -270,7 +270,7 @@ export const CHARACTER_SKILLS = {
     ultimate: {
       name: '울트라 액션가면 슛',
       trigger: '와하하! 지구의 평화는 내가 지킨다! 받아라! 울트라... 액션~~~ 빔!!!!',
-      image: '/images/attack/winking_jjanggu_ultimate.webp',
+      image: '/images/attack/winking_jjanggu_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
