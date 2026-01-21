@@ -139,6 +139,16 @@ CHARACTERS = [
         sprite_url="/images/profile/goku.webp",
         is_unlocked=True
     ),
+    Character(
+        id="char_011",
+        name="이계의 반요 이누야샤",
+        description="가영이의 앉아! 한 마디에 굴복하지만, 폭류파의 위력만큼은 진심인 반요 소년.",
+        stats=CharacterStats(cringe_level=90, volume_req=95, precision=70),
+        spell_text="가영아 지금이야!! 우리의 합체... 아차차 화살이 없네? 어쨌든 휘몰아치는 요기의 태풍! 폭류파!!",
+        thumbnail_url="/images/profile/inuyasha.webp",
+        sprite_url="/images/profile/inuyasha.webp",
+        is_unlocked=True
+    ),
 ]
 
 
