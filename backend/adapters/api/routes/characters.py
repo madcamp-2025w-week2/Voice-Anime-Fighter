@@ -149,6 +149,16 @@ CHARACTERS = [
         sprite_url="/images/profile/inuyasha.webp",
         is_unlocked=True
     ),
+    Character(
+        id="char_012",
+        name="찡긋 짱구",
+        description="호호이! 예쁜 누나만 보면 찡긋거리는 못말리는 5살.",
+        stats=CharacterStats(cringe_level=95, volume_req=60, precision=90),
+        spell_text="액션가면 사줘~! 으으으~ 찡긋!",
+        thumbnail_url="/images/profile/winking_jjanggu.webp",
+        sprite_url="/images/normal/winking_jjanggu.webp",
+        is_unlocked=True
+    ),
 ]
 
 
