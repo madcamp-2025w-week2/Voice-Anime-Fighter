@@ -234,6 +234,26 @@ export const CHARACTER_SKILLS = {
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
+  },
+
+  // 찡긋 짱구
+  'char_012': {
+    defaultImg: '/images/normal/winking_jjanggu_normal.webp',
+    hitImg: '/images/hit/winking_jjanggu_hit.webp',
+    skills: [
+      { name: '액션가면 변신', trigger: '액션~ 가면! 으하하하! 정의의 용사가 나타났다!', image: '/images/attack/winking_jjanggu_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '부리부리 댄스', trigger: '부리부리~ 부리부리~ 내 엉덩이 춤을 받아라!', image: '/images/attack/winking_jjanggu_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '초코비 내놔', trigger: '엄마! 초코비 사줘! 안 사주면 바닥에서 뒹굴거야! 으앙!', image: '/images/attack/winking_jjanggu_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '예쁜 누나 발견', trigger: '호호이! 거기 예쁜 누나~ 나랑 피망 먹으러 갈래요? 찡긋!', image: '/images/attack/winking_jjanggu_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '흰둥아 물어', trigger: '흰둥아! 솜사탕이다! 가서 앙 물어버려!', image: '/images/attack/winking_jjanggu_attack.webp', duration: DEFAULT_SKILL_DURATION }
+    ],
+    ultimate: {
+      name: '울트라 액션가면 슛',
+      trigger: '와하하! 지구의 평화는 내가 지킨다! 받아라! 울트라... 액션~~~ 빔!!!!',
+      image: '/images/attack/winking_jjanggu_ultimate.webp',
+      effectClass: 'ultimate-effect',
+      duration: DEFAULT_ULTIMATE_DURATION
+    }
   }
 }
 
