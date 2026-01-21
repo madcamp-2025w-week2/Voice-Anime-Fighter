@@ -1000,22 +1000,81 @@ export default function BattleScreen() {
         </div>
 
         {showDamage && (
-          <div className={`absolute ${showDamage.isPlayer ? 'left-1/3' : 'right-1/3'} top-1/3 z-20 flex flex-col items-center`}>
-            {showDamage.isCritical && (
-              <div className="flex items-center justify-center gap-2 mb-2 animate-bounce">
-                <Zap className="w-8 h-8 text-yellow-400 fill-yellow-400" />
-                <span className="text-yellow-400 font-bold text-2xl">CRITICAL!</span>
-                <Zap className="w-8 h-8 text-yellow-400 fill-yellow-400" />
-              </div>
-            )}
-            <div className={`text-6xl font-bold ${['SSS', 'S', 'A'].includes(showDamage.grade) ? 'text-yellow-300' : 'text-gray-400'
-              } drop-shadow-lg animate-bounce`}>
-              {showDamage.value > 0 ? `-${showDamage.value}` : 'MISS'}
-            </div>
-            <div className="text-center text-3xl font-bold mt-2 text-white">
-              {showDamage.grade}
-            </div>
-          </div>
+            (() => {
+              // 랭크별 색상 스타일 결정 helper
+              const getRankStyle = (grade) => {
+                 switch(grade) {
+                    case 'SSS': return {
+                         className: "text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-pink-500 to-purple-600",
+                         shadow: "0 0 30px rgba(255,215,0,0.8), 2px 2px 0 #fff"
+                    }
+                    case 'SS': return {
+                         className: "text-red-500",
+                         shadow: "0 0 20px rgba(239, 68, 68, 0.8), 2px 2px 0 #000"
+                    }
+                    case 'S': return {
+                         className: "text-orange-500",
+                         shadow: "0 0 20px rgba(249, 115, 22, 0.8), 2px 2px 0 #000"
+                    }
+                    case 'A': return {
+                         className: "text-purple-400",
+                         shadow: "0 0 15px rgba(192, 132, 252, 0.8), 2px 2px 0 #000"
+                    }
+                    case 'B': return {
+                         className: "text-blue-400",
+                         shadow: "0 0 10px rgba(96, 165, 250, 0.8), 2px 2px 0 #000"
+                    }
+                    case 'C': return {
+                         className: "text-green-400",
+                         shadow: "0 0 10px rgba(74, 222, 128, 0.8), 2px 2px 0 #000"
+                    }
+                    default: return {
+                         className: "text-gray-500",
+                         shadow: "0 0 5px rgba(156, 163, 175, 0.5), 2px 2px 0 #000"
+                    }
+                 }
+              }
+
+              const rankStyle = getRankStyle(showDamage.grade)
+
+              return (
+                <div className={`absolute ${showDamage.isPlayer ? 'left-1/3' : 'right-1/3'} top-1/3 z-50 flex flex-col items-center pointer-events-none`}>
+                  {showDamage.isCritical && (
+                    <div className="flex items-center justify-center gap-2 mb-2 animate-bounce">
+                      <Zap className="w-12 h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />
+                      <span className="text-yellow-300 font-black text-4xl italic tracking-wider drop-shadow-md font-title"
+                            style={{ textShadow: '0 0 10px rgba(253,224,71,0.6), 2px 2px 0 #000' }}>
+                        CRITICAL!
+                      </span>
+                      <Zap className="w-12 h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />
+                    </div>
+                  )}
+
+                  {/* 데미지 숫자 */}
+                  <div
+                    className={`font-title font-black italic tracking-tighter animate-bounce-hard ${rankStyle.className}`}
+                    style={{
+                      fontSize: '8rem', // text-9xl equivalent or larger
+                      lineHeight: 1,
+                      textShadow: rankStyle.shadow,
+                      filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))'
+                    }}
+                  >
+                    {showDamage.value > 0 ? `-${showDamage.value}` : 'MISS'}
+                  </div>
+
+                  {/* 랭크 표시 */}
+                  <div
+                    className={`text-6xl font-black italic mt-[-10px] ${rankStyle.className}`}
+                    style={{
+                       textShadow: '2px 2px 0 #000, 0 0 20px rgba(255,255,255,0.2)'
+                    }}
+                  >
+                    {showDamage.grade}
+                  </div>
+                </div>
+              )
+            })()
         )}
 
         {/* 오른쪽 캐릭터 */}
