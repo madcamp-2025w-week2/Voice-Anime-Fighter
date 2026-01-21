@@ -146,7 +146,7 @@ CHARACTERS = [
         stats=CharacterStats(cringe_level=95, volume_req=60, precision=90),
         spell_text="액션가면 사줘~! 으으으~ 찡긋!",
         thumbnail_url="/images/profile/winking_jjanggu.webp",
-        sprite_url="/images/normal/winking_jjanggu.webp",
+        sprite_url="/images/profile/winking_jjanggu.webp",
         is_unlocked=True
     ),
 ]
