@@ -98,11 +98,8 @@ export default function BackgroundSelectScreen() {
       const timer = setTimeout(() => setCountdown(countdown - 1), 800)
       return () => clearTimeout(timer)
     } else if (countdown === 0) {
-      // 0이 되면 'FIGHT' 표시 후 배틀로 이동
-      const timer = setTimeout(() => {
-        navigate('/battle', { state: { room_id: roomId } })
-      }, 1000)
-      return () => clearTimeout(timer)
+      // 0이 되면 바로 배틀로 이동 (FIGHT 생략)
+      navigate('/battle', { state: { room_id: roomId } })
     }
   }, [countdown, navigate, roomId])
 
