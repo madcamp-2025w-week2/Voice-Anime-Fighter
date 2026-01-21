@@ -193,6 +193,27 @@ export const BATTLE_BACKGROUNDS = [
       backgroundPosition: 'center',
     },
   },
+
+  {
+    id: 'bg_disney_castle',
+    name: '매직 캐슬',
+    thumbnail: '/images/background/bg_disney_castle.webp',
+    style: {
+      backgroundImage: "url('/images/background/bg_disney_castle.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+  },
+  {
+    id: 'bg_statue_waterfall',
+    name: '종말의 계곡',
+    thumbnail: '/images/background/bg_statue_waterfall.webp',
+    style: {
+      backgroundImage: "url('/images/background/bg_statue_waterfall.webp')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    },
+  },
 ]
 
 export const getBackgroundById = (id) => {
