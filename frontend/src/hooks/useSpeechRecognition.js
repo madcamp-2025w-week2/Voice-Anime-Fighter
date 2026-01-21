@@ -21,6 +21,7 @@ export function useSpeechRecognition() {
   const chunksRef = useRef([])
   const streamRef = useRef(null)
   const recognitionRef = useRef(null)
+  const isRecordingRef = useRef(false)  // 🔥 Ref for onend callback closure
 
   const { token } = useUserStore()
 
@@ -54,8 +55,27 @@ export function useSpeechRecognition() {
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error)
         // Don't set error for no-speech, it's expected
-        if (event.error !== 'no-speech') {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
           setError(`음성 인식 오류: ${event.error}`)
+        }
+      }
+
+      // 🔥 Auto-restart when recognition ends unexpectedly
+      recognition.onend = () => {
+        console.log('🎤 Speech recognition ended, isRecording:', isRecordingRef.current)
+        // If still recording, auto-restart
+        if (isRecordingRef.current) {
+          console.log('🔄 Auto-restarting speech recognition...')
+          try {
+            setTimeout(() => {
+              if (isRecordingRef.current && recognitionRef.current) {
+                recognitionRef.current.start()
+                console.log('✅ Speech recognition restarted')
+              }
+            }, 100)  // Small delay to prevent rapid restart loops
+          } catch (e) {
+            console.warn('Failed to restart speech recognition:', e)
+          }
         }
       }
 
@@ -116,6 +136,7 @@ export function useSpeechRecognition() {
       mediaRecorderRef.current = mediaRecorder
       mediaRecorder.start(100)
       setIsRecording(true)
+      isRecordingRef.current = true  // 🔥 Sync ref for onend callback
 
       // Start Web Speech API (Fast Track)
       if (recognitionRef.current) {
@@ -148,6 +169,7 @@ export function useSpeechRecognition() {
 
         mediaRecorder.stop()
         setIsRecording(false)
+        isRecordingRef.current = false  // 🔥 Sync ref to prevent auto-restart
 
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop())
