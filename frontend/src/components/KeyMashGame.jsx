@@ -271,7 +271,11 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete, myAv
                             <div className="relative mb-6">
                                 <div className={`w-40 h-40 rounded-full p-2 ${isMyWin ? 'bg-yellow-400 animate-pulse' : 'bg-gray-600'}`}>
                                     <div className="w-full h-full rounded-full overflow-hidden bg-slate-800 border-4 border-white">
-                                        <img src={myAvatar || '/default-avatar.png'} alt="Me" className="w-full h-full object-cover" />
+                                        {myAvatar ? (
+                                            <img src={myAvatar} alt="Me" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-6xl">{myEmoji || '👤'}</div>
+                                        )}
                                     </div>
                                 </div>
                                 {isMyWin && <CrownBadge />}
@@ -290,7 +294,11 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete, myAv
                             <div className="relative mb-6">
                                 <div className={`w-40 h-40 rounded-full p-2 ${!isMyWin ? 'bg-yellow-400 animate-pulse' : 'bg-gray-600'}`}>
                                     <div className="w-full h-full rounded-full overflow-hidden bg-slate-800 border-4 border-white">
-                                        <img src={oppAvatar || '/default-avatar.png'} alt="Opponent" className="w-full h-full object-cover" />
+                                        {oppAvatar ? (
+                                            <img src={oppAvatar} alt="Opponent" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-6xl">{oppEmoji || '🤖'}</div>
+                                        )}
                                     </div>
                                 </div>
                                 {!isMyWin && <CrownBadge />}
