@@ -1,116 +1,198 @@
-# 🌟 마법소녀 루루핑 (Voice-Anime-Fighter)
+# <img src="https://via.placeholder.com/50?text=V" align="center" width="50" height="50"> Voice-Anime-Fight
 
-> 오글거림 음성 기반 마법으로 인기 애니메이션 주인공들을 물리치는 언더독 마법소녀 대전 게임
+> **"지옥의 흑염룡이 깨어난다..."** - 오글거림을 힘으로 바꾸는 신개념 음성 배틀 마법소녀 대전 게임
 
-![Game Logo](https://via.placeholder.com/800x200/ec4899/ffffff?text=%E2%9C%A8+%EB%A7%88%EB%B2%95%EC%86%8C%EB%85%80+%EB%A3%A8%EB%A3%A8%ED%95%91+%E2%9C%A8)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Transformers](https://img.shields.io/badge/Hugging%20Face-Transformers-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/docs/transformers/index)
 
-## 🎮 게임 소개
+팀원 : KAIST 24 박성민, 부산대 21 윤민석, 서울대 20 김민기
+---
 
-**즈큥도큥 바큥부큥!** 마이크를 통해 마법 주문을 외쳐 상대방에게 데미지를 입히세요!
+## 📝 목차
 
-- 🎤 **음성 기반 전투**: Azure Speech SDK를 통한 음성 인식
-- 💥 **오글거림 데미지**: 더 오글거릴수록 더 강한 데미지
-- 🏆 **ELO 랭킹 시스템**: 글로벌 랭킹 경쟁
-- 👥 **실시간 멀티플레이어**: Socket.io 기반 1:1 대전
+1. [프로젝트 소개](#-프로젝트-소개)
+   - [기획 의도](#-기획-의도)
+   - [주요 기능](#-주요-기능)
+2. [시스템 아키텍처](#%EF%B8%8F-시스템-아키텍처)
+3. [기술 스택](#%EF%B8%8F-기술-스택)
+4. [Getting Started](#-getting-started)
+   - [환경 변수 설정](#1-환경-변수-설정-env)
+   - [DB Setup](#2-db-setup-docker)
+   - [Backend 실행](#3-backend-server-실행)
+   - [Frontend 실행](#4-frontend-app-실행)
+5. [API 문서](#-api-문서)
+
+---
+
+## 📖 프로젝트 소개
+
+> **"내 왼손엔 흑염룡이 깨어난다!!!"** 
+> 마이크를 통해 마법 주문을 외쳐 상대방에게 데미지를 입히세요!
+
+**Voice-Anime-Fight**는 사용자의 목소리를 AI로 분석하여 게임 내 공격력으로 변환하는 실시간 1:1 대전 게임입니다. **목소리의 크기, 정확도, 그리고 '오글거림'**이 승패를 가르는 핵심 요소입니다.
+
+### 🎯 기획 의도
+
+평소에 차마 입 밖으로 내지 못했던 "중2병" 대사들, 마음껏 외쳐보고 싶지 않으셨나요?? **Voice-Anime-Fight**는 그런 흑역사를 강력한 무기로 바꿔줍니다. 친구와 함께 누가 더 부끄러움을 무릅쓰고 '진심'으로 대사를 외칠 수 있는지 겨뤄보세요.
+
+### ✨ 주요 기능
+
+| 기능 | 설명 |
+|------|------|
+|**오글거림 데미지 산출** | AI 감정 분석 모델이 당신의 목소리에서 '격정적임'을 측정하여 추가 데미지를 부여합니다. |
+|**실시간 음성 분석** | Librosa와 Wav2Vec2 모델을 사용하여 음량(dB), 피치, 텍스트 정확도를 실시간으로 분석합니다. |
+|**1:1 실시간 대전** | Socket.io 기반의 저지연 통신으로 끊김 없는 실시간 배틀을 제공합니다. |
+|**MMR 랭킹 시스템** | 승패에 따라 레이팅이 변동되며, 전 세계의 수치심 없는 플레이어들과 경쟁할 수 있습니다. |
+|**캐릭터 & 배경 수집** | 다양한 애니메이션 스타일의 캐릭터와 배경을 선택하여 배틀에 임할 수 있습니다. |
+
+---
+
+## 🏗️ 시스템 아키텍처
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Web Client (Frontend)                     │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐  │
+│  │   Lobby   │  │ Character │  │   Battle  │  │  Result   │  │
+│  │           │  │  Select   │  │           │  │           │  │
+│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  │
+│        └──────────────┴──────┬───────┴──────────────┘        │
+│                              │ Socket.io + HTTP              │
+└──────────────────────────────┼───────────────────────────────┘
+                               │
+┌──────────────────────────────▼───────────────────────────────┐
+│                    FastAPI Backend (Python)                  │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐  │
+│  │   Auth    │  │  Ranking  │  │   Battle  │  │  Speech   │  │
+│  │           │  │           │  │  Service  │  │ Analysis  │  │
+│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  │
+│        │               │             │               │       │
+│        │        ┌──────┴─────────────┴──────┐        │       │
+│        │        │      State Management     │        │       │
+│        │        └────────────┬──────────────┘        │       │
+│        │                     │                       │       │
+│  ┌─────▼─────┐         ┌─────▼─────┐           ┌─────▼─────┐ │
+│  │ PostgreSQL│         │   Redis   │           │ AI Models │ │
+│  │ (User/Log)│         │(Real-time)│           │(HuggingF) │ │
+│  └───────────┘         └───────────┘           └───────────┘ │
+└──────────────────────────────────────────────────────────────┘
+```
+
+## 💡 Core Workflow (AI Analysis Pipeline)
+
+사용자의 목소리가 게임 내 공격력으로 변환되는 과정입니다.
+
+### 1. Voice Input & STT (Frontend)
+- **Web Audio API**: 마이크 입력을 통해 오디오 데이터를 실시간으로 시각화하고 녹음합니다 (`Blob` 생성).
+- **Web Speech API**: 사용자의 발화를 실시간으로 텍스트로 변환(STT)합니다.
+- **Socket Stream**: 녹음된 오디오 `Blob`과 변환된 `Text`를 백엔드로 전송합니다.
+
+### 2. Multi-modal Analysis (Backend)
+백엔드(`BattleService`)에서는 3가지 측면에서 음성을 분석합니다.
+
+1.  **정확도 평가 (Accuracy)**
+    - **알고리즘**: `Levenshtein Distance` (편집 거리)
+    - **설명**: 화면에 제시된 마법 주문과 실제 사용자가 외친 텍스트(STT)의 유사도를 계산합니다.
+    
+2.  **물리적 음성 분석 (Physical Features)**
+    - **라이브러리**: `Librosa`
+    - **Volume (dB)**: 목소리의 크기를 측정하여 기본 데미지에 반영합니다.
+    - **Pitch Variance**: 음의 높낮이 변화를 분석하여 얼마나 생동감 있게 말했는지 판단합니다.
+
+3.  **AI 감정 평가 (Emotion Analysis)**
+    - **모델**: `hun3359/wav2vec2-xlsr-53-korean-emotion` (Fine-tuned Wav2Vec2)
+    - **설명**: 음성 데이터에서 **'격정적임(Angry, Happy, Surprise)'** 수치를 추출합니다.
+    - **Critical Hit**: 감정 점수가 임계값을 넘으면 **'오글거림'**으로 인정되어 **크리티컬 데미지(1.5배)**가 적용됩니다.
+
+### 3. Damage Calculation
+최종 데미지는 다음 요소들의 조합으로 결정됩니다.
+
+> **Total Damage** = (Base + Volume Bonus + Cringe Bonus) × Accuracy Multiplier × Critical
+
+---
+
+---
 
 ## 🛠️ 기술 스택
 
 ### Frontend
-- React 18 + Vite
-- Tailwind CSS
-- Zustand (상태 관리)
-- Lucide React (아이콘)
-- Socket.io Client
+
+| 구분 | 기술 |
+|------|------|
+| **Language** | JavaScript (ES6+) |
+| **Framework** | React 18 + Vite |
+| **Styling** | Tailwind CSS |
+| **State** | Zustand |
+| **Network** | Axois + Socket.io-client |
+| **Visuals** | Web Audio API (Canvas Visualization) |
+| **STT** | Web Speech API |
 
 ### Backend
-- FastAPI (Python)
-- Socket.io (실시간 통신)
-- Azure Speech SDK (STT)
-- Librosa (음성 분석)
 
-### Infrastructure
-- PostgreSQL (유저/랭킹 데이터)
-- Redis (실시간 배틀 상태)
-- Docker Compose
+| 구분 | 기술 |
+|------|------|
+| **Framework** | FastAPI (Python 3.10+) |
+| **Real-time** | python-socketio (Async) |
+| **Database** | PostgreSQL (asyncpg) |
+| **Cache** | Redis |
+| **Audio** | Librosa, NumPy, SciPy |
+| **AI/ML** | Wav2Vec2 (wav2vec2-xlsr-53-korean-emotion) |
+| **Similarity** | python-Levenshtein |
 
-## 📁 프로젝트 구조
+---
 
-```
-Voice-Anime-Fighter/
-├── docker-compose.yml          # PostgreSQL + Redis
-├── API 명세서.md               # API 문서
-│
-├── backend/                    # FastAPI 서버
-│   ├── main.py                 # 앱 진입점
-│   ├── config.py               # 환경 설정
-│   ├── domain/                 # 도메인 레이어
-│   │   ├── entities.py         # User, Character, Battle 등
-│   │   └── repositories.py     # 추상 레포지토리
-│   ├── use_cases/              # 비즈니스 로직
-│   │   ├── battle_service.py   # 음성 분석 + 데미지 계산
-│   │   ├── room_service.py     # 방 관리
-│   │   └── ranking_service.py  # ELO 레이팅
-│   └── adapters/               # 어댑터 레이어
-│       ├── api/routes/         # REST API
-│       └── socket/handlers.py  # Socket.io 이벤트
-│
-└── frontend/                   # React 앱
-    ├── src/
-    │   ├── screens/            # 화면 컴포넌트
-    │   │   ├── TitleScreen.jsx
-    │   │   ├── LobbyScreen.jsx
-    │   │   ├── CharacterSelectScreen.jsx
-    │   │   ├── MatchmakingScreen.jsx
-    │   │   ├── BattleScreen.jsx
-    │   │   ├── ResultScreen.jsx
-    │   │   └── SocialScreen.jsx
-    │   ├── stores/             # Zustand 상태
-    │   └── hooks/              # 커스텀 훅
-    │       ├── useSocket.js
-    │       ├── useSpeechRecognition.js
-    │       └── useAudioVisualizer.js
-    └── tailwind.config.js
+## 🚀 실행 방법
+
+### 1. 환경 변수 설정 (.env)
+
+`backend/.env` 파일을 생성하고 다음 변수들을 설정합니다.
+
+```ini
+# --- Database ---
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/voice_fighter
+REDIS_URL=redis://localhost:6379/0
+
+# --- Security ---
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# --- AI Configuration (Optional) ---
+# GPU 사용 여부 등 설정
+USE_CUDA=true
 ```
 
-## 🚀 시작하기
+### 2. DB Setup (Docker)
 
-### 1. Docker 환경 실행
+Docker Compose를 사용하여 DB와 Redis를 간편하게 실행합니다.
 
 ```bash
-# PostgreSQL + Redis 시작
 docker-compose up -d
 ```
 
-### 2. Backend 설정
+### 3. Backend Server 실행
 
 ```bash
 cd backend
 
-# 1. 가상환경 생성 및 활성화
-# Windows
+# 가상환경 생성
 python -m venv venv
+
+# 가상환경 활성화 (Windows)
 .\venv\Scripts\activate
+# (Mac/Linux: source venv/bin/activate)
 
-# macOS/Linux
-# python3 -m venv venv
-# source venv/bin/activate
+# 의존성 설치
+pip install -r requirements.txt
 
-# 2. 환경 변수 설정
-cp .env.example .env
-# .env 파일에서 AZURE_SPEECH_KEY 설정
-
-# 3. 의존성 설치 (가상환경이 활성화된 상태에서 실행)
-# Poetry를 사용하는 경우
-poetry install
-
-# 또는 pip 사용 시
-pip install fastapi uvicorn python-socketio sqlalchemy asyncpg redis pydantic-settings python-jose passlib python-multipart azure-cognitiveservices-speech librosa numpy scipy aiofiles
-
-# 4. 서버 실행
+# 서버 실행
 uvicorn main:application --reload --host 0.0.0.0 --port 8000
 ```
 
-### 3. Frontend 설정
+### 4. Frontend App 실행
 
 ```bash
 cd frontend
@@ -122,45 +204,28 @@ npm install
 npm run dev
 ```
 
-### 4. 접속
-- Frontend: http://localhost:5173
-- Backend API Docs: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-## 🎯 핵심 기능
-
-### 배틀 시스템
-
-1. **음성 녹음**: MediaRecorder API로 주문 녹음
-2. **음성 분석**: Azure Speech SDK로 텍스트 변환 + Librosa로 음량/피치 분석
-3. **데미지 계산**:
-   ```
-   total_damage = (base + cringe_bonus + volume_bonus) × accuracy_multiplier
-   ```
-4. **등급 판정**: SSS ~ F 등급과 애니메이션 트리거
-
-### 실시간 통신
-
-- Socket.io를 통한 실시간 방 입장/퇴장
-- 실시간 채팅
-- 배틀 데미지 동기화
-
-## 🎨 화면 구성
-
-| 화면 | 설명 |
-|------|------|
-| 타이틀 | 게임 시작, 마이크 테스트 |
-| 로비 | 프로필, 캐릭터, 메뉴 |
-| 캐릭터 선택 | 철권 스타일 그리드 |
-| 대기실 | VS 화면, 상대 정보 |
-| 배틀 | HP바, 음성 시각화, 주문 자막 |
-| 결과 | 승패, ELO 변동, 통계 |
-| 소셜 | 방 목록, 채팅, 랭킹 |
-
-## 📝 라이선스
-
-MIT License
+> **Note:** 프론트엔드는 `http://localhost:5173`에서 실행됩니다.
 
 ---
 
-**🌟 마법소녀 카와이 러블리 루루핑! 🌟**
+## 📡 API 문서
+
+서버 실행 후 아래 URL에서 자동 생성된 문서를 확인할 수 있습니다:
+
+- **Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
+
+### 주요 엔드포인트
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| `POST` | `/api/v1/auth/login` | 사용자 로그인 및 토큰 발급 |
+| `POST` | `/api/v1/battle/analyze` | 음성 데이터 분석 요청 |
+| `WS` | `/socket.io/` | 실시간 배틀 및 채팅 소켓 연결 |
+| `GET` | `/api/v1/ranking/top` | 상위 랭커 조회 |
+
+---
+
+<p align="center">
+  <b>at MadCamp 2025 Week 2</b>
+</p>
