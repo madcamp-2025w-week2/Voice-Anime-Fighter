@@ -24,7 +24,7 @@ export const CHARACTER_SKILLS = {
       { name: '야메로', trigger: '크큭, 야메로! 이런 싸움은 모 야메룽다!', image: '/images/attack/otaku_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '야레야레', trigger: '야레야레... 도망칠 수 없다는 건가.', image: '/images/attack/otaku_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '페로몬 어택', trigger: '후욱... 후욱... 내 페로몬을 받아라!!', image: '/images/attack/otaku_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '위험 발언', trigger: '5252. 잠깐 스톱. 방금 그 발언... 상당히 위험했다구?', image: '/images/attack/otaku_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '위험 발언', trigger: '오이오이. 잠깐 스톱. 방금 그 발언... 상당히 위험했다구?', image: '/images/attack/otaku_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '와이프 수호', trigger: '나의 피규어에 손대지 마라! 그녀는 나의 전재산이자 영혼이라능!', image: '/images/attack/otaku_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
@@ -49,7 +49,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '허식 무라사키',
-      trigger: '천상천하 유아독존 이것은 고죠 가문 안에서도 극히 일부의 인간밖에 모르는 기술! 순전과 반전, 허식, 무라사키',
+      trigger: '천상천하 유아독존! 순전과 반전, 허식, 무라사키! 지금 발동이다!',
       image: '/images/attack/gojo_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -69,7 +69,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '조이보이 귀환',
-      trigger: '해방의 드럼이 들린다. 800년만에 듣는구나...! 틀림없이 거기 있어!! 조이보이가 돌아왔다!! 고무고무 스타 건',
+      trigger: '해방의 드럼이 들린다. 팔백년만에 듣는구나...! 틀림없이 거기 있어!! 조이보이가 돌아왔다!! 고무고무 스타 건',
       image: '/images/attack/luffy_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -81,11 +81,11 @@ export const CHARACTER_SKILLS = {
     defaultImg: '/images/normal/tanjiro_normal.webp',
     hitImg: '/images/hit/tanjiro_hit.webp',
     skills: [
-      { name: 'NTR의 호흡', trigger: '씨익, 네 동생, 쩔더라? NTR의 호흡 제1 형 빼앗기', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '해의 호흡 두무', trigger: '킁카킁카!! 용이 춤추는 듯한 움직임으로 재빨리 접근! 해의 호흡 제 1형', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: 'NTR의 호흡', trigger: '씨익, 네 동생, 쩔더라? NTR의 호흡 제 일 형 빼앗기', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '해의 호흡 두무', trigger: '킁카킁카!! 용이 춤추는 듯한 움직임으로 재빨리 접근! 해의 호흡 제 일 형', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '빈틈의 실', trigger: '보였다! 네 녀석의 하찮은 빈틈의 실! 단숨에 베어 넘겨주마!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '네즈코 함함', trigger: '네즈코! 상자 밖으로 나오지 마! 오빠가 다 알아서 할게!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '물의 호흡 잔잔함', trigger: '잔잔한 물결처럼 네 녀석의 공격을 전부 흘려보내주지. 제 11형 잔잔함!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION }
+      { name: '물의 호흡 잔잔함', trigger: '잔잔한 물결처럼 네 녀석의 공격을 전부 흘려보내주지. 제 이 형 잔잔함!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
       name: '히노카미 카구라 원무',
@@ -122,7 +122,7 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/nyang_hit.webp',
     skills: [
       { name: '냥냥펀치', trigger: '냥냥펀치! 귀여운 내 주먹! 뿌잉뿌잉', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '고양이 발톱', trigger: '고양이의 발톱 공격! 미야아아아아옹~', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '고양이 발톱', trigger: '고양이의 발톱 공격! 미야옹~! 이다냥', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '츄르 유혹', trigger: '이 츄르를 받아라! 냥이의 간식 앞에 무릎 꿇지 않을 자 없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '꾹꾹이 마사지', trigger: '너의 심장을 꾹꾹이로 떡 반죽처럼 만들어주겠다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '헤어볼 발사', trigger: '나의 사랑이 담긴 불순물! 헤어볼 발사! 더러워해도 소용없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION }
@@ -144,7 +144,7 @@ export const CHARACTER_SKILLS = {
       { name: '그림자 분신술', trigger: '그림자 분신술! 천 명의 나로 빚을 돌려막겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '라센간', trigger: '회전하는 차크라의 폭풍! 라센간!! 채권자는 날아가랏!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '선인모드', trigger: '자연 에너지를 모아... 선인모드! 이 이자는 자연에서 가져왔다!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '나루토 사스케', trigger: '사스케에에!! 돌아와!! 너의 빚은 내가 다 갚아주겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '나루토 사스케', trigger: '사스케에!! 돌아와!! 너의 빚은 내가 다 갚아주겠다니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '주둥아리술', trigger: '넌 원래 착한 녀석이었어. 그러니까 나의 빚을 대신 좀 갚아주라니깐!', image: '/images/attack/naruto_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
@@ -162,14 +162,14 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/levi_hit.webp',
     skills: [
       { name: '골든 타임', trigger: '부아앙 비켜라!! 급한 건... 치킨의 골든 타임이다!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '사사게요', trigger: '사사게요!! 사사게요!! 별점 5점을 사사게요!!!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '사사게요', trigger: '사사게요!! 사사게요!! 별점 오점을 사사게요!!!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '회전 배달', trigger: '나의 오토바이는 거인의 뒷덜미보다 빠르게 코너를 돈다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '먼지 한 톨 금지', trigger: '이 구역에 먼지가 있는 건 용납 못 해! 전부 썰어버리겠다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '감자튀김 갈취', trigger: '60분 넘었으니 너의 감자튀김은 내가 압수하도록 하겠다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION }
+      { name: '감자튀김 갈취', trigger: '십분 넘었으니 너의 감자튀김은 내가 압수하도록 하겠다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
       name: '치킨의 분노',
-      trigger: '이것은 인류의 반격이 아니다, 식어버린 치킨에 대한 나의 분노다! 60분 내 도착하지 않으면 거인이고 뭐고 전부 썰어버리겠다!',
+      trigger: '이것은 인류의 반격이 아니다, 식어버린 치킨에 대한 나의 분노다! 오 분 내 도착하지 않으면 거인이고 뭐고 전부 썰어버리겠다!',
       image: '/images/attack/levi_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -204,12 +204,12 @@ export const CHARACTER_SKILLS = {
       { name: '품절주의', trigger: '미안해, 솔직하지 못한 내 지갑이... 하지만 세일 품목 앞에선 몸이 먼저 반응하는걸? 앗, 품절주의!!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '소매넣기', trigger: '바겐세일~! 시식만하고 도망 가는 널 용서하지 않겠다! 소매넣기!!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '1플러스1의 심판', trigger: '덤을 챙기지 않은 자, 정의의 이름으로 영수증을 끊겠다!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '유통기한 카운트', trigger: '3, 2, 1... 유통기한 임박! 90프로 할인의 힘을 보여주마!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '마감 세일러', trigger: '마감 10분 전! 타임 세일의 마법이 너의 멘탈을 털어버릴 거다!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION }
+      { name: '유통기한 카운트', trigger: '삼 이 일... 유통기한 임박! 반값 할인의 힘을 보여주마!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '마감 세일러', trigger: '마감 오 분 전! 타임 세일의 마법이 너의 멘탈을 털어버릴 거다!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
       name: '70프로 할인',
-      trigger: '사랑과 정의의 이름으로 70프로 할인을 용서하지 않겠다! 오늘이 지나면 다시는 오지 않을 이 가격, 지금 당장 결제해라!',
+      trigger: '사랑과 정의의 이름으로 반값 할인을 용서하지 않겠다! 오늘이 지나면 다시는 오지 않을 이 가격, 지금 당장 결제해라!',
       image: '/images/attack/moon_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
