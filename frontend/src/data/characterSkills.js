@@ -290,7 +290,7 @@ export const CHARACTER_SKILLS = {
     ultimate: {
       name: '예비군 지각',
       trigger: '부아아앙!!! 다 비켜!!! 나 예비군 늦었다고!!!! 지각하면 입구컷이란 말이야!!! 부아아아앙!!!!',
-      image: '/images/attack/chainsawminsuk_ultimate.webp',
+      image: '/images/attack/chainsawminsuk_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
