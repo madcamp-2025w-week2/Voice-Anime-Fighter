@@ -27,8 +27,8 @@ export function useOtakuAudio() {
     }
 
     const {
-      echoDelay = 0.1,       // Echo delay in seconds (reduced)
-      feedbackGain = 0.2,    // Echo feedback amount (0-1) (reduced)
+      echoDelay = 0.15,       // Echo delay in seconds (adjusted for clarity)
+      feedbackGain = 0.12,    // Echo feedback amount (reduced for clarity)
       volume = 1,          // Master volume (0-1)
     } = options
 

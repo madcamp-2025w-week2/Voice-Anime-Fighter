@@ -392,12 +392,13 @@ export default function BattleScreen() {
       return () => clearTimeout(timer)
     } else if (turnCountdown === 0) {
       // 카운트다운 완료 후 음성 입력 시작
-      setTimeout(async () => {
-        setTurnCountdown(-1)
-        setIsVoiceInputPhase(true)
-        setVoiceInputProgress(5)
+      // 카운트다운 완료 후 음성 입력 시작 (즉시)
+      setTurnCountdown(-1)
+      setIsVoiceInputPhase(true)
+      setVoiceInputProgress(5)
 
-        // 자동으로 녹음 시작
+      // 자동으로 녹음 시작
+      const startRecordingAsync = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
           startVisualizer(stream)
@@ -411,7 +412,8 @@ export default function BattleScreen() {
           console.error('Failed to start recording:', err)
           setIsVoiceInputPhase(false)
         }
-      }, 500)
+      }
+      startRecordingAsync()
     }
   }, [turnCountdown, startRecording, startVisualizer, startNewTurn])
 
