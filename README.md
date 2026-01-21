@@ -1,4 +1,7 @@
 # <img src="https://github.com/user-attachments/assets/88391a74-ddd9-49dc-b45b-5cc88c668253" align="center" width="50" height="50"> Voice-Anime-Fight
+
+> **Live Demo**: [https://voice-anime-fight.p-e.kr/](https://voice-anime-fight.p-e.kr/)
+
 > **"지옥의 흑염룡이 깨어난다..."** - 오글거림을 힘으로 바꾸는 신개념 음성 배틀 마법소녀 대전 게임
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
@@ -31,11 +34,11 @@
 > **"내 왼손엔 흑염룡이 깨어난다!!!"** 
 > 마이크를 통해 마법 주문을 외쳐 상대방에게 데미지를 입히세요!
 
-**Voice-Anime-Fight**는 사용자의 목소리를 AI로 분석하여 게임 내 공격력으로 변환하는 실시간 1:1 대전 게임입니다. **목소리의 크기, 정확도, 그리고 '오글거림'**이 승패를 가르는 핵심 요소입니다.
+**Voice-Anime-Fight**는 사용자의 목소리를 AI로 분석하여 게임 내 공격력으로 변환하는 실시간 1:1 대전 게임입니다. **목소리의 크기, 정확도, 그리고 '오글거림'** 이 승패를 가르는 핵심 요소입니다.
 
 ### 🎯 기획 의도
 
-평소에 차마 입 밖으로 내지 못했던 "중2병" 대사들, 마음껏 외쳐보고 싶지 않으셨나요?? **Voice-Anime-Fight**는 그런 흑역사를 강력한 무기로 바꿔줍니다. 친구와 함께 누가 더 부끄러움을 무릅쓰고 '진심'으로 대사를 외칠 수 있는지 겨뤄보세요.
+평소에 차마 입 밖으로 내지 못했던 "중2병" 대사들, 마음껏 외쳐보고 싶지 않으셨나요?? **Voice-Anime-Fight**는 그런 흑역사를 강력한 무기로 바꿔줍니다. 친구와 함께 누가 더 부끄러움을 무릅쓰고 『진심』으로 대사를 외칠 수 있는지 겨뤄보세요.
 
 ### ✨ 주요 기능
 
@@ -45,7 +48,9 @@
 |**실시간 음성 분석** | Librosa와 Wav2Vec2 모델을 사용하여 음량(dB), 피치, 텍스트 정확도를 실시간으로 분석합니다. |
 |**1:1 실시간 대전** | Socket.io 기반의 저지연 통신으로 끊김 없는 실시간 배틀을 제공합니다. |
 |**MMR 랭킹 시스템** | 승패에 따라 레이팅이 변동되며, 전 세계의 수치심 없는 플레이어들과 경쟁할 수 있습니다. |
+|**소셜 로그인** | Google OAuth를 연동하여 별도의 가입 없이 간편하고 안전하게 로그인할 수 있습니다. |
 |**캐릭터 & 배경 수집** | 다양한 애니메이션 스타일의 캐릭터와 배경을 선택하여 배틀에 임할 수 있습니다. |
+|**보안 연결 (HTTPS)** | Nginx와 Certbot(Let's Encrypt)을 통한 SSL/TLS 암호화 통신으로 데이터를 안전하게 보호합니다. |
 
 ---
 
@@ -123,6 +128,7 @@
 | **Framework** | React 18 + Vite |
 | **Styling** | Tailwind CSS |
 | **State** | Zustand |
+| **Auth** | Google OAuth (@react-oauth/google) |
 | **Network** | Axois + Socket.io-client |
 | **Visuals** | Web Audio API (Canvas Visualization) |
 | **STT** | Web Speech API |
@@ -138,6 +144,14 @@
 | **Audio** | Librosa, NumPy, SciPy |
 | **AI/ML** | Wav2Vec2 (wav2vec2-xlsr-53-korean-emotion) |
 | **Similarity** | python-Levenshtein |
+
+### Infrastructure
+
+| 구분 | 기술 |
+|------|------|
+| **Server** | Nginx (Reverse Proxy) |
+| **Security** | SSL/TLS (Let's Encrypt Certbot) |
+| **Container** | Docker Compose |
 
 ---
 
