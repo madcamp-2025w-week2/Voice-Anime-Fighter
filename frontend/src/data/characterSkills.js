@@ -274,6 +274,26 @@ export const CHARACTER_SKILLS = {
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
     }
+  },
+
+  // 체인소민석
+  'char_013': {
+    defaultImg: '/images/normal/chainsawminsuk_normal.webp',
+    hitImg: '/images/hit/chainsawminsuk_hit.webp',
+    skills: [
+      { name: '멍멍이 모드', trigger: '왕! 왕왕!! 포치타! 나 산책시켜줘!! 왈왈!! 으르렁!!!', image: '/images/attack/chainsawminsuk_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '시동 불량', trigger: '부릉.. 부르릉.. 어라? 시동이 안 걸려.. 기름값이 너무 비싸서 못 넣었어!!', image: '/images/attack/chainsawminsuk_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '악마의 계약', trigger: '내 심장을 줄게... 대신 군면제 시켜줘!!! 제발!!! 훈련소 가기 싫어!!!', image: '/images/attack/chainsawminsuk_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '식빵 먹방', trigger: '식빵엔... 딸기잼이지... 포치타... 잼 뚜껑 좀 따줘... 손이 톱이라 못 따...', image: '/images/attack/chainsawminsuk_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '꿈의 문', trigger: '열지 마... 열지 말라고 했잖아!! 냉장고 문 열지 마!! 내 아이스크림 먹지 마!!', image: '/images/attack/chainsawminsuk_attack.webp', duration: DEFAULT_SKILL_DURATION }
+    ],
+    ultimate: {
+      name: '예비군 지각',
+      trigger: '부아아앙!!! 다 비켜!!! 나 예비군 늦었다고!!!! 지각하면 입구컷이란 말이야!!! 부아아아앙!!!!',
+      image: '/images/attack/chainsawminsuk_ultimate.webp',
+      effectClass: 'ultimate-effect',
+      duration: DEFAULT_ULTIMATE_DURATION
+    }
   }
 }
 
