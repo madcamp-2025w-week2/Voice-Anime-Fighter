@@ -471,7 +471,7 @@ export default function BattleScreen() {
 
     // 🔥 바로 분석 요청 (setTimeout 제거, blob 직접 전달)
     const battleId = roomId || battle.battleId || 'demo'
-    const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id, recordedBlob)
+    const analysisResult = await analyzeVoice(battleId, currentSpell, selectedCharacter?.id, recordedBlob, isUltimateReady)
 
     if (analysisResult && analysisResult.success) {
       // 백엔드에서 받은 grade를 포함하여 전송 (스킬 이미지 포함)
@@ -782,12 +782,12 @@ export default function BattleScreen() {
     if (battle.isActive && battle.player.hp > 0 && battle.player.hp <= threshold && !hasAwakenedRef.current) {
       console.log('🔥 CRISIS AWAKENING! Ultimate Gauge Fully Charged!')
       hasAwakenedRef.current = true
-      
+
       // 즉시 게이지 100% 및 궁극기 준비
       setGauge(100)
       gaugeReachedFullRef.current = true
       setIsUltimateReady(true)
-      
+
       // 시각적 피드백 (선택사항)
       setShowCritical(true)
       setTimeout(() => setShowCritical(false), 1500)

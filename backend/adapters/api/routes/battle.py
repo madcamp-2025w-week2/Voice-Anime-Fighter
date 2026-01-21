@@ -97,6 +97,7 @@ async def analyze_voice(
     expected_spell: str = Form(...),
     stt_text: str = Form(default=""),  # Frontend Web Speech API result
     character_id: str = Form(default="char_001"),
+    is_ultimate: bool = Form(default=False),  # 궁극기 여부
     user_id: UUID = Depends(get_current_user_id)
 ):
     """
@@ -158,7 +159,7 @@ async def analyze_voice(
         )
         
         # Calculate damage
-        damage = battle_service.calculate_damage(analysis, character)
+        damage = battle_service.calculate_damage(analysis, character, is_ultimate=is_ultimate)
         
         return VoiceAnalyzeResponse(
             success=True,

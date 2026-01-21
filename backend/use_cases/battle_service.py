@@ -150,10 +150,11 @@ class BattleService:
     def calculate_damage(
         self,
         analysis: VoiceAnalysisResult,
-        character: Character
+        character: Character,
+        is_ultimate: bool = False
     ) -> DamageResult:
         """
-        데미지 계산 (공식은 기존과 동일 + 크리티컬 보너스)
+        데미지 계산 (공식은 기존과 동일 + 크리티컬 보너스 + 궁극기 보너스)
         
         공식:
         - base_damage = 50
@@ -162,6 +163,7 @@ class BattleService:
         - accuracy_multiplier = 0.5 + 텍스트 정확도 * 0.5 + 신뢰도 * 0.2
         - total = (base + cringe + volume) * multiplier
         - Critical: total *= 1.5
+        - Ultimate: total *= 1.5
         """
         base_damage = 100
         
@@ -182,6 +184,11 @@ class BattleService:
         is_critical = getattr(analysis, 'is_critical', False)
         if is_critical:
             total_damage = int(total_damage * 1.5)
+        
+        # Ultimate skill bonus (1.5x)
+        if is_ultimate:
+            total_damage = int(total_damage * 1.5)
+            print(f"🌟 ULTIMATE ATTACK! Damage boosted: {total_damage}")
         
         # Grade calculation
         grade = self._calculate_grade(analysis, total_damage, is_critical)
