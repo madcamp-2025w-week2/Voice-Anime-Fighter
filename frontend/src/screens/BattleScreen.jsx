@@ -29,7 +29,7 @@ const ULTIMATE_THEME_COLORS = {
   otaku: { primary: '#59658f', secondary: '#67e8f9', glow: 'rgba(6, 182, 212, 0.8)', name: '오타쿠빔' },
   inuyasha: { primary: '#899bc6', secondary: '#e2e8f0', glow: 'rgba(220, 38, 38, 0.8)', name: '폭류파' },
   winking_jjanggu: { primary: '#bac2d4', secondary: '#facc15', glow: 'rgba(59, 130, 246, 0.8)', name: '울트라 액션가면 슛' },
-  chainsawminsuk: { primary: '#f97316', secondary: '#fdba74', glow: 'rgba(249, 115, 22, 0.8)', name: '예비군 지각' },
+  chainsawminsuk: { primary: '#6a6e71', secondary: '#fdba74', glow: 'rgba(249, 115, 22, 0.8)', name: '예비군 지각' },
   naruto: { primary: '#73a5c2', secondary: '#fdba74', glow: 'rgba(249, 115, 22, 0.8)', name: '돌려막기 나루토' },
 }
 
