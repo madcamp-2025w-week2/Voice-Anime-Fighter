@@ -97,6 +97,7 @@ export function useSpeechRecognition() {
   }, [finalTranscript, liveTranscript])
 
   // Start recording (MediaRecorder + Web Speech API)
+  // 🔥 Returns the stream so visualizer can use the same stream
   const startRecording = useCallback(async () => {
     try {
       setError(null)
@@ -147,9 +148,13 @@ export function useSpeechRecognition() {
         }
       }
 
+      // 🔥 Return stream so visualizer can use the same stream
+      return stream
+
     } catch (err) {
       console.error('Recording error:', err)
       setError('마이크 접근 권한이 필요합니다.')
+      return null
     }
   }, [])
 

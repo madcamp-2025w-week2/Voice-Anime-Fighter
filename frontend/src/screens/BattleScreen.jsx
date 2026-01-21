@@ -416,12 +416,13 @@ export default function BattleScreen() {
       setIsVoiceInputPhase(true)
       setVoiceInputProgress(5)
 
-      // 자동으로 녹음 시작
+      // 🔥 startRecording이 스트림을 반환 - visualizer와 같은 스트림 공유
       const startRecordingAsync = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-          startVisualizer(stream)
-          startRecording()
+          const stream = await startRecording()  // 🔥 스트림 반환받음
+          if (stream) {
+            startVisualizer(stream)  // 🔥 같은 스트림 사용
+          }
 
           // 상대방에게 녹음 시작 알림
           if (roomId) {
