@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
-import { Settings, Sparkles } from 'lucide-react'
+import { Mic, Sparkles } from 'lucide-react'
 import { useUserStore } from '../stores/userStore'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
@@ -179,7 +179,7 @@ export default function TitleScreen() {
           onClick={testMicrophone}
           className="w-12 h-12 bg-yellow-400 hover:bg-yellow-500 rounded-lg flex items-center justify-center transition"
         >
-          <Settings className="w-6 h-6 text-gray-800" />
+          <Mic className="w-6 h-6 text-gray-800" />
         </button>
 
       </div>
@@ -247,6 +247,13 @@ export default function TitleScreen() {
           </button>
         </div>
       </div>
+
+      {/* VAF Logo (Bottom Right) */}
+      <img
+        src="/images/logo_vaf.png"
+        alt="VAF Logo"
+        className="absolute bottom-4 right-4 w-24 md:w-32 z-20 opacity-80 animate-pulse hover:opacity-100 transition-opacity"
+      />
 
       {/* Mic Test Modal */}
       {showMicTest && (
