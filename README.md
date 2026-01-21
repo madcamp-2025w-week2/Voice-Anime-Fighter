@@ -235,6 +235,7 @@ npm run dev
 | `WS` | `/socket.io/` | 실시간 배틀 및 채팅 소켓 연결 |
 | `GET` | `/api/v1/ranking/top` | 상위 랭커 조회 |
 
+[실제시현영상](https://drive.google.com/file/d/1VyfsXu-6001y3Orna4B1GM9082E7UNbG/view?usp=sharing)
 ---
 
 <p align="center">
