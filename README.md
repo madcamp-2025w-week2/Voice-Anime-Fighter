@@ -1,5 +1,4 @@
-# <img src="https://via.placeholder.com/50?text=V" align="center" width="50" height="50"> Voice-Anime-Fight
-
+# <img src="https://github.com/user-attachments/assets/88391a74-ddd9-49dc-b45b-5cc88c668253" align="center" width="50" height="50"> Voice-Anime-Fight
 > **"지옥의 흑염룡이 깨어난다..."** - 오글거림을 힘으로 바꾸는 신개념 음성 배틀 마법소녀 대전 게임
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
