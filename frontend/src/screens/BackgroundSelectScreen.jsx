@@ -167,14 +167,25 @@ export default function BackgroundSelectScreen() {
             </div>
           ) : countdown > 0 ? (
             // 카운트다운 숫자
-            <div
-              className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-orange-500"
-              style={{
-                textShadow: '0 0 60px rgba(255,200,0,0.8)',
-                animation: 'pulse 0.3s ease-in-out'
-              }}
-            >
-              {countdown}
+            <div className="flex flex-col items-center">
+              <div
+                className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-orange-500"
+                style={{
+                  textShadow: '0 0 60px rgba(255,200,0,0.8)',
+                  animation: 'pulse 0.3s ease-in-out'
+                }}
+              >
+                {countdown}
+              </div>
+              {/* 안내 멘트 추가 */}
+              <div className="mt-8 text-center animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <p className="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-2">
+                  선공 게임이 곧 시작됩니다
+                </p>
+                <p className="text-yellow-400 text-2xl font-black tracking-widest animate-pulse">
+                  F / J 연타를 준비하세요!
+                </p>
+              </div>
             </div>
           ) : (
             // FIGHT!

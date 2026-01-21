@@ -307,6 +307,7 @@ export default function BattleScreen() {
   // 궁극기 게이지 상태 (로컬 - 소켓 핸들러에서 접근 필요)
   const [gauge, setGauge] = useState(0)
   const [isUltimateReady, setIsUltimateReady] = useState(false)
+  const [hasUsedUltimate, setHasUsedUltimate] = useState(false) // 궁극기 사용 여부 (게임 당 1회 제한)
   const gaugeReachedFullRef = useRef(false)
 
   // 스킬 시스템 - 캐릭터별 스킬 데이터 가져오기
@@ -680,24 +681,27 @@ export default function BattleScreen() {
 
         // 백엔드 grade 기반으로 궁극기 게이지 증가 (S, A, B, C 등급 = 성공, 약 60% 이상)
         if (['SSS', 'SS', 'S', 'A', 'B', 'C'].includes(data.grade)) {
-          // 궁극기 사용 시 게이지 초기화
+          // 궁극기 사용 시 게이지 초기화 및 사용 플래그 설정
           if (data.is_ultimate || isUltimateReady) {
             setGauge(0)
             setIsUltimateReady(false)
             gaugeReachedFullRef.current = false
-            console.log('🌟 Ultimate used! Gauge reset.')
+            setHasUsedUltimate(true) // 🔥 궁극기 사용 처리
+            console.log('🌟 Ultimate used! Gauge reset. No more ultimates this game.')
           } else {
-            // 일반 스킬 - 게이지 1/3 증가
-            setGauge(prev => {
-              const newGauge = Math.min(100, prev + 100 / 3)
-              console.log(`⚡ Gauge increased: ${prev.toFixed(1)}% → ${newGauge.toFixed(1)}%`)
-              // 게이지 100% 도달 체크
-              if (newGauge >= 100) {
-                gaugeReachedFullRef.current = true
-                console.log('🎯 Gauge FULL! Next turn ultimate ready.')
-              }
-              return newGauge
-            })
+            // 일반 스킬 - 궁극기를 아직 안 썼을 때만 게이지 증가
+            if (!hasUsedUltimate) {
+                setGauge(prev => {
+                  const newGauge = Math.min(100, prev + 100 / 3)
+                  console.log(`⚡ Gauge increased: ${prev.toFixed(1)}% → ${newGauge.toFixed(1)}%`)
+                  // 게이지 100% 도달 체크
+                  if (newGauge >= 100) {
+                    gaugeReachedFullRef.current = true
+                    console.log('🎯 Gauge FULL! Next turn ultimate ready.')
+                  }
+                  return newGauge
+                })
+            }
           }
         }
 
@@ -794,13 +798,22 @@ export default function BattleScreen() {
     // battle object exists AND hp is valid AND hp <= 30% of maxHp AND not awakened yet
     const threshold = battle.player.maxHp * 0.3
     if (battle.isActive && battle.player.hp > 0 && battle.player.hp <= threshold && !hasAwakenedRef.current) {
-      console.log('🔥 CRISIS AWAKENING! Ultimate Gauge Fully Charged!')
+      console.log('🔥 CRISIS AWAKENING!')
       hasAwakenedRef.current = true
 
-      // 즉시 게이지 100% 및 궁극기 준비
-      setGauge(100)
-      gaugeReachedFullRef.current = true
-      setIsUltimateReady(true)
+      // 대시 복귀 애니메이션 시작... 전에 체크
+      // 이미 궁극기를 썼다면 위기 각성으로도 충전되지 않음 (혹은 위기 각성은 예외로 할지? -> "게임 당 단 한판만"이므로 위기 각성도 막아야 함)
+      // 하지만 위기 각성은 "찬스" 느낌이라 애매하지만, 사용자 요청("게임 당 단 한판")을 엄격히 따르면 막아야 함.
+      // 일단 hasUsedUltimate가 false일 때만 충전하도록 설정
+
+      if (!hasUsedUltimate) {
+         console.log('🔥 Ultimate Gauge Fully Charged by Crisis!')
+         setGauge(100)
+         gaugeReachedFullRef.current = true
+         setIsUltimateReady(true)
+      } else {
+         console.log('🔥 Crisis Awakening triggered but Ultimate already used.')
+      }
 
       // 시각적 피드백 (선택사항)
       setShowCritical(true)

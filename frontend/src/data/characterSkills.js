@@ -42,8 +42,8 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/gojo_hit.webp',
     skills: [
       { name: '료이키텐카이', trigger: '료이키텐카이 무료쿠쇼! 죽어라 이새끼야!', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '술식 순전 아오', trigger: '살짝, 난폭한 짓 좀 해볼까? 훗. 위상, 황혼 지혜의 눈동자, 술식 순전 출력 최대 아오', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '술식 반전 아카', trigger: '살짝, 난폭한 짓 좀 해볼까? 훗. 위상, 바라밑 빛의 기둥 술식 반전 아카', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '술식 순전 아오', trigger: '살짝, 난폭한 짓 좀 해볼까? 훗. 술식 순전 출력 최대 아오', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '술식 반전 아카', trigger: '살짝, 난폭한 짓 좀 해볼까? 훗. 술식 반전 아카', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '무하한의 벽', trigger: '닿을 수 없겠지? 너와 나 사이엔 영원이라는 이름의 무하한이 존재하니까!', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '육안 개방', trigger: '나의 눈은 모든 것을 꿰뚫어 본다. 네가 패배할 미래까지도 말이야!', image: '/images/attack/gojo_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
@@ -62,7 +62,7 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/luffy_hit.webp',
     skills: [
       { name: '고무고무 제트 D 드라이브', trigger: '기어 세컨드, 고무고무 제트 D 드라이브!', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '로컬 디버깅', trigger: '내 로컬에선... 돌아간다고오오오!!!!! 수도, 깃, 도커, 머지', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '로컬 디버깅', trigger: '내 로컬에선... 돌아간다고오!!!!! 수도, 깃, 도커, 머지', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '포스 푸시', trigger: '컨플릭트 무시해! 포스 푸시로 깃허브 서버를 박살내주마!', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '깃 리셋', trigger: '오늘의 개발 내역은 없던 일로 하겠다! 깃 리셋 하드 헤드 원!', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '무한 루프', trigger: '빠져나갈 수 없을걸? 너의 멘탈을 스택 오버플로우로 터뜨려주마!', image: '/images/attack/luffy_attack.webp', duration: DEFAULT_SKILL_DURATION }
@@ -82,7 +82,7 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/tanjiro_hit.webp',
     skills: [
       { name: 'NTR의 호흡', trigger: '씨익, 네 동생, 쩔더라? NTR의 호흡 제1 형 빼앗기', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '해의 호흡 두무', trigger: '킁카킁카!! 용이 춤추는 듯한 움직임으로 재빨리 접근! 해의 호흡 제11형 햇무리의 용 두무', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '해의 호흡 두무', trigger: '킁카킁카!! 용이 춤추는 듯한 움직임으로 재빨리 접근! 해의 호흡 제 1형', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '빈틈의 실', trigger: '보였다! 네 녀석의 하찮은 빈틈의 실! 단숨에 베어 넘겨주마!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '네즈코 함함', trigger: '네즈코! 상자 밖으로 나오지 마! 오빠가 다 알아서 할게!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '물의 호흡 잔잔함', trigger: '잔잔한 물결처럼 네 녀석의 공격을 전부 흘려보내주지. 제 11형 잔잔함!', image: '/images/attack/tanjiro_attack.webp', duration: DEFAULT_SKILL_DURATION }
@@ -102,14 +102,14 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/light_hit.webp',
     skills: [
       { name: '지우 때리기', trigger: '치지직, 지우를 때리고 싶다고 생각한 건 난생 처음이다. 삐까', image: '/images/attack/light_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '키라 백만볼트', trigger: '으햿으허으하하하하하허하히하 소다, 보쿠가 키라다. 어쩔 거지? 백만볼트', image: '/images/attack/light_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '키라 백만볼트', trigger: '으하하! 소다, 보쿠가 키라다. 어쩔 거지? 백만볼트 삐까!', image: '/images/attack/light_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '감자칩 처단', trigger: '난 오른손으로 이름을 적고 왼손으로 감자칩을 먹는다! 사악!', image: '/images/attack/light_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '엘과의 두뇌싸움', trigger: '내가 정의다! 나를 쫓는 너야말로 세상의 악이라는 걸 증명해주마!', image: '/images/attack/light_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '사과가 먹고싶니', trigger: '류크, 사과를 줄 테니 저 녀석의 이름이 뭔지 똑똑히 말하라구!', image: '/images/attack/light_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
       name: '신세계의 신',
-      trigger: '내가 악이라고?! 나는 정의야!! 악에 두려워 떠는 자들을 구원하고 누구나 이상으로 생각하는 신세계의 신이 될 몸이라고. 따라서, 그 신을 거역하는 자! 그 자가 바로 악이야!! 넌 너무 멍청해!',
+      trigger: '내가 악이라고?! 나는 정의야!! 신을 거역하는 자! 그 자가 바로 악이야!! 넌 너무 멍청해!',
       image: '/images/attack/light_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -121,7 +121,7 @@ export const CHARACTER_SKILLS = {
     defaultImg: '/images/normal/nyang_normal.webp',
     hitImg: '/images/hit/nyang_hit.webp',
     skills: [
-      { name: '냥냥펀치', trigger: '냥냥펀치! 냥녕뇽냥늉냥뇽뇽냥늉녕늉뇽냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '냥냥펀치', trigger: '냥냥펀치! 귀여운 내 주먹! 뿌잉뿌잉', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '고양이 발톱', trigger: '고양이의 발톱 공격! 미야아아아아옹~', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '츄르 유혹', trigger: '이 츄르를 받아라! 냥이의 간식 앞에 무릎 꿇지 않을 자 없다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '꾹꾹이 마사지', trigger: '너의 심장을 꾹꾹이로 떡 반죽처럼 만들어주겠다냥!', image: '/images/attack/nyang_attack.webp', duration: DEFAULT_SKILL_DURATION },
@@ -129,7 +129,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '고양이 군단 소환',
-      trigger: '냥냥펀치! 고양이의 힘을 빌려라!',
+      trigger: '냥냥펀치! 고양이의 힘을 빌려라! 냥뇽녕냥',
       image: '/images/attack/nyang_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -149,7 +149,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '구미 차크라 모드',
-      trigger: '미안하다 이거 보여주려고 어그로끌었다.. 나루토 사스케 싸움수준 ㄹㅇ실화냐? 진짜 세계관최강자들의 싸움이다.. 그찐따같던 나루토가 맞나? 진짜 나루토는 전설이다..',
+      trigger: '미안하다 이거 보여주려고 어그로끌었다.. 나루토 사스케 싸움수준 실화냐? 진짜 세계관최강자들의 싸움이다.. 그찐따같던 나루토가 맞나? 진짜 나루토는 전설이다..',
       image: '/images/attack/naruto_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION
@@ -289,7 +289,7 @@ export const CHARACTER_SKILLS = {
     ],
     ultimate: {
       name: '예비군 지각',
-      trigger: '부아아앙!!! 다 비켜!!! 나 예비군 늦었다고!!!! 지각하면 입구컷이란 말이야!!! 부아아아앙!!!!',
+      trigger: '부아앙!!! 다 비켜!!! 나 예비군 늦었다고!!!! 지각하면 입구컷이란 말이야!!! 부아앙!!!!',
       image: '/images/attack/chainsawminsuk_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION

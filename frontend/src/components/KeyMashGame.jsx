@@ -25,7 +25,7 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete }) {
     const [opponentCount, setOpponentCount] = useState(0)
     const [winner, setWinner] = useState(null)
     const [isStarted, setIsStarted] = useState(false)
-    const [countdown, setCountdown] = useState(3)
+    const [countdown, setCountdown] = useState(0)
     const [showResult, setShowResult] = useState(false)
 
     const { emit, on, off } = useSocket()
