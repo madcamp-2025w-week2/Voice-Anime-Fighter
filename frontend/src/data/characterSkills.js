@@ -162,7 +162,7 @@ export const CHARACTER_SKILLS = {
     hitImg: '/images/hit/livi_hit.webp',
     skills: [
       { name: '골든 타임', trigger: '부아앙 비켜라!! 급한 건... 치킨의 골든 타임이다!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '사사게요', trigger: '사사게요!! 사사게요!! 신죠오 사사게요!!!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '사사게요', trigger: '사사게요!! 사사게요!! 별점 5점을 사사게요!!!!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '회전 배달', trigger: '나의 오토바이는 거인의 뒷덜미보다 빠르게 코너를 돈다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '먼지 한 톨 금지', trigger: '이 구역에 먼지가 있는 건 용납 못 해! 전부 썰어버리겠다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '감자튀김 갈취', trigger: '60분 넘었으니 너의 감자튀김은 내가 압수하도록 하겠다!', image: '/images/attack/levi_attack.webp', duration: DEFAULT_SKILL_DURATION }
@@ -204,12 +204,12 @@ export const CHARACTER_SKILLS = {
       { name: '품절주의', trigger: '미안해, 솔직하지 못한 내 지갑이... 하지만 세일 품목 앞에선 몸이 먼저 반응하는걸? 앗, 품절주의!!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '소매넣기', trigger: '바겐세일~! 시식만하고 도망 가는 널 용서하지 않겠다! 소매넣기!!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '1플러스1의 심판', trigger: '덤을 챙기지 않은 자, 정의의 이름으로 영수증을 끊겠다!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
-      { name: '유통기한 카운트', trigger: '3, 2, 1... 유통기한 임박! 90% 할인의 힘을 보여주마!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '유통기한 카운트', trigger: '3, 2, 1... 유통기한 임박! 90프로 할인의 힘을 보여주마!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION },
       { name: '마감 세일러', trigger: '마감 10분 전! 타임 세일의 마법이 너의 멘탈을 털어버릴 거다!', image: '/images/attack/moon_attack.webp', duration: DEFAULT_SKILL_DURATION }
     ],
     ultimate: {
-      name: '70% 할인',
-      trigger: '사랑과 정의의 이름으로 70% 할인을 용서하지 않겠다! 오늘이 지나면 다시는 오지 않을 이 가격, 지금 당장 결제해라!',
+      name: '70프로 할인',
+      trigger: '사랑과 정의의 이름으로 70프로 할인을 용서하지 않겠다! 오늘이 지나면 다시는 오지 않을 이 가격, 지금 당장 결제해라!',
       image: '/images/attack/moon_attack.webp',
       effectClass: 'ultimate-effect',
       duration: DEFAULT_ULTIMATE_DURATION

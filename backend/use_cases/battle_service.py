@@ -135,9 +135,15 @@ class BattleService:
         if not stt_text or not expected_text:
             return 0.0
         
-        # Normalize: lowercase, remove spaces and punctuation
-        stt_normalized = stt_text.lower().replace(" ", "").replace("!", "").replace("?", "")
-        expected_normalized = expected_text.lower().replace(" ", "").replace("!", "").replace("?", "")
+        # Normalize: lowercase, remove spaces and punctuation (., !, ?, ,, ~)
+        punctuation_to_remove = " !?,.~"
+        
+        stt_normalized = stt_text.lower()
+        expected_normalized = expected_text.lower()
+        
+        for char in punctuation_to_remove:
+            stt_normalized = stt_normalized.replace(char, "")
+            expected_normalized = expected_normalized.replace(char, "")
         
         return levenshtein_ratio(stt_normalized, expected_normalized)
     
