@@ -7,7 +7,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Transformers](https://img.shields.io/badge/Hugging%20Face-Transformers-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/docs/transformers/index)
 
-팀원 : KAIST 24 박성민, 부산대 21 윤민석, 서울대 20 김민기
+팀원 : KAIST 24 박성민, PSU 21 윤민석, SNU 20 김민기
 ---
 
 ## 📝 목차
@@ -201,7 +201,7 @@ npm install
 npm run dev
 ```
 
-> **Note:** 프론트엔드는 `http://localhost:5173`에서 실행됩니다.
+> **Note:** 프론트엔드는 `https://localhost:443`에서 실행됩니다.
 
 ---
 
