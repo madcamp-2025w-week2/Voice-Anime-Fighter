@@ -236,6 +236,26 @@ export const CHARACTER_SKILLS = {
     }
   },
 
+  // 이계의 반요 이누야샤
+  'char_011': {
+    defaultImg: '/images/normal/inuyasha_normal.webp',
+    hitImg: '/images/hit/inuyasha_hit.webp',
+    skills: [
+      { name: '산혼철조', trigger: '내 손톱에 깃든 영혼의 조각! 너의 킹받는 얼굴을 산산조각 내주마! 산혼철조!!', image: '/images/attack/inuyasha_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '바람의 상처', trigger: '바람이 부딪히는 그곳이 바로 너의 빈틈이다! 냄새로 찾아내겠다! 바람의 상처!!', image: '/images/attack/inuyasha_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '금강창파', trigger: '다이아몬드는 부서지지 않는다! 나의 비싼 다이아몬드 화살촉 공격을 받아랏! 금강창파!', image: '/images/attack/inuyasha_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '명도잔월파', trigger: '어둠의 구멍으로 꺼져버려라! 너에게 영원한 퇴근을 명하노니... 명도잔월파!!', image: '/images/attack/inuyasha_attack.webp', duration: DEFAULT_SKILL_DURATION },
+      { name: '붉은 철쇄아', trigger: '결계 따위는 종잇장처럼 찢어주마! 붉게 물든 나의 칼날을 봐라! 붉은 철쇄아!!', image: '/images/attack/inuyasha_attack.webp', duration: DEFAULT_SKILL_DURATION }
+    ],
+    ultimate: {
+      name: '폭류파',
+      trigger: '가영아 지금이야!! 우리의 합체... 아차차 화살이 없네? 어쨌든 휘몰아치는 요기의 태풍! 폭류파!!',
+      image: '/images/attack/inuyasha_attack.webp',
+      effectClass: 'ultimate-effect',
+      duration: DEFAULT_ULTIMATE_DURATION
+    }
+  },
+
   // 찡긋 짱구
   'char_012': {
     defaultImg: '/images/normal/winking_jjanggu_normal.webp',
