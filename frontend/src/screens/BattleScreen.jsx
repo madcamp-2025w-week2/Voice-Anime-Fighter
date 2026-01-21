@@ -1045,7 +1045,7 @@ export default function BattleScreen() {
               const rankStyle = getRankStyle(showDamage.grade)
 
               return (
-                <div className={`absolute ${showDamage.isPlayer ? 'left-1/4' : 'right-1/4'} top-[12%] z-50 flex flex-col items-center pointer-events-none`}>
+                <div className={`fixed ${showDamage.isPlayer ? 'left-1/4' : 'right-1/4'} top-[30%] z-50 flex flex-col items-center pointer-events-none`}>
                   {showDamage.isCritical && (
                     <div className="flex items-center justify-center gap-1 md:gap-2 mb-1 md:mb-2 animate-bounce">
                       <Zap className="w-6 h-6 md:w-10 lg:w-12 md:h-10 lg:h-12 text-yellow-300 fill-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)]" />

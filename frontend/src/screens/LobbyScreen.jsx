@@ -1535,10 +1535,13 @@ export default function LobbyScreen() {
                               {rankDisplay}
                             </div>
 
-                            {/* 2. 이름 */}
-                            <div className={`font-bold text-sm truncate max-w-[120px] ${rank ? (isMe ? 'text-pink-100' : 'text-white') : 'text-zinc-700'
-                              }`}>
-                              {rank ? (isMe ? `${rank.nickname} (ME)` : rank.nickname) : '-'}
+                            {/* 2. 이름 - 긴 닉네임은 marquee 애니메이션 */}
+                            <div className={`font-bold text-sm max-w-[120px] overflow-hidden ${rank ? (isMe ? 'text-pink-100' : 'text-white') : 'text-zinc-700'}`}>
+                              {rank ? (
+                                <div className={`whitespace-nowrap ${(isMe ? `${rank.nickname} (ME)` : rank.nickname).length > 10 ? 'animate-marquee hover:animate-none' : ''}`}>
+                                  {isMe ? `${rank.nickname} (ME)` : rank.nickname}
+                                </div>
+                              ) : '-'}
                             </div>
                           </div>
 

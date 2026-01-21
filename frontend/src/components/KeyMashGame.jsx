@@ -16,6 +16,12 @@ const getAvatarUrl = (avatarUrl) => {
     return avatarUrl;
 };
 
+// Check if avatarUrl is an image path (not emoji)
+const isImageUrl = (avatarUrl) => {
+    if (!avatarUrl) return false;
+    return avatarUrl.startsWith('/') || avatarUrl.startsWith('http');
+};
+
 /**
  * KeyMashGame - F/J 키 연타 미니게임 컴포넌트
  * 먼저 targetCount에 도달한 플레이어가 선공권 획득
@@ -118,8 +124,12 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete, myAv
     const opponentProgress = Math.min((opponentCount / targetCount) * 100, 100)
     const isMyWin = winner === myUserId
     
-    const myAvatar = getAvatarUrl(myAvatarUrlProp || user?.avatar_url) || null
-    const oppAvatar = getAvatarUrl(opponentAvatarUrl) || null
+    const myAvatarRaw = myAvatarUrlProp || user?.avatar_url
+    const oppAvatarRaw = opponentAvatarUrl
+    const myAvatar = isImageUrl(myAvatarRaw) ? getAvatarUrl(myAvatarRaw) : null
+    const oppAvatar = isImageUrl(oppAvatarRaw) ? getAvatarUrl(oppAvatarRaw) : null
+    const myEmoji = !isImageUrl(myAvatarRaw) ? myAvatarRaw : null
+    const oppEmoji = !isImageUrl(oppAvatarRaw) ? oppAvatarRaw : null
 
     return (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-slate-900">
@@ -163,7 +173,7 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete, myAv
                                         {myAvatar ? (
                                             <img src={myAvatar} alt="Me" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-4xl">👤</div>
+                                            <div className="w-full h-full flex items-center justify-center text-4xl">{myEmoji || '👤'}</div>
                                         )}
                                     </div>
                                 </div>
@@ -196,7 +206,7 @@ export default function KeyMashGame({ roomId, targetCount = 50, onComplete, myAv
                                         {oppAvatar ? (
                                             <img src={oppAvatar} alt="Opponent" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-4xl">🤖</div>
+                                            <div className="w-full h-full flex items-center justify-center text-4xl">{oppEmoji || '🤖'}</div>
                                         )}
                                     </div>
                                 </div>

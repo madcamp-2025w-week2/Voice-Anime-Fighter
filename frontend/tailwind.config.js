@@ -46,6 +46,7 @@ export default {
         'spin-slow': 'spin 3s linear infinite',
         'float': 'float 3s ease-in-out infinite',
         'damage-pop': 'damage-pop 0.5s ease-out forwards',
+        'marquee': 'marquee 5s linear infinite',
       },
       keyframes: {
         'pulse-glow': {
@@ -72,6 +73,10 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(20px) scale(0.5)' },
           '50%': { opacity: '1', transform: 'translateY(-10px) scale(1.2)' },
           '100%': { opacity: '0', transform: 'translateY(-30px) scale(1)' },
+        },
+        'marquee': {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
       backgroundImage: {
