@@ -159,6 +159,16 @@ CHARACTERS = [
         sprite_url="/images/profile/winking_jjanggu.webp",
         is_unlocked=True
     ),
+    Character(
+        id="char_013",
+        name="체인소민석",
+        description="악마의 심장을 가진 데빌 헌터. 체인소 악마와 계약하여 모든 것을 썰어버린다.",
+        stats=CharacterStats(cringe_level=88, volume_req=95, precision=75),
+        spell_text="폼 포치타! 체인소 악마의 힘을 빌려! 모든 걸 썰어버려!",
+        thumbnail_url="/images/profile/chainsawminsuk.webp",
+        sprite_url="/images/profile/chainsawminsuk.webp",
+        is_unlocked=True
+    ),
 ]
 
 
