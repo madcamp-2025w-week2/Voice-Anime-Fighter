@@ -73,8 +73,12 @@ export function useSpeechRecognition() {
             // 의도적 중단 - 무시
             break
           case 'network':
-            // 네트워크 오류 - 사용자에게 알림
-            setError('네트워크 연결을 확인해주세요.')
+            // 🔥 네트워크 오류 - 재시도 가능 (3회 연속 실패 시에만 에러 표시)
+            console.warn('🌐 Network error, will retry automatically...')
+            if (restartCountRef.current >= 3) {
+              setError('음성 인식 서버 연결에 실패했습니다. 인터넷 연결을 확인해주세요.')
+            }
+            // 재시작은 onend에서 처리됨
             break
           case 'not-allowed':
           case 'service-not-allowed':
