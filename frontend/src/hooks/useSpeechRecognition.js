@@ -22,6 +22,9 @@ export function useSpeechRecognition() {
   const streamRef = useRef(null)
   const recognitionRef = useRef(null)
   const isRecordingRef = useRef(false)  // 🔥 Ref for onend callback closure
+  const restartCountRef = useRef(0)  // 🔥 재시작 횟수 추적
+  const maxRestarts = 5  // 🔥 최대 재시작 횟수 (무한 루프 방지)
+  const lastErrorRef = useRef(null)  // 🔥 마지막 에러 저장
 
   const { token } = useUserStore()
 
@@ -32,8 +35,12 @@ export function useSpeechRecognition() {
       recognition.continuous = true
       recognition.interimResults = true
       recognition.lang = 'ko-KR'  // Korean
+      recognition.maxAlternatives = 1  // 🔥 성능 최적화
 
       recognition.onresult = (event) => {
+        // 🔥 결과 수신 시 재시작 카운트 초기화 (정상 작동 중)
+        restartCountRef.current = 0
+        
         let interimTranscript = ''
         let finalText = ''
 
@@ -53,29 +60,76 @@ export function useSpeechRecognition() {
       }
 
       recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error)
-        // Don't set error for no-speech, it's expected
-        if (event.error !== 'no-speech' && event.error !== 'aborted') {
-          setError(`음성 인식 오류: ${event.error}`)
+        console.error('🔴 Speech recognition error:', event.error)
+        lastErrorRef.current = event.error
+        
+        // 에러 타입별 처리
+        switch (event.error) {
+          case 'no-speech':
+            // 음성 없음 - 정상적인 상황, 자동 재시작됨
+            console.log('🔇 No speech detected, will auto-restart')
+            break
+          case 'aborted':
+            // 의도적 중단 - 무시
+            break
+          case 'network':
+            // 네트워크 오류 - 사용자에게 알림
+            setError('네트워크 연결을 확인해주세요.')
+            break
+          case 'not-allowed':
+          case 'service-not-allowed':
+            // 마이크 권한 없음
+            setError('마이크 사용 권한이 필요합니다.')
+            break
+          case 'audio-capture':
+            // 마이크 접근 실패
+            setError('마이크를 찾을 수 없습니다.')
+            break
+          default:
+            setError(`음성 인식 오류: ${event.error}`)
         }
       }
 
-      // 🔥 Auto-restart when recognition ends unexpectedly
+      // 🔥 Auto-restart when recognition ends unexpectedly (개선된 버전)
       recognition.onend = () => {
-        console.log('🎤 Speech recognition ended, isRecording:', isRecordingRef.current)
-        // If still recording, auto-restart
-        if (isRecordingRef.current) {
-          console.log('🔄 Auto-restarting speech recognition...')
-          try {
-            setTimeout(() => {
-              if (isRecordingRef.current && recognitionRef.current) {
-                recognitionRef.current.start()
-                console.log('✅ Speech recognition restarted')
-              }
-            }, 100)  // Small delay to prevent rapid restart loops
-          } catch (e) {
-            console.warn('Failed to restart speech recognition:', e)
+        console.log('🎤 Speech recognition ended, isRecording:', isRecordingRef.current, 'restarts:', restartCountRef.current)
+        
+        // If still recording and within restart limit, auto-restart
+        if (isRecordingRef.current && restartCountRef.current < maxRestarts) {
+          // 치명적 에러일 경우 재시작 안함
+          if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(lastErrorRef.current)) {
+            console.log('⛔ Skipping restart due to critical error:', lastErrorRef.current)
+            return
           }
+          
+          restartCountRef.current++
+          console.log(`🔄 Auto-restarting speech recognition (${restartCountRef.current}/${maxRestarts})...`)
+          
+          // 🔥 abort() 후 딜레이를 두고 start()
+          setTimeout(() => {
+            if (isRecordingRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.abort()  // 🔥 깔끔하게 정리
+              } catch (e) {
+                // ignore abort error
+              }
+              
+              // abort 후 추가 딜레이
+              setTimeout(() => {
+                if (isRecordingRef.current && recognitionRef.current) {
+                  try {
+                    recognitionRef.current.start()
+                    console.log('✅ Speech recognition restarted successfully')
+                    lastErrorRef.current = null  // 성공 시 에러 초기화
+                  } catch (e) {
+                    console.warn('Failed to restart speech recognition:', e.message)
+                  }
+                }
+              }, 100)  // abort 후 100ms 추가 대기
+            }
+          }, 300)  // 🔥 300ms 딜레이 (100ms → 300ms 증가)
+        } else if (restartCountRef.current >= maxRestarts) {
+          console.warn('⚠️ Max restart attempts reached, stopping auto-restart')
         }
       }
 
@@ -86,7 +140,11 @@ export function useSpeechRecognition() {
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop()
+        try {
+          recognitionRef.current.abort()
+        } catch (e) {
+          // ignore
+        }
       }
     }
   }, [])
@@ -106,6 +164,8 @@ export function useSpeechRecognition() {
       setFinalTranscript('')
       setAudioBlob(null)  // 🔥 이전 오디오 초기화!
       chunksRef.current = []
+      restartCountRef.current = 0  // 🔥 녹음 시작 시 재시작 카운트 초기화
+      lastErrorRef.current = null  // 🔥 에러 상태 초기화
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
