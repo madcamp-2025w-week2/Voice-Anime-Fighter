@@ -25,6 +25,7 @@ export function useSpeechRecognition() {
   const restartCountRef = useRef(0)  // 🔥 재시작 횟수 추적
   const maxRestarts = 5  // 🔥 최대 재시작 횟수 (무한 루프 방지)
   const lastErrorRef = useRef(null)  // 🔥 마지막 에러 저장
+  const isRecognitionRunningRef = useRef(false)  // 🔥 recognition 실행 상태 추적
 
   const { token } = useUserStore()
 
@@ -97,6 +98,7 @@ export function useSpeechRecognition() {
       // 🔥 Auto-restart when recognition ends unexpectedly (개선된 버전)
       recognition.onend = () => {
         console.log('🎤 Speech recognition ended, isRecording:', isRecordingRef.current, 'restarts:', restartCountRef.current)
+        isRecognitionRunningRef.current = false  // 🔥 recognition 종료 상태 업데이트
         
         // If still recording and within restart limit, auto-restart
         if (isRecordingRef.current && restartCountRef.current < maxRestarts) {
@@ -120,13 +122,15 @@ export function useSpeechRecognition() {
               
               // abort 후 추가 딜레이
               setTimeout(() => {
-                if (isRecordingRef.current && recognitionRef.current) {
+                if (isRecordingRef.current && recognitionRef.current && !isRecognitionRunningRef.current) {
                   try {
                     recognitionRef.current.start()
+                    isRecognitionRunningRef.current = true  // 🔥 실행 상태 업데이트
                     console.log('✅ Speech recognition restarted successfully')
                     lastErrorRef.current = null  // 성공 시 에러 초기화
                   } catch (e) {
                     console.warn('Failed to restart speech recognition:', e.message)
+                    isRecognitionRunningRef.current = false
                   }
                 }
               }, 100)  // abort 후 100ms 추가 대기
@@ -204,12 +208,16 @@ export function useSpeechRecognition() {
       isRecordingRef.current = true  // 🔥 Sync ref for onend callback
 
       // Start Web Speech API (Fast Track)
-      if (recognitionRef.current) {
+      if (recognitionRef.current && !isRecognitionRunningRef.current) {
         try {
           recognitionRef.current.start()
+          isRecognitionRunningRef.current = true  // 🔥 실행 상태 업데이트
         } catch (e) {
           console.warn('Speech recognition already started:', e)
+          isRecognitionRunningRef.current = true  // 에러가 나도 실행 중인 것으로 간주
         }
+      } else if (isRecognitionRunningRef.current) {
+        console.log('⏭️ Speech recognition already running, skipping start()')
       }
 
       // 🔥 Return stream so visualizer can use the same stream
